@@ -18,7 +18,41 @@
 *.zip
 *.tar.gz
 *.rar
+# ...nhưng giữ Maven Wrapper
+!engine/.mvn/wrapper/maven-wrapper.jar
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Internal Viettel documents - never publish
+docs/AI_Viettel/
+
+# ---------------- Build output ----------------
+target/
+dist/
+out-tsc/
+.angular/
+coverage/
+
+# ---------------- Dependencies ----------------
+node_modules/
+
+# ---------------- Generated ----------------
+# Kiểu TypeScript sinh từ contracts/ (sinh lại khi build/test)
+analyzer-node/src/protocol/generated/
+
+# ---------------- Local data & secrets ----------------
+.env
+.env.*
+!.env.example
+.data/
+# Danh sách từ khóa nội bộ dùng cho scripts/check-forbidden-terms.mjs — không bao giờ commit
+.forbidden-terms
+
+# ---------------- IDE / OS ----------------
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

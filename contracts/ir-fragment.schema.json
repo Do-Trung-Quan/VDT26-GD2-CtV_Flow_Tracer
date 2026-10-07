@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ctv-flowtracer.local/contracts/ir-fragment.schema.json",
+  "title": "IrFragment",
+  "description": "Kết quả phân tích một Source (phần bản đồ IR). Khớp record com.ctv.flowtracer.ir.IrFragment và §2.2 của overview.",
+  "type": "object",
+  "required": ["adapterId", "nodes", "edges", "detectedLinkRules", "diagnostics"],
+  "additionalProperties": false,
+  "properties": {
+    "adapterId": { "type": "string", "minLength": 1 },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/IrNode" } },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/IrEdge" } },
+    "detectedLinkRules": { "type": "array", "items": { "$ref": "#/$defs/LinkRule" } },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/Diagnostic" } }
+  },
+  "$defs": {
+    "NodeKind": {
+      "type": "string",
+      "enum": ["UI_APP", "UI_SCREEN", "UI_TAB", "UI_DIALOG", "UI_FORM", "UI_ELEMENT", "FE_METHOD", "HTTP_CALL",
+               "API_ENDPOINT", "BE_METHOD", "DATA_QUERY", "DB_TABLE", "DATA_TYPE", "EXTERNAL"]
+    },
+    "EdgeKind": {
+      "type": "string",
+      "enum": ["CONTAINS", "TRIGGERS", "CALLS", "OPENS", "NAVIGATES", "SENDS", "HTTP_REQUEST", "HANDLED_BY",
+               "EXECUTES", "READS", "WRITES", "USES_TYPE"]
+    },
+    "Confidence": {
+      "type": "string",
+      "enum": ["CERTAIN", "INFERRED", "AI_RESOLVED", "UNRESOLVED", "RUNTIME_VERIFIED"]
+    },
+    "SourceLocation": {
+      "type": "object",
+      "required": ["filePath"],
+      "additionalProperties": false,
+      "properties": {
+        "filePath": { "type": "string", "description": "Đường dẫn tương đối trong Source, dùng dấu '/'" },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "Guard": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["IF", "ELSE", "SWITCH", "TERNARY", "TRY", "CATCH", "LOOP"] },
+        "text": { "type": "string" },
+        "branch": { "type": "string" }
+      }
+    },
+    "Candidate": {
+      "type": "object",
+      "required": ["nodeKey", "score"],
+      "additionalProperties": false,
+      "properties": {
+        "nodeKey": { "type": "string" },
+        "score": { "type": "number" },
+        "reason": { "type": "string" }
+      }
+    },
+    "IrNode": {
+      "type": "object",
+      "required": ["key", "kind", "name", "attrs"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z]+:[a-z_]+:.+$", "description": "Node key ổn định — xem NodeKeys" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "name": { "type": "string" },
+        "displayName": { "type": "string" },
+        "location": { "$ref": "#/$defs/SourceLocation" },
+        "attrs": { "type": "object", "description": "Thuộc tính riêng theo kind (overview §2.2.1)" }
+      }
+    },
+    "IrEdge": {
+      "type": "object",
+      "required": ["fromKey", "kind", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "fromKey": { "type": "string" },
+        "toKey": { "type": "string" },
+        "kind": { "$ref": "#/$defs/EdgeKind" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "reason": { "type": "string" },
+        "callOrder": { "type": "integer", "minimum": 0 },
+        "guard": { "$ref": "#/$defs/Guard" },
+        "candidates": { "type": "array", "items": { "$ref": "#/$defs/Candidate" } },
+        "location": { "$ref": "#/$defs/SourceLocation" }
+      },
+      "anyOf": [
+        { "required": ["location"] },
+        { "required": ["reason"] }
+      ]
+    },
+    "LinkRule": {
+      "type": "object",
+      "required": ["type", "pattern", "origin"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["PREFIX", "REWRITE", "CONTEXT_PATH", "QUERY_SINK"] },
+        "pattern": { "type": "string" },
+        "replacement": { "type": "string" },
+        "origin": { "type": "string", "enum": ["AUTO", "MANUAL"] },
+        "description": { "type": "string" }
+      }
+    },
+    "Diagnostic": {
+      "type": "object",
+      "required": ["severity", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "severity": { "type": "string", "enum": ["INFO", "WARNING", "ERROR"] },
+        "filePath": { "type": "string" },
+        "line": { "type": "integer", "minimum": 1 },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ctv-flowtracer.local/contracts/analyze-request.schema.json",
+  "title": "AnalyzeRequest",
+  "description": "Đầu vào sidecar, gửi qua stdin. Engine đã lọc sẵn danh sách file; sidecar CHỈ được đọc đúng các file này, bên trong sourceRoot.",
+  "type": "object",
+  "required": ["protocolVersion", "adapter", "sourceId", "sourceRoot", "files", "cacheDir"],
+  "additionalProperties": false,
+  "properties": {
+    "protocolVersion": { "const": 1 },
+    "adapter": { "type": "string", "enum": ["angular", "php-legacy"] },
+    "sourceId": { "type": "string" },
+    "sourceRoot": { "type": "string", "description": "Đường dẫn tuyệt đối tới thư mục Source (bên trong container)" },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "hash"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "description": "Đường dẫn tương đối trong Source, dùng dấu '/'" },
+          "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "cacheDir": { "type": "string", "description": "Thư mục cache dữ kiện pha 1 — nơi DUY NHẤT sidecar được ghi" },
+    "options": { "type": "object", "additionalProperties": { "type": "string" } }
+  }
+}

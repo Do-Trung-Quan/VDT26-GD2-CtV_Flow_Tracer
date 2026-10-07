@@ -1,0 +1,259 @@
+// CtV Flow Tracer - Thiết kế cơ sở dữ liệu (PostgreSQL 16)
+// Mô tả chi tiết từng bảng: .context/database.md
+// Docs: https://dbml.dbdiagram.io/docs
+
+// ----------------- Enums -----------------
+
+Enum source_role {
+  BACKEND
+  FRONTEND
+  LEGACY
+}
+
+Enum scan_trigger {
+  IMPORT
+  RESCAN
+}
+
+Enum scan_status {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  PARTIAL
+  FAILED
+  CANCELLED
+}
+
+Enum parse_status {
+  OK
+  ERROR
+  SKIPPED
+}
+
+Enum edge_confidence {
+  CERTAIN
+  INFERRED
+  AI_RESOLVED
+  UNRESOLVED
+  RUNTIME_VERIFIED
+}
+
+Enum override_decision {
+  PIN
+  REJECT
+}
+
+Enum ai_purpose {
+  PURPOSE_TEXT
+  SCENARIO_POLISH
+  MOCK_DATA
+  EDGE_RESOLUTION
+  LEGACY_MATCH
+  FEATURE_SUMMARY
+  MIGRATION_CHECKLIST
+}
+
+Enum llm_call_status {
+  OK
+  ERROR
+  REJECTED_BY_VALIDATION
+  QUOTA_EXCEEDED
+}
+
+Enum feature_origin {
+  USER
+  SUGGESTED
+}
+
+// ----------------- Tables -----------------
+
+Table workspaces {
+  id uuid [primary key, not null]
+  name varchar(200) [not null, unique]
+  description text [null]
+  settings jsonb [not null, default: '{}']
+  last_scan_run_id uuid [null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table sources {
+  id uuid [primary key, not null]
+  workspace_id uuid [not null]
+  name varchar(200) [not null]
+  role source_role [not null]
+  root_path text [not null]
+  include_globs jsonb [not null, default: '[]']
+  exclude_globs jsonb [not null, default: '[]']
+  parent_source_id uuid [null]
+  detected_stacks jsonb [not null, default: '[]']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table scan_runs {
+  id uuid [primary key, not null]
+  workspace_id uuid [not null]
+  trigger scan_trigger [not null]
+  status scan_status [not null]
+  stats jsonb [not null, default: '{}']
+  error_summary text [null]
+  started_at timestamptz [not null]
+  finished_at timestamptz [null]
+}
+
+Table source_files {
+  id uuid [primary key, not null]
+  source_id uuid [not null]
+  rel_path text [not null]
+  content_hash char(64) [not null]
+  language varchar(20) [not null]
+  size_bytes integer [not null]
+  parse_status parse_status [not null]
+  parse_error text [null]
+  last_scan_run_id uuid [not null]
+
+  indexes {
+    (source_id, rel_path) [unique]
+  }
+}
+
+Table ir_nodes {
+  id uuid [primary key, not null]
+  workspace_id uuid [not null]
+  key text [not null]
+  kind varchar(30) [not null]
+  source_id uuid [not null]
+  file_id uuid [null]
+  name text [not null]
+  display_name text [null]
+  start_line integer [null]
+  end_line integer [null]
+  attrs jsonb [not null, default: '{}']
+  search_text tsvector [null]
+
+  indexes {
+    (workspace_id, key) [unique]
+    (workspace_id, kind)
+    search_text [type: gin]
+  }
+}
+
+Table ir_edges {
+  id uuid [primary key, not null]
+  workspace_id uuid [not null]
+  from_node_id uuid [not null]
+  to_node_id uuid [null]
+  kind varchar(30) [not null]
+  confidence edge_confidence [not null]
+  reason text [null]
+  call_order integer [null]
+  guard jsonb [null]
+  candidates jsonb [null]
+  file_id uuid [null]
+  line integer [null]
+
+  indexes {
+    from_node_id
+    to_node_id
+  }
+}
+
+Table link_overrides {
+  id uuid [primary key, not null]
+  workspace_id uuid [not null]
+  from_node_key text [not null]
+  to_node_key text [null]
+  edge_kind varchar(30) [not null]
+  decision override_decision [not null]
+  note text [null]
+  created_at timestamptz [not null]
+}
+
+Table ai_artifacts {
+  id uuid [primary key, not null]
+  workspace_id uuid [not null]
+  target_key text [not null]
+  purpose ai_purpose [not null]
+  input_hash char(64) [not null]
+  prompt_version varchar(20) [not null]
+  provider varchar(50) [not null]
+  model varchar(50) [not null]
+  content jsonb [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (workspace_id, purpose, target_key, input_hash) [unique]
+  }
+}
+
+Table llm_call_logs {
+  id uuid [primary key, not null]
+  workspace_id uuid [null]
+  purpose varchar(30) [not null]
+  provider varchar(50) [not null]
+  model varchar(50) [not null]
+  prompt_hash char(64) [not null]
+  input_tokens integer [null]
+  output_tokens integer [null]
+  latency_ms integer [null]
+  status llm_call_status [not null]
+  created_at timestamptz [not null]
+}
+
+Table app_settings {
+  key varchar(100) [primary key, not null]
+  value jsonb [not null]
+  updated_at timestamptz [not null]
+}
+
+// Mở rộng: nhóm chức năng (bảng tạo sẵn từ MVP)
+Table features {
+  id uuid [primary key, not null]
+  workspace_id uuid [not null]
+  name varchar(200) [not null]
+  description text [null]
+  origin feature_origin [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (workspace_id, name) [unique]
+  }
+}
+
+Table feature_members {
+  feature_id uuid [not null]
+  node_key text [not null]
+  order_index integer [not null]
+
+  indexes {
+    (feature_id, node_key) [pk]
+  }
+}
+
+// ----------------- Relationships -----------------
+
+Ref: sources.workspace_id > workspaces.id [delete: cascade]
+Ref: sources.parent_source_id > sources.id
+Ref: scan_runs.workspace_id > workspaces.id [delete: cascade]
+Ref: workspaces.last_scan_run_id - scan_runs.id
+Ref: source_files.source_id > sources.id [delete: cascade]
+Ref: source_files.last_scan_run_id > scan_runs.id
+Ref: ir_nodes.workspace_id > workspaces.id [delete: cascade]
+Ref: ir_nodes.source_id > sources.id [delete: cascade]
+Ref: ir_nodes.file_id > source_files.id [delete: cascade]
+Ref: ir_edges.workspace_id > workspaces.id [delete: cascade]
+Ref: ir_edges.from_node_id > ir_nodes.id [delete: cascade]
+Ref: ir_edges.to_node_id > ir_nodes.id [delete: cascade]
+Ref: ir_edges.file_id > source_files.id [delete: cascade]
+Ref: link_overrides.workspace_id > workspaces.id [delete: cascade]
+Ref: ai_artifacts.workspace_id > workspaces.id [delete: cascade]
+Ref: llm_call_logs.workspace_id > workspaces.id [delete: set null]
+Ref: features.workspace_id > workspaces.id [delete: cascade]
+Ref: feature_members.feature_id > features.id [delete: cascade]
+
+// Liên kết mềm (không dùng khóa ngoại, trỏ bằng ir_nodes.key để sống qua các lần quét):
+//   link_overrides.from_node_key / to_node_key -> ir_nodes.key
+//   ai_artifacts.target_key                    -> ir_nodes.key
+//   feature_members.node_key                   -> ir_nodes.key

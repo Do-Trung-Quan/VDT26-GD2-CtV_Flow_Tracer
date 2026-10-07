@@ -1,0 +1,34 @@
+{
+  "adapterId": "angular",
+  "nodes": [
+    {
+      "key": "ng:element:admin-app/category-form-dialog#btn-save",
+      "kind": "UI_ELEMENT",
+      "name": "btn-save",
+      "displayName": "Nút Lưu",
+      "location": { "filePath": "projects/admin-app/src/app/category/category-form-dialog.component.html", "startLine": 42, "endLine": 42 },
+      "attrs": { "elementType": "button", "event": "click", "i18nKey": "btn_save" }
+    },
+    {
+      "key": "ng:http:admin-app/HttpCategoryRepository#create:0",
+      "kind": "HTTP_CALL",
+      "name": "HttpCategoryRepository.create",
+      "location": { "filePath": "projects/admin-app/src/app/category/http-category.repository.ts", "startLine": 31, "endLine": 31 },
+      "attrs": { "httpMethod": "POST", "urlExpr": "`${API_BASE}/categories`", "urlPattern": "/gateway/api/v1/categories" }
+    }
+  ],
+  "edges": [
+    {
+      "fromKey": "ng:element:admin-app/category-form-dialog#btn-save",
+      "toKey": "ng:http:admin-app/HttpCategoryRepository#create:0",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": { "filePath": "projects/admin-app/src/app/category/category-form-dialog.component.html", "startLine": 42, "endLine": 42 }
+    }
+  ],
+  "detectedLinkRules": [
+    { "type": "REWRITE", "pattern": "^/gateway", "replacement": "", "origin": "AUTO", "description": "proxy.conf.json: ^/gateway → ''" }
+  ],
+  "diagnostics": []
+}

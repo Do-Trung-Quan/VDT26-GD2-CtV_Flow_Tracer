@@ -1,0 +1,45 @@
+# Chạy: docker compose -f docker/docker-compose.yml --env-file .env up -d --build
+name: flowtracer
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: flowtracer
+      POSTGRES_USER: ${DB_USER:-flowtracer}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-flowtracer}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-flowtracer} -d flowtracer"]
+      interval: 5s
+      retries: 10
+
+  flowtracer-app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/flowtracer
+      DB_USER: ${DB_USER:-flowtracer}
+      DB_PASSWORD: ${DB_PASSWORD:-flowtracer}
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_MODEL: ${LLM_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+    ports:
+      - "127.0.0.1:8600:8600"   # chỉ mở cho máy cục bộ
+    volumes:
+      - ${SOURCE_ROOT:?Cần đặt SOURCE_ROOT trong .env}:/sources:ro
+      - flowtracer-data:/data
+
+volumes:
+  pgdata:
+  flowtracer-data:

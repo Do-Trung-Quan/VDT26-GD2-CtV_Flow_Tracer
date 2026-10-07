@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ctv-flowtracer.local/contracts/progress-event.schema.json",
+  "title": "ProgressEvent",
+  "description": "Mỗi dòng sidecar in ra stderr là một JSON theo schema này (NDJSON). Dòng không parse được thì Engine coi là log thường.",
+  "type": "object",
+  "required": ["type", "stage"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "const": "progress" },
+    "stage": { "type": "string", "enum": ["EXTRACT", "RESOLVE", "DONE"] },
+    "processed": { "type": "integer", "minimum": 0 },
+    "total": { "type": "integer", "minimum": 0 },
+    "message": { "type": "string" }
+  }
+}

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.ctv.flowtracer</groupId>
+    <artifactId>flowtracer-engine</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>CtV Flow Tracer - Engine</name>
+    <description>Analysis Engine: phân tích tĩnh mã nguồn và dựng luồng End-to-End</description>
+
+    <modules>
+        <module>flowtracer-ir</module>
+        <module>flowtracer-core</module>
+        <module>flowtracer-adapter-spring</module>
+        <module>flowtracer-app</module>
+    </modules>
+
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-ai.version>2.0.1</spring-ai.version>
+        <javaparser.version>3.28.2</javaparser.version>
+        <springdoc.version>3.1.1</springdoc.version>
+        <archunit.version>1.5.1</archunit.version>
+        <json-schema-validator.version>3.0.8</json-schema-validator.version>
+        <datafaker.version>2.7.0</datafaker.version>
+        <spotless.version>3.10.3</spotless.version>
+        <!-- Bật bằng -Pgolden-update: các golden test ghi đè snapshot thay vì so sánh -->
+        <golden.update>false</golden.update>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Module nội bộ -->
+            <dependency>
+                <groupId>com.ctv.flowtracer</groupId>
+                <artifactId>flowtracer-ir</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ctv.flowtracer</groupId>
+                <artifactId>flowtracer-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ctv.flowtracer</groupId>
+                <artifactId>flowtracer-adapter-spring</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Thư viện ngoài -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.javaparser</groupId>
+                <artifactId>javaparser-symbol-solver-core</artifactId>
+                <version>${javaparser.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tngtech.archunit</groupId>
+                <artifactId>archunit-junit5</artifactId>
+                <version>${archunit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${json-schema-validator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.datafaker</groupId>
+                <artifactId>datafaker</artifactId>
+                <version>${datafaker.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <golden.update>${golden.update}</golden.update>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <java>
+                        <palantirJavaFormat/>
+                        <removeUnusedImports/>
+                    </java>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>golden-update</id>
+            <properties>
+                <golden.update>true</golden.update>
+            </properties>
+        </profile>
+    </profiles>
+</project>

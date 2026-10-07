@@ -1,0 +1,5 @@
+# Profile dev: log chi tiết hơn
+logging:
+  level:
+    com.ctv.flowtracer: DEBUG
+    org.hibernate.SQL: INFO

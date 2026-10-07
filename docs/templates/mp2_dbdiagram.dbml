@@ -1,0 +1,104 @@
+// MP2 - Thiết kế cơ sở dữ liệu
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id uuid [primary key, not null]
+  email varchar [not null, unique]
+  password_hash varchar [not null]
+  full_name varchar [not null]
+  employee_id varchar [not null, unique]
+  avatar_url varchar [not null]
+  role enum [not null]
+  department_id uuid [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table departments {
+  id uuid [primary key, not null]
+  name varchar [not null, unique]
+  address varchar [not null]
+  description text [null]
+  deleted_at timestamp [null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table refresh_tokens {
+  id uuid [primary key, not null]
+  user_id uuid [not null]
+  token_hash varchar [not null]
+  is_revoked boolean [not null, default: false]
+  expires_at timestamp [not null]
+  created_at timestamp [not null]
+}
+
+Table password_reset_otps {
+  id uuid [primary key, not null]
+  user_id uuid [not null]
+  otp_code varchar [not null]
+  is_used boolean [not null, default: false]
+  expires_at timestamp [not null]
+  created_at timestamp [not null]
+}
+
+Table meetings {
+  id uuid [primary key, not null]
+  title varchar [not null]
+  description text [null]
+  type enum [not null]
+  host_id uuid [not null]
+  department_id uuid [not null]
+  status enum [not null]
+  audio_url varchar [null]
+  duration_seconds integer [null]
+  is_locked boolean [not null, default: false]
+  deleted_at timestamp [null]
+  started_at timestamp [null]
+  ended_at timestamp [null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table transcript_blocks {
+  id uuid [primary key, not null]
+  meeting_id uuid [not null]
+  sequence_number integer [not null]
+  text text [not null]
+  speaker_label varchar [not null]
+  start_time float [not null]
+  end_time float [not null]
+  created_at timestamp [not null]
+}
+
+Table meeting_summaries {
+  id uuid [primary key, not null]
+  meeting_id uuid [not null, unique]
+  summary_text text [not null]
+  status enum [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table notifications {
+  id uuid [primary key, not null]
+  user_id uuid [not null]
+  meeting_id uuid [not null]
+  type enum [not null]
+  message varchar [not null]
+  is_read boolean [not null, default: false]
+  created_at timestamp [not null]
+}
+
+// ----------------- Relationships -----------------
+
+Ref: users.department_id > departments.id
+Ref: meetings.department_id > departments.id
+Ref: meetings.host_id > users.id
+Ref: refresh_tokens.user_id > users.id
+Ref: password_reset_otps.user_id > users.id
+Ref: transcript_blocks.meeting_id > meetings.id
+Ref: meeting_summaries.meeting_id - meetings.id
+Ref: notifications.user_id > users.id
+Ref: notifications.meeting_id > meetings.id

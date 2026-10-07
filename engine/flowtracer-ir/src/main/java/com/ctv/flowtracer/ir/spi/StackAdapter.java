@@ -1,0 +1,41 @@
+package com.ctv.flowtracer.ir.spi;
+
+import com.ctv.flowtracer.ir.IrFragment;
+import com.ctv.flowtracer.ir.NoiseFilter;
+import com.ctv.flowtracer.ir.SourceRole;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Hợp đồng chung của mọi bộ phân tích theo công nghệ (xem §2.1.4 của overview). Lõi phân tích không chứa logic
+ * riêng của công nghệ nào; mọi thứ riêng nằm trong adapter. Adapter chạy trong sidecar được ứng dụng bọc bằng
+ * {@code SidecarStackAdapter}.
+ */
+public interface StackAdapter {
+
+    /** Định danh ổn định, vd "spring", "angular", "php-legacy". */
+    String id();
+
+    /** Vai trò Source mà adapter hỗ trợ. */
+    Set<SourceRole> roles();
+
+    /** Kiểu dữ kiện pha 1 của adapter — dùng để đọc lại từ cache. */
+    Class<? extends FileFacts> factsType();
+
+    /** Mức độ phù hợp (0..1) dựa trên các file đặc trưng của Source. */
+    DetectResult detect(DetectContext ctx);
+
+    /**
+     * Pha 1 — từng file độc lập, chạy song song: trích dữ kiện thô. Kết quả được cache theo mã băm file. Không
+     * được ném lỗi vì file sai cú pháp; ghi lỗi vào dữ kiện để pha 2 sinh {@code Diagnostic}.
+     */
+    FileFacts extract(ExtractContext ctx, SourceFile file);
+
+    /** Pha 2 — một lần cho cả Source: phân giải tham chiếu chéo và sinh IR hoàn chỉnh, đã sắp xếp ổn định. */
+    IrFragment resolve(ResolveContext ctx, List<FileFacts> facts);
+
+    /** Bộ lọc nhiễu mặc định của công nghệ. */
+    default List<NoiseFilter> defaultNoiseFilters() {
+        return List.of();
+    }
+}
