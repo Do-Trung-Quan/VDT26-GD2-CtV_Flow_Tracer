@@ -31,6 +31,8 @@
 - các mục liên quan trong `.context/`;
 - nhật ký giai đoạn trước trong `docs/progress/`.
 
+**Cách chia việc trong một giai đoạn (từ Giai đoạn 2):** làm **phần BE trước** → bàn giao (tóm tắt + cách kiểm thử) → người dùng duyệt → mới làm **phần FE**. Không làm BE và FE trong một lượt.
+
 **Cuối mỗi giai đoạn** phải xong đủ 6 việc:
 1. `./mvnw -f engine/pom.xml verify`, `npm --prefix analyzer-node run test`, `npm --prefix web run test` đều xanh. `ArchitectureTest` không bị nới luật.
 2. **Kiểm chứng trên giao diện** với dự án demo theo checklist của giai đoạn.
@@ -55,7 +57,8 @@ npm --prefix web start                                                          
 | Giai đoạn | Nội dung | Trạng thái |
 | :--- | :--- | :--- |
 | 0 | Tài liệu `.context/`, khung mã nguồn (engine 4 module, sidecar, web, contracts), migration V1–V2, bản vẽ giao diện | ✅ Xong |
-| 1 → 11 | Xem bên dưới | ⏳ Chưa làm |
+| 1 | Workspace & Import dự án — nhật ký: `docs/progress/0910_gd1_workspace_import.md` | ✅ Xong, chờ người dùng review |
+| 2 → 11 | Xem bên dưới | ⏳ Chưa làm |
 
 ---
 
@@ -69,7 +72,9 @@ npm --prefix web start                                                          
    ```
 3. **Tạo `.env`** từ `.env.example`:
    - `SOURCE_ROOT` = thư mục cha chứa dự án demo (gắn chỉ đọc);
-   - `LLM_PROVIDER=none` cho tới Giai đoạn 7.
+   - `LLM_PROVIDER=none` cho tới Giai đoạn 7;
+   - máy đã có PostgreSQL chiếm cổng 5432 thì đặt `DB_PORT=5433` và `DB_URL=jdbc:postgresql://localhost:5433/flowtracer`.
+   - Profile `dev` của Engine tự đọc `.env` ở gốc repo.
 4. **Tạo `.forbidden-terms`** (đã gitignore): liệt kê tên dự án, tên package, domain nội bộ của dự án demo để script chặn rò rỉ.
 5. **Công cụ hỗ trợ:** Swagger UI của Engine (`/swagger-ui.html`), DBeaver/TablePlus để xem CSDL, plugin xem PlantUML.
 

@@ -41,6 +41,11 @@ public final class SpringStackAdapter implements StackAdapter {
     }
 
     @Override
+    public List<String> rootMarkers() {
+        return SpringDetector.ROOT_MARKERS;
+    }
+
+    @Override
     public DetectResult detect(DetectContext ctx) {
         return detector.detect(ctx);
     }

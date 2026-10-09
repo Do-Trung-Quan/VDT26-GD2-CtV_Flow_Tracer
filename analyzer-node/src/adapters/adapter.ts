@@ -1,3 +1,4 @@
+import type { DetectResult } from '../protocol/generated/detect-result.js';
 import type { IrFragment } from '../protocol/generated/ir-fragment.js';
 import type { FileAccess } from '../runtime/file-access.js';
 
@@ -17,6 +18,11 @@ export interface ResolveContext {
 /** Hợp đồng adapter phía sidecar — tương ứng StackAdapter (Java) nhưng chạy trọn 2 pha trong sidecar. */
 export interface NodeAdapter {
   readonly id: string;
+  /**
+   * Nhận diện công nghệ từ NỘI DUNG các file đặc trưng của một thư mục ứng viên (Engine gửi kèm, xem lệnh `detect`
+   * trong contracts/sidecar-protocol.md). Không đọc file, không ném lỗi vì file sai cú pháp.
+   */
+  detect(files: Readonly<Record<string, string>>): DetectResult;
   /** PHA 1 — từng file độc lập; kết quả phải serialize JSON được để cache. */
   extract(file: InputFile): Promise<unknown>;
   /** PHA 2 — ghép dữ kiện cả Source → IrFragment. */

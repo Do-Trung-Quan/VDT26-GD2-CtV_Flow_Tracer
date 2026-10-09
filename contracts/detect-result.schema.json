@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ctv-flowtracer.local/contracts/detect-result.schema.json",
+  "title": "DetectResult",
+  "description": "Đầu ra lệnh `detect` của sidecar (stdout). Khớp record DetectResult của flowtracer-ir.",
+  "type": "object",
+  "required": [
+    "score"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Mức độ phù hợp; 0 = không phải công nghệ này"
+    },
+    "stackName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Tên hiển thị, vd \"Angular\""
+    },
+    "version": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Phiên bản nhận diện được"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Dấu hiệu đã dùng"
+    }
+  }
+}

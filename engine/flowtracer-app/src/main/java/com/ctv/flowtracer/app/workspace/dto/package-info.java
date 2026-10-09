@@ -1,6 +1,9 @@
 /**
- * DTO của chức năng `workspace`: các dạng dữ liệu giao diện gửi lên (*Request) và Engine trả về (*Response), kèm kiểm tra dữ liệu đầu vào.
+ * DTO của chức năng `workspace`, chia hai package con:
  *
- * <p>Sẽ bổ sung: CreateWorkspaceRequest, UpdateWorkspaceRequest, SourceRequest, WorkspaceResponse, FolderEntryResponse, DetectionResponse, NoiseFiltersRequest/Response.
+ * <ul>
+ *   <li>{@code request} — dữ liệu giao diện gửi lên ({@code *Request}), kèm Bean Validation;
+ *   <li>{@code response} — dữ liệu Engine trả về ({@code *Response}), luôn nằm trong {@code data} của {@code ApiResponse}.
+ * </ul>
  */
 package com.ctv.flowtracer.app.workspace.dto;

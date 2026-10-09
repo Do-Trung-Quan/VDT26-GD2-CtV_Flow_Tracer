@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ctv-flowtracer.local/contracts/detect-request.schema.json",
+  "title": "DetectRequest",
+  "description": "Đầu vào lệnh `detect` của sidecar, gửi qua stdin. Engine gửi kèm NỘI DUNG các file đặc trưng của một thư mục ứng viên gốc dự án; sidecar không tự đọc file nào.",
+  "type": "object",
+  "required": [
+    "protocolVersion",
+    "adapter",
+    "files"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "protocolVersion": {
+      "const": 1
+    },
+    "adapter": {
+      "type": "string",
+      "enum": [
+        "angular",
+        "php-legacy"
+      ]
+    },
+    "files": {
+      "type": "object",
+      "description": "Đường dẫn tương đối trong thư mục ứng viên (dùng dấu '/') → nội dung file. File không tồn tại thì không có khóa.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}

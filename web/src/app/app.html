@@ -1,4 +1,51 @@
-<header class="topbar">CtV Flow Tracer</header>
-<main>
-  <router-outlet />
-</main>
+<header class="hdr">
+  <a class="logo" routerLink="/"><b>FT</b><span class="topbar">CtV Flow Tracer</span></a>
+  <label class="sr-only" for="wsSelect">Workspace</label>
+  <select id="wsSelect" class="wsel" [value]="ctx.currentId() ?? ''" (change)="selectWorkspace($event)">
+    <option value="">— Chọn Workspace —</option>
+    @for (w of ctx.workspaces(); track w.id) {
+      <option [value]="w.id" [selected]="w.id === ctx.currentId()">{{ w.name }}</option>
+    }
+  </select>
+  <div class="sp1 center">
+    <div class="hsearch" title="Tìm kiếm nhanh có từ Giai đoạn 4">
+      <app-icon name="search" [small]="true" />
+      <span>Tìm API, màn hình, phần tử… (sắp có)</span>
+      <kbd>Ctrl K</kbd>
+    </div>
+  </div>
+  <a class="hai" routerLink="/settings/ai" title="Cấu hình AI làm ở Giai đoạn 7 — hiện chạy với AI tắt">
+    <span class="dot"></span>AI tắt
+  </a>
+  <button class="hbtn solid" type="button" (click)="ctx.importOpen.set(true)">
+    <app-icon name="upload" [small]="true" />Import dự án
+  </button>
+</header>
+
+<div class="body">
+  <nav class="rail" aria-label="Điều hướng">
+    <a class="ri" routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" title="Danh sách Workspace">
+      <app-icon name="home" />
+    </a>
+    @if (ctx.currentId(); as id) {
+      <a class="ri" [routerLink]="['/w', id]" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" title="Màn hình chính">
+        <app-icon name="layout" />
+      </a>
+      <a class="ri" [routerLink]="['/w', id, 'settings']" routerLinkActive="on" title="Cài đặt Workspace">
+        <app-icon name="gear" />
+      </a>
+    }
+    <a class="ri" routerLink="/settings/ai" routerLinkActive="on" title="Cấu hình AI">
+      <app-icon name="sparkle" />
+    </a>
+  </nav>
+  <main>
+    <router-outlet />
+  </main>
+</div>
+
+<app-toast-host />
+
+@if (ctx.importOpen()) {
+  <app-import-wizard (closed)="ctx.importOpen.set(false)" />
+}

@@ -1,3 +1,32 @@
-:host { display: flex; flex-direction: column; height: 100vh; }
-.topbar { padding: 8px 16px; font-weight: 600; border-bottom: 1px solid #ddd; }
-main { flex: 1; min-height: 0; }
+:host { display: grid; grid-template-rows: 56px 1fr; height: 100vh; }
+
+.hdr {
+  background: linear-gradient(90deg, #b9000e, #9e000c); color: #fff; display: flex; align-items: center; gap: 14px;
+  padding: 0 16px 0 10px; box-shadow: var(--sh-md); z-index: 30;
+}
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: #fff; text-decoration: none; }
+.logo b { display: inline-grid; place-items: center; width: 34px; height: 30px; border-radius: 8px; background: #fff; color: var(--brand); font-size: 12px; }
+.wsel { height: 34px; border-radius: 8px; border: 0; padding: 0 10px; background: rgba(255, 255, 255, 0.14); color: #fff; font: 600 13.5px var(--font); max-width: 240px; }
+.wsel option { color: var(--t1); }
+.center { display: flex; justify-content: center; }
+.hsearch {
+  height: 36px; width: min(620px, 100%); padding: 0 10px 0 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.95);
+  color: var(--t4); font-size: 13.5px; display: flex; align-items: center; gap: 8px; cursor: not-allowed;
+}
+.hsearch kbd { margin-left: auto; font: 11px var(--mono); border-radius: 4px; padding: 1px 5px; box-shadow: var(--ring); }
+.hai, .hbtn {
+  height: 34px; padding: 0 12px; border: 0; background: rgba(255, 255, 255, 0.14); color: #fff;
+  font: 600 13px var(--font); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none;
+}
+.hai { border-radius: 999px; }
+.hai .dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; }
+.hbtn { border-radius: 8px; }
+.hbtn.solid { background: #fff; color: var(--brand); }
+
+.body { display: flex; min-height: 0; }
+.rail { width: 56px; background: #fff; box-shadow: inset -1px 0 0 var(--bd); display: flex; flex-direction: column; padding: 8px 7px; gap: 4px; flex: none; }
+.ri { height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--t3); }
+.ri:hover { background: #f3f4f6; color: var(--t1); }
+.ri.on { background: var(--brand-l); color: var(--brand); }
+main { flex: 1; min-width: 0; min-height: 0; overflow: auto; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

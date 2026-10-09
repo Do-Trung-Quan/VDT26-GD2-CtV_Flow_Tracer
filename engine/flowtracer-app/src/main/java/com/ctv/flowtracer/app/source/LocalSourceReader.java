@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiPredicate;
@@ -44,6 +45,24 @@ public class LocalSourceReader implements SourceReader {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Override
+    public List<Entry> listFiles(String relativeDir) {
+        Path dir = resolveSafe(relativeDir);
+        try (Stream<Path> children = Files.list(dir)) {
+            return children.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                    .sorted()
+                    .map(p -> new Entry(relativize(p), p.getFileName().toString(), false, sizeOf(p)))
+                    .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public boolean isDirectory(String relativePath) {
+        return Files.isDirectory(resolveSafe(relativePath), LinkOption.NOFOLLOW_LINKS);
     }
 
     @Override
@@ -101,6 +120,10 @@ public class LocalSourceReader implements SourceReader {
     /** Chuẩn hóa và kiểm tra đường dẫn nằm trong root (kể cả sau khi giải symlink). */
     Path resolveSafe(String relativePath) {
         String rel = relativePath == null ? "" : relativePath.replace('\\', '/');
+        // Chặn ngay '..' và đường dẫn tuyệt đối — kể cả khi không thoát ra ngoài (vd source-root là gốc ổ đĩa)
+        if (rel.startsWith("/") || rel.contains(":") || Arrays.asList(rel.split("/")).contains("..")) {
+            throw outside(relativePath);
+        }
         Path candidate = root.resolve(rel).normalize();
         if (!candidate.startsWith(root)) {
             throw outside(relativePath);

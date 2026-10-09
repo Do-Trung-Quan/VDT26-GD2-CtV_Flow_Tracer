@@ -1,4 +1,13 @@
-# Profile dev: log chi tiết hơn
+# Profile dev (chạy Engine ngoài Docker bằng spring-boot:run, thư mục làm việc là engine/flowtracer-app)
+spring:
+  config:
+    # Đọc biến từ .env ở gốc repo (SOURCE_ROOT, LLM_PROVIDER…); biến môi trường thật vẫn được ưu tiên
+    import: optional:file:../../.env[.properties]
+
+flowtracer:
+  sidecar:
+    cli-path: ${SIDECAR_CLI:../../analyzer-node/dist/cli.js}
+
 logging:
   level:
     com.ctv.flowtracer: DEBUG

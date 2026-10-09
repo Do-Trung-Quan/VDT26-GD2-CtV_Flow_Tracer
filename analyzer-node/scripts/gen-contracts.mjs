@@ -11,7 +11,9 @@ const outDir = path.resolve(here, '..', 'src', 'protocol', 'generated');
 const schemas = {
   'ir-fragment.schema.json': 'ir-fragment.ts',
   'analyze-request.schema.json': 'analyze-request.ts',
-  'progress-event.schema.json': 'progress-event.ts'
+  'progress-event.schema.json': 'progress-event.ts',
+  'detect-request.schema.json': 'detect-request.ts',
+  'detect-result.schema.json': 'detect-result.ts'
 };
 
 await mkdir(outDir, { recursive: true });

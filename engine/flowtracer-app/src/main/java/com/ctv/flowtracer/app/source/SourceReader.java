@@ -15,6 +15,12 @@ public interface SourceReader {
     /** Liệt kê thư mục con trực tiếp (dùng cho trình duyệt thư mục). */
     List<Entry> listDirs(String relativeDir);
 
+    /** Liệt kê file nằm ngay trong thư mục (không đệ quy, bỏ qua symlink), sắp xếp theo tên. */
+    List<Entry> listFiles(String relativeDir);
+
+    /** Đường dẫn tồn tại và là thư mục (không theo symlink). Đường dẫn ra ngoài source-root thì ném lỗi 400. */
+    boolean isDirectory(String relativePath);
+
     /**
      * Duyệt đệ quy mọi file dưới {@code relativeRoot}, sắp xếp ổn định theo đường dẫn.
      *

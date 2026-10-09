@@ -2,7 +2,7 @@ package com.ctv.flowtracer.app.common.error;
 
 import java.util.Map;
 
-/** Lỗi nghiệp vụ mang {@link ErrorCode}. Message phải là tiếng Việt thân thiện và KHÔNG chứa thông tin bí mật. */
+/** Lỗi nghiệp vụ mang {@link ErrorCode}, trả về dạng {@code ApiResponse} có {@code errors} = {@code details}. Message phải là tiếng Việt thân thiện và KHÔNG chứa thông tin bí mật. */
 public class AppException extends RuntimeException {
 
     private final ErrorCode code;

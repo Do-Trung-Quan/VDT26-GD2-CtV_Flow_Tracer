@@ -302,7 +302,9 @@ public interface StackAdapter {
     /** Vai trò Source mà adapter hỗ trợ */
     Set<SourceRole> roles();
 
-    /** Mức độ phù hợp (0..1) dựa trên các file đặc trưng của Source */
+    /** Tên file đặc trưng ở gốc dự án (vd "pom.xml", "angular.json") — thư mục chứa chúng là ứng viên gốc dự án */
+    List<String> rootMarkers();
+    /** Mức độ phù hợp (0..1) dựa trên các file đặc trưng của thư mục ứng viên */
     DetectResult detect(DetectContext ctx);
 
     /** Pha 1 – từng file độc lập, chạy song song: trích "dữ kiện" thô (class, hàm, lời gọi, annotation…).
@@ -519,7 +521,7 @@ Tên gọi các bộ phận trong kịch bản:
 ## 2.5 API nội bộ
 
 Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A–I tương ứng với 9 nhóm chức năng. Quy ước chính:
-- Tiền tố `/api`, dữ liệu JSON, lỗi theo dạng `{ "error": { "code", "message", "details" } }`.
+- Tiền tố `/api`, dữ liệu JSON, mọi response bọc trong `{ "status", "code", "message", "data", "errors" }` (dữ liệu trong `data`; lỗi có `code` và `errors`), trừ SSE và `/api/health`.
 - Tiến độ quét và nội dung AI đang sinh được đẩy về dạng luồng (SSE).
 - Không có đăng nhập; Engine chỉ lắng nghe `127.0.0.1`.
 - Thành phần được chỉ định bằng `node_key` ổn định. Kết quả dò vết có `trace_id` tính từ đầu vào nên tính lại được bất cứ lúc nào.

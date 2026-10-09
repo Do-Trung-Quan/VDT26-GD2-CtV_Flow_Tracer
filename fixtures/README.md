@@ -6,3 +6,6 @@ Sẽ bổ sung khi làm tới phase tương ứng (xem `.context/project_structu
 - `spring-shop-api/` — Spring Boot nhỏ chứa các "ca khó" cho adapter Spring.
 - `angular-shop-web/` — Angular nhỏ chứa các "ca khó" cho adapter Angular.
 - `golden/` — snapshot IR để so sánh trong golden test.
+
+Đã có:
+- `detection/` — cây thư mục giả cho test nhận diện thư mục (Giai đoạn 1), xem `detection/README.md`.

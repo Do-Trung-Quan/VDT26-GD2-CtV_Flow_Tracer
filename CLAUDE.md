@@ -117,7 +117,7 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 | `*Controller` | flowtracer-app · `<chức năng>/controller/` | REST / SSE endpoint, mỏng |
 | `*Service` | flowtracer-app · `<chức năng>/service/` | Logic nghiệp vụ; service công khai cho package khác |
 | `*Repository` | flowtracer-app · `<chức năng>/repository/` | Spring Data JPA, hoặc JdbcClient cho bảng IR |
-| `*Request` / `*Response` | flowtracer-app · `dto/` | DTO vào/ra (Java `record` + Bean Validation) |
+| `*Request` / `*Response` | flowtracer-app · `<chức năng>/dto/request/` · `dto/response/` | DTO vào/ra: Java `record`, mỗi trường một dòng kèm Javadoc; request có Bean Validation đầy đủ (thông điệp tiếng Việt). Mọi response REST bọc trong `common/web/ApiResponse<T>` `{status, code, message, data, errors}` (trừ SSE và `/api/health`) |
 | `entity/*` | flowtracer-app · `<chức năng>/entity/` | JPA `@Entity` và enum đi kèm (tên class không có hậu tố) |
 | `*Rule` / `*Rules` | flowtracer-app, core | Quy tắc thuần, unit test được (vd `AiAdviceRule`, `NestedSourceRules`) |
 | `*Step` | flowtracer-app · `scan/pipeline` | Một giai đoạn của pipeline quét |

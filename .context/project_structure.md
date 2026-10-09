@@ -76,6 +76,8 @@ contracts/
 │                                    #   — sidecar phải trả kết quả đúng định dạng này, Engine dựa vào đây để kiểm tra
 ├── analyze-request.schema.json      # Bản mô tả định dạng "yêu cầu phân tích" Engine gửi sang sidecar (phân tích thư mục nào, những file nào)
 ├── progress-event.schema.json       # Bản mô tả định dạng "thông báo tiến độ" sidecar gửi về trong lúc chạy (đang ở bước nào, xong bao nhiêu file)
+├── detect-request.schema.json       # Yêu cầu "nhận diện công nghệ" (lệnh detect): tên bộ phân tích + NỘI DUNG các file đặc trưng của một thư mục
+├── detect-result.schema.json        # Kết quả nhận diện: điểm phù hợp, tên công nghệ, phiên bản, dấu hiệu đã dùng
 ├── sidecar-protocol.md              # Tài liệu hướng dẫn cách Engine gọi sidecar và ý nghĩa các mã kết quả trả về (thành công, lỗi, quá thời gian)
 └── examples/
     └── ir-fragment.example.json     # Một kết quả phân tích mẫu đúng định dạng — dùng để kiểm tra cả Java lẫn Node.js hiểu dữ liệu giống nhau
@@ -144,7 +146,11 @@ flowtracer-core/src/main/java/com/ctv/flowtracer/core/
 │   └── ContentHash.java             # Tính "dấu vân tay" (mã băm) của nội dung file — file không đổi thì dấu vân tay không đổi,
 │                                    #   nhờ đó lần quét sau biết file nào cần đọc lại
 ├── detection/
-│   └── StackDetector.java           # Tự nhận diện một thư mục code dùng công nghệ gì (Spring? Angular?) để chọn đúng bộ phân tích
+│   ├── StackDetector.java           # Tự nhận diện một thư mục code dùng công nghệ gì (Spring? Angular?) để chọn đúng bộ phân tích
+│   ├── FolderDetector.java          # Nhận diện thư mục người dùng chọn: tìm các gốc dự án trong 4 tầng, dò ngược lên thư mục cha
+│   │                                #   (INSIDE_PROJECT), giữ pom.xml gốc của dự án nhiều module, gợi ý thư mục mã PHP cũ (chỉ báo)
+│   ├── FolderAccess.java            # Cách lõi "nhìn" cây thư mục (liệt kê thư mục con, file, đọc file) — ứng dụng cấp qua SourceReader
+│   └── FolderDetection.java         # Kết quả: VALID / INSIDE_PROJECT / NOT_FOUND, các gốc dự án, gốc gợi ý, gợi ý mã cũ
 ├── graph/                           # Nhóm xử lý "bản đồ" trong bộ nhớ
 │   ├── GraphIndex.java              # Bản đồ thành phần + quan hệ dựng sẵn trong bộ nhớ để tra cứu nhanh
 │   │                                #   (thành phần này gọi tới ai, được ai gọi, tìm theo loại…)
@@ -288,11 +294,14 @@ common/
 │   ├── ErrorCode.java               # Danh sách mã lỗi của hệ thống (trùng tên Workspace, đang quét, đường dẫn không hợp lệ, AI đang tắt…)
 │   │                                #   kèm mã HTTP tương ứng
 │   ├── AppException.java            # Loại lỗi dùng khi vi phạm quy tắc nghiệp vụ — mang theo mã lỗi và câu thông báo tiếng Việt
-│   └── GlobalExceptionHandler.java  # Bắt mọi lỗi xảy ra và trả về giao diện theo cùng một dạng { error: { code, message, details } };
+│   └── GlobalExceptionHandler.java  # Bắt mọi lỗi xảy ra và trả về cùng vỏ bọc ApiResponse { status, code, message, data: null, errors };
 │                                    #   giấu chi tiết kỹ thuật và thông tin bí mật
 ├── sse/
 │   └── SseHub.java                  # Bộ đẩy dữ liệu thời gian thực tới giao diện (tiến độ quét, nội dung AI đang viết dần)
 └── web/
+    ├── ApiResponse.java             # Vỏ bọc chuẩn cho MỌI response REST { status, code, message, data, errors } — dữ liệu nằm trong data
+    │                                #   (không bọc: luồng SSE và /api/health)
+    ├── ValidationPatterns.java      # Biểu thức kiểm tra dùng chung cho DTO (đường dẫn tương đối, glob, chuỗi không rỗng)
     ├── NodeKeyCodec.java            # Mã hóa mã định danh thành phần để đặt an toàn trên URL (vì mã có ký tự đặc biệt như : # /)
     └── PageResponse.java            # Dạng dữ liệu trả về cho danh sách có phân trang (danh sách, tổng số, trang hiện tại, số dòng mỗi trang)
 
@@ -323,6 +332,7 @@ workspace/
 │   ├── WorkspaceService.java        # Xử lý nghiệp vụ Workspace: tạo (không cho trùng tên), sửa, xóa (không cho xóa khi đang quét), đọc thiết lập
 │   │                                #   — các chức năng khác muốn biết thông tin Workspace phải hỏi qua đây
 │   ├── SourceService.java           # Xử lý nghiệp vụ thêm/sửa/xóa thư mục mã nguồn
+│   ├── FolderBrowseService.java     # Duyệt thư mục trong SOURCE_ROOT (chỉ trả thư mục, ẩn thư mục build/ẩn/hệ thống)
 │   ├── NestedSourceRules.java       # Quy tắc khi một thư mục nằm bên trong thư mục khác (vd mã PHP cũ nằm trong repo Backend):
 │   │                                #   tự loại thư mục con khỏi thư mục cha để không file nào bị đọc 2 lần; chặn khai báo trùng
 │   └── StackDetectionService.java   # Nhận diện thư mục: không có gốc dự án → báo không hợp lệ; nằm trong một dự án → gợi ý thư mục gốc;
@@ -336,12 +346,18 @@ workspace/
 │   ├── DetectedStack.java           # Một công nghệ đã nhận diện được trên thư mục (tên, phiên bản, mức độ phù hợp)
 │   └── Source.java                  # Một dòng của bảng sources — một thư mục mã nguồn kèm vai trò (Backend/Frontend/hệ thống cũ)
 └── dto/                             # Dữ liệu giao diện gửi lên và Engine trả về
-    ├── CreateWorkspaceRequest.java, UpdateWorkspaceRequest.java   # Yêu cầu tạo / sửa Workspace
-    ├── SourceRequest.java           # Yêu cầu thêm / sửa một thư mục mã nguồn (đường dẫn, tên, thư mục loại trừ — không có vai trò)
-    ├── WorkspaceResponse.java       # Thông tin Workspace trả về (kèm danh sách thư mục mã nguồn, lần quét gần nhất)
-    ├── FolderEntryResponse.java     # Một thư mục con trả về cho trình duyệt thư mục
-    ├── DetectionResponse.java       # Kết quả nhận diện một thư mục: hợp lệ / nằm trong dự án khác / không tìm thấy, kèm các gốc dự án
-    └── NoiseFiltersRequest.java, NoiseFiltersResponse.java        # Danh sách mẫu thành phần cần ẩn — gửi lên / trả về
+    ├── request/                     # Dữ liệu gửi lên — record, kiểm tra đầu vào đầy đủ (Bean Validation, thông điệp tiếng Việt)
+    │   ├── CreateWorkspaceRequest.java, UpdateWorkspaceRequest.java   # Tạo / sửa Workspace
+    │   ├── CreateSourceRequest.java, UpdateSourceRequest.java         # Thêm / sửa thư mục mã nguồn (đường dẫn, tên, thư mục loại trừ — không có vai trò)
+    │   ├── DetectFolderRequest.java                                   # Nhận diện một thư mục
+    │   └── UpdateNoiseFiltersRequest.java, NoiseFilterItemRequest.java   # Danh sách bộ lọc nhiễu thủ công
+    └── response/                    # Dữ liệu trả về — luôn nằm trong data của ApiResponse
+        ├── WorkspaceResponse.java, SourceResponse.java, DetectedStackResponse.java   # Workspace kèm thư mục mã nguồn và công nghệ
+        ├── FolderBrowseResponse.java, FolderEntryResponse.java   # Thư mục đang xem + các thư mục con cho trình duyệt thư mục
+        ├── DetectionResponse.java, DetectionStatus.java, DetectedRootResponse.java, LegacyHintResponse.java
+        │                            #   Nhận diện thư mục: hợp lệ / nằm trong dự án khác / không tìm thấy; các gốc dự án kèm dấu hiệu
+        │                            #   nhận diện; gợi ý mã cũ (PHP); cảnh báo
+        └── NoiseFiltersResponse.java, NoiseFilterResponse.java   # Bộ lọc nhiễu mặc định + thủ công
 ```
 
 #### 4.4.4. `scan/` — Quét & phân tích mã nguồn
@@ -642,6 +658,7 @@ analyzer-node/
 │       ├── registry.ts              # Danh sách các bộ phân tích sidecar đang có (hiện chỉ Angular) — Engine chọn theo tên
 │       ├── angular/                 # Bộ phân tích Angular (MVP)
 │       │   ├── index.ts             # "Cửa vào" của bộ phân tích Angular — nối bước đọc từng file với bước ghép kết quả
+│       │   ├── detect.ts            # Lệnh detect: angular.json + @angular/core trong package.json → Angular, kèm phiên bản
 │       │   ├── facts.ts             # Kiểu dữ liệu chứa "những gì đọc được từ MỘT file Angular" (class, route, lời gọi API, nút bấm, nhãn…)
 │       │   ├── workspace/           # Đọc cấu hình tổng của dự án Angular
 │       │   │   ├── angular-json.reader.ts      # Đọc angular.json để biết dự án có những ứng dụng/thư viện nào và nằm ở đâu
@@ -730,6 +747,7 @@ web/
 ```text
 fixtures/                            # Các dự án mẫu nhỏ TỰ VIẾT 100% — dùng để kiểm thử tool và demo công khai
 ├── README.md                        # Quy tắc dùng fixtures: không sao chép code công ty; mỗi dự án mẫu cố ý chứa các "ca khó" cần kiểm thử
+├── detection/                       # Cây thư mục giả cho test nhận diện thư mục (monorepo BE + FE, FE nằm trong repo BE, thư mục không liên quan)
 ├── spring-shop-api/                 # Dự án Backend Spring Boot mẫu, chứa các tình huống khó: một interface có 2 class xử lý, câu truy vấn
 │                                    #   ghép từ nhiều đoạn, dữ liệu trả về được bọc chung, thông báo lỗi tiếng Việt, bảng dùng chung có cột phân loại
 ├── angular-shop-web/                # Dự án Frontend Angular mẫu, chứa các tình huống khó: nhiều ứng dụng con, màn hình nạp sau, hộp thoại,
@@ -779,6 +797,7 @@ Ngoài các service dưới đây, package chức năng **không** gọi thành 
 | :--- | :--- | :--- |
 | `SourceReader` | source | workspace, scan, graph, explanation |
 | `WorkspaceService` | workspace | scan, linking, tracing, explanation |
+| `RunningScanRegistry`, `AdapterRegistry` | scan | workspace (chặn sửa/xóa khi đang quét; nhận diện thư mục, bộ lọc nhiễu mặc định) |
 | `GraphQueryService` / `GraphWriteService` | graph | scan, linking, tracing, explanation, feature, comparison |
 | `LinkingService` / `LinkOverrideService` / `EdgeAdviceService` | linking | scan, tracing |
 | `TracingService` | tracing | explanation, feature, comparison |

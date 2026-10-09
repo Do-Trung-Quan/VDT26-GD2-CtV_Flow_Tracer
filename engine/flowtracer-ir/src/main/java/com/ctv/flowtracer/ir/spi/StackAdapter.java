@@ -22,6 +22,14 @@ public interface StackAdapter {
     /** Kiểu dữ kiện pha 1 của adapter — dùng để đọc lại từ cache. */
     Class<? extends FileFacts> factsType();
 
+    /**
+     * Tên file đặc trưng ở gốc dự án (vd {@code pom.xml}, {@code angular.json}). Thư mục chứa một trong các file này là
+     * ứng viên gốc dự án và được đưa vào {@link #detect(DetectContext)}.
+     */
+    default List<String> rootMarkers() {
+        return List.of();
+    }
+
     /** Mức độ phù hợp (0..1) dựa trên các file đặc trưng của Source. */
     DetectResult detect(DetectContext ctx);
 
