@@ -114,11 +114,11 @@ Mỗi bản ghi là **một quan hệ có hướng** giữa hai thành phần, v
 | from_node_id | UUID (FK) | Thành phần xuất phát, tham chiếu IrNode.id |
 | to_node_id | UUID (FK, nullable) | Thành phần đích, tham chiếu IrNode.id. NULL khi chưa xác định được đích |
 | kind | VARCHAR(30) | Loại quan hệ, ví dụ: `TRIGGERS` (kích hoạt), `CALLS` (gọi hàm), `HTTP_REQUEST` (gửi yêu cầu API), `READS`/`WRITES` (đọc/ghi dữ liệu), `CONTAINS` (chứa trong) |
-| confidence | ENUM('CERTAIN', 'INFERRED', 'AI_RESOLVED', 'UNRESOLVED', 'RUNTIME_VERIFIED') | Mức tin cậy: chắc chắn; suy luận theo luật; AI chọn trong các ứng viên; chưa xác định; đã xác minh lúc chạy (mở rộng) |
+| confidence | ENUM('CERTAIN', 'INFERRED', 'UNRESOLVED', 'RUNTIME_VERIFIED') | Mức tin cậy: chắc chắn; suy luận theo luật; chưa xác định; đã xác minh lúc chạy (mở rộng). AI không bao giờ đổi giá trị này; liên kết chốt tay nằm ở bảng LinkOverride |
 | reason | TEXT (nullable) | Giải thích vì sao có mức tin cậy này, hiển thị khi người dùng di chuột vào mũi tên |
 | call_order | INTEGER (nullable) | Thứ tự của lời gọi bên trong hàm nguồn, dùng để xếp các bước trên diagram đúng trình tự |
 | guard | JSONB (nullable) | Điều kiện bao quanh lời gọi, ví dụ `{"type":"if","text":"code đã tồn tại","branch":"then"}`. Dùng để vẽ nhánh lỗi và sinh mục "Ràng buộc" |
-| candidates | JSONB (nullable) | Danh sách thành phần có thể là đích (kèm điểm) khi có nhiều khả năng. AI chỉ được chọn trong danh sách này |
+| candidates | JSONB (nullable) | Danh sách thành phần có thể là đích (kèm điểm khớp) khi có nhiều khả năng. Người dùng chốt tay một ứng viên; AI chỉ giải thích |
 | file_id | UUID (FK, nullable) | File chứa điểm gọi, tham chiếu SourceFile.id |
 | line | INTEGER (nullable) | Dòng của điểm gọi trong file |
 
@@ -139,20 +139,22 @@ Mỗi bản ghi là **một quyết định chốt tay** của người dùng v�
 
 ## 8. AiArtifact
 
-**Bộ nhớ đệm** cho mọi nội dung do AI sinh ra: mục đích của API, câu kịch bản đã làm mượt, lựa chọn liên kết… Mỗi bản ghi gắn với một **mã băm đầu vào**. Đoạn code liên quan không đổi thì dùng lại kết quả cũ, không gọi AI lần nữa.
+**Bộ nhớ đệm** cho mọi nội dung do AI sinh ra: mục đích của API, lời kịch bản, lời phân tích liên kết… Mỗi bản ghi gắn với một **mã băm đầu vào**. Đoạn code liên quan không đổi thì dùng lại kết quả cũ, không gọi AI lần nữa.
 
 | Thuộc tính | Kiểu dữ liệu | Mô tả |
 | :--- | :--- | :--- |
 | id | UUID | Khóa chính |
 | workspace_id | UUID (FK) | Workspace sở hữu, tham chiếu Workspace.id |
 | target_key | TEXT | Đối tượng được sinh nội dung: key của thành phần, key của luồng, cặp key (so sánh cũ/mới) hoặc id nhóm chức năng |
-| purpose | ENUM('PURPOSE_TEXT', 'SCENARIO_POLISH', 'MOCK_DATA', 'EDGE_RESOLUTION', 'LEGACY_MATCH', 'FEATURE_SUMMARY', 'MIGRATION_CHECKLIST') | Mục đích dùng AI: viết mục đích; làm mượt kịch bản; sinh dữ liệu mẫu (một lần, từ cấu trúc DTO); chọn liên kết; ghép luồng cũ/mới; tóm tắt nhóm chức năng; checklist đối soát |
+| purpose | ENUM('PURPOSE_TEXT', 'SCENARIO_POLISH', 'MOCK_DATA', 'EDGE_RESOLUTION', 'LEGACY_MATCH', 'FEATURE_SUMMARY') | Mục đích dùng AI: viết mục đích và ràng buộc; viết lời kịch bản; sinh dữ liệu mẫu (một lần, từ cấu trúc DTO); phân tích liên kết (chỉ giải thích, không đổi liên kết); ghép luồng cũ/mới; tóm tắt nhóm chức năng |
 | input_hash | CHAR(64) | Mã băm của toàn bộ đầu vào (đoạn code liên quan, phiên bản prompt, model). Mỗi bộ (workspace, mục đích, đối tượng, mã băm) chỉ có một bản ghi |
 | prompt_version | VARCHAR(20) | Phiên bản câu lệnh gửi AI. Đổi prompt thì cache cũ tự hết hiệu lực |
 | provider | VARCHAR(50) | Nhà cung cấp AI đã dùng, ví dụ `gemini` |
 | model | VARCHAR(50) | Tên model đã dùng |
 | content | JSONB | Kết quả AI **đã được kiểm tra hợp lệ** |
 | created_at | TIMESTAMPTZ | Thời điểm sinh |
+| hit_count | INTEGER | Số lần nội dung này được dùng lại thay vì gọi AI (mặc định 0). Dùng tính tỷ lệ trúng cache trên trang thống kê |
+| last_hit_at | TIMESTAMPTZ (nullable) | Lần gần nhất được dùng lại |
 
 ## 9. LlmCallLog
 

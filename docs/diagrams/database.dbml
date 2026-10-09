@@ -33,7 +33,6 @@ Enum parse_status {
 Enum edge_confidence {
   CERTAIN
   INFERRED
-  AI_RESOLVED
   UNRESOLVED
   RUNTIME_VERIFIED
 }
@@ -50,7 +49,6 @@ Enum ai_purpose {
   EDGE_RESOLUTION
   LEGACY_MATCH
   FEATURE_SUMMARY
-  MIGRATION_CHECKLIST
 }
 
 Enum llm_call_status {
@@ -181,6 +179,8 @@ Table ai_artifacts {
   model varchar(50) [not null]
   content jsonb [not null]
   created_at timestamptz [not null]
+  hit_count integer [not null, default: 0, note: 'Số lần dùng lại cache']
+  last_hit_at timestamptz [null]
 
   indexes {
     (workspace_id, purpose, target_key, input_hash) [unique]

@@ -60,6 +60,13 @@ public class AiArtifact {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /** Số lần bản ghi này được dùng lại thay vì gọi AI (cho thống kê tỷ lệ trúng cache). */
+    @Column(name = "hit_count", nullable = false)
+    private int hitCount;
+
+    @Column(name = "last_hit_at")
+    private Instant lastHitAt;
+
     protected AiArtifact() {}
 
     public AiArtifact(
@@ -119,5 +126,19 @@ public class AiArtifact {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public int getHitCount() {
+        return hitCount;
+    }
+
+    public Instant getLastHitAt() {
+        return lastHitAt;
+    }
+
+    /** Ghi nhận một lần dùng lại nội dung đã lưu. */
+    public void recordHit(Instant at) {
+        this.hitCount++;
+        this.lastHitAt = at;
     }
 }

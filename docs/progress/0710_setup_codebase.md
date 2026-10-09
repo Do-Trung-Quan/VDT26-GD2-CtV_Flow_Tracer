@@ -132,3 +132,16 @@ cd web && npx npm@11 ci && npm run lint && npm test && npm run build
 1. Bạn review khung, rồi commit (mình chưa commit).
 2. Viết `roadmap.md` để chia phase. Từ đó, mỗi phase có một nhật ký trong `docs/progress/`.
 3. Bắt đầu phase đầu tiên theo roadmap. Gợi ý: khai báo Workspace/Source và quét Backend Spring.
+
+---
+
+## 7. Bổ sung: bản vẽ giao diện offline (cùng ngày)
+
+- **Đã làm:** tạo `docs/UI/UI_offline.html` — một file HTML tự chứa (không tải gì từ mạng), mở trực tiếp bằng trình duyệt, dùng dữ liệu mẫu miền "Shop". Gồm: danh sách Workspace, import 3 bước (tự nhận diện vai trò, tự tách monorepo), trình duyệt thư mục, tiến độ quét, màn chính 3 cột (cây · sequence diagram · Diễn giải/Kịch bản), liên kết chốt tay / nhờ AI chọn, xuất Mermaid/SVG/PNG, Ctrl+K, Cài đặt Workspace (7 tab), Cấu hình AI, nhật ký API giả lập (kèm mã API A1…I7) và công cụ review (chú thích sự kiện, giả lập AI bật/tắt/lỗi, Backend chậm, Workspace rỗng). Phạm vi: MVP + Nên có.
+- **Bản dữ liệu demo cục bộ:** `docs/UI/UI_offline.local.html` (đã thêm `docs/UI/*.local.html` vào `.gitignore`, **không commit**). Cùng khung giao diện, chỉ thay tên theo cấu trúc mã nguồn demo.
+- **Kiểm tra:** cú pháp script đạt `node --check`; chạy thử bằng Chrome không giao diện qua kịch bản tự động (import, quét, 4 luồng mẫu, chốt tay, AI chọn, các tab cài đặt, trang AI): không có lỗi JavaScript.
+- **Còn dở:** chưa có bản review bằng mắt của người dùng; nếu đổi bố cục thì sửa tại file này rồi tạo lại bản cục bộ.
+
+---
+
+> Các điều chỉnh từ ngày 08/10 và 09/10 nằm ở [0810_ui_review_va_chot_thiet_ke.md](0810_ui_review_va_chot_thiet_ke.md) và [0910_roadmap_va_so_sanh_cu_moi.md](0910_roadmap_va_so_sanh_cu_moi.md).

@@ -13,6 +13,7 @@ public final class DefaultExcludes {
             "**/.idea/**",
             "**/.vscode/**",
             "**/vendor/**",
+            "docs/**",
             "**/.gradle/**",
             "**/*.min.js",
             "**/*.map");

@@ -12,7 +12,8 @@ public enum NodeKind {
     UI_FORM(Side.FRONTEND),
     UI_ELEMENT(Side.FRONTEND),
     FE_METHOD(Side.FRONTEND),
-    HTTP_CALL(Side.FRONTEND),
+    /** Điểm gọi HTTP: phía FE, hoặc phía BE gọi service khác / hệ thống ngoài (xem {@code attrs.origin}). */
+    HTTP_CALL(Side.OTHER),
     API_ENDPOINT(Side.BACKEND),
     BE_METHOD(Side.BACKEND),
     DATA_QUERY(Side.BACKEND),
@@ -20,7 +21,7 @@ public enum NodeKind {
     DATA_TYPE(Side.BACKEND),
     EXTERNAL(Side.OTHER);
 
-    /** Phía của thành phần, dùng khi gộp participant theo tầng. */
+    /** Phía của thành phần (FE / BE / dữ liệu / khác), dùng khi dựng cây và xếp cột diagram. */
     public enum Side {
         FRONTEND,
         BACKEND,

@@ -12,7 +12,7 @@
 Mọi phạm vi, chức năng, API, thiết kế CSDL và cấu trúc mã nguồn được đặc tả trong `.context/`. Agent **bắt buộc đọc và đối chiếu** các file liên quan trước khi triển khai:
 
 - **Tổng quan dự án:** `.context/overview.md` (bài toán, phạm vi, yêu cầu phi chức năng, kiến trúc §2.1, mô hình IR §2.2, kịch bản hoạt động §2.4, **chính sách dùng AI §2.7**).
-- **Bảng chức năng:** `.context/feature_list.md` (77 chức năng, 9 nhóm, ưu tiên MVP / Nên có / Mở rộng, quy tắc xử lý từng nhóm).
+- **Bảng chức năng:** `.context/feature_list.md` (72 chức năng, 9 nhóm, ưu tiên MVP / Nên có / Mở rộng, quy tắc xử lý từng nhóm).
 - **Đặc tả API:** `.context/API_list.md` (9 nhóm A–I, ứng với 9 nhóm chức năng).
 - **Thiết kế CSDL:** `.context/database.md` (ý nghĩa từng bảng, từng cột) và `docs/diagrams/database.dbml` (kiểu, khóa, ràng buộc của 12 bảng).
 - **Cấu trúc mã nguồn:** `.context/project_structure.md` (engine Maven multi-module, sidecar analyzer-node, web, contracts).
@@ -119,7 +119,7 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 | `*Repository` | flowtracer-app · `<chức năng>/repository/` | Spring Data JPA, hoặc JdbcClient cho bảng IR |
 | `*Request` / `*Response` | flowtracer-app · `dto/` | DTO vào/ra (Java `record` + Bean Validation) |
 | `entity/*` | flowtracer-app · `<chức năng>/entity/` | JPA `@Entity` và enum đi kèm (tên class không có hậu tố) |
-| `*Rule` / `*Rules` | flowtracer-app, core | Quy tắc thuần, unit test được (vd `AiChoiceRule`, `NestedSourceRules`) |
+| `*Rule` / `*Rules` | flowtracer-app, core | Quy tắc thuần, unit test được (vd `AiAdviceRule`, `NestedSourceRules`) |
 | `*Step` | flowtracer-app · `scan/pipeline` | Một giai đoạn của pipeline quét |
 | `*Extractor` / `*Resolver` / `*Builder` | adapter-spring, core, analyzer-node | Pha 1 / pha 2 / dựng kết quả của lõi phân tích |
 | `*Test` / `*IT` | `src/test` | Unit test / test tích hợp (Testcontainers) |
@@ -175,25 +175,26 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 ### 3.6. Quy tắc sử dụng AI
 
 - Chỉ gọi AI qua `AiGateway` (package `ai`). **CẤM** package khác dùng Spring AI hay gọi provider trực tiếp. ArchUnit kiểm tra điều này.
-- Chỉ dùng AI cho các mục đích trong enum `AiPurpose`: `PURPOSE_TEXT`, `SCENARIO_POLISH`, `MOCK_DATA`, `EDGE_RESOLUTION` (MVP); `FEATURE_SUMMARY`, `LEGACY_MATCH`, `MIGRATION_CHECKLIST` (mở rộng). Thêm mục đích mới phải được người dùng đồng ý và cập nhật §2.7 của overview trước.
+- Chỉ dùng AI cho các mục đích trong enum `AiPurpose`: `PURPOSE_TEXT`, `SCENARIO_POLISH`, `MOCK_DATA`, `EDGE_RESOLUTION` (MVP); `FEATURE_SUMMARY`, `LEGACY_MATCH` (mở rộng). Thêm mục đích mới phải được người dùng đồng ý và cập nhật §2.7 của overview trước.
 - Prompt nằm trong `resources/prompts/<purpose>.v<n>.st` kèm schema đầu ra. Đổi nội dung prompt thì **tăng version** (version nằm trong khóa cache).
 - Đầu ra AI **luôn được kiểm tra** trước khi dùng. Không đạt thì dùng kết quả tất định.
 - **Mọi tính năng phải chạy được khi `flowtracer.ai.provider=none`.** Test tích hợp chạy với AI tắt.
 
 ### 3.7. Ràng buộc nghiệp vụ đặc biệt (CỐT LÕI — không được vi phạm)
 
-- **AI chọn liên kết:** chỉ được chọn **một phần tử trong `candidates`** do phân tích tĩnh tìm ra, hoặc trả `null`. Không thuộc danh sách hoặc độ tin cậy dưới ngưỡng thì giữ `UNRESOLVED` (`AiChoiceRule`). AI **không bao giờ** tạo node/edge.
+- **AI không bao giờ đổi liên kết:** "Nhờ AI phân tích" chỉ trả lời giải thích cho từng ứng viên. Ứng viên AI đề xuất thêm chỉ được hiện khi là node **có thật** trong IR và **hợp lệ về kiểu** (`AiAdviceRule`). AI **không bao giờ** tạo node/edge hay đổi `confidence`; chỉ người dùng chốt tay mới đổi diagram.
 - **Liên kết chốt tay luôn thắng:** `PIN` thay đích, `REJECT` bỏ cạnh. Áp dụng trước khi dò vết và giữ qua mọi lần quét lại.
-- **Mức tin cậy:** `CERTAIN` chỉ khi tham chiếu rõ ràng và duy nhất. So khớp có ký tự đại diện hoặc phải áp luật heuristic → `INFERRED`. Nhiều ứng viên ngang điểm → lưu `candidates`, chưa kết luận.
-- **Mục đích (tab Diễn giải):** lấy theo thứ tự `@Operation` → Javadoc → tài liệu đặc tả → **AI chỉ khi cả ba đều không có**.
+- **Mức tin cậy:** `CERTAIN` chỉ khi tham chiếu rõ ràng và duy nhất. So khớp có ký tự đại diện hoặc phải áp luật heuristic → `INFERRED`. Không có ứng viên hoặc nhiều ứng viên ngang điểm → `UNRESOLVED`, lưu `candidates`, chưa kết luận. Mức khớp ứng viên hiển thị Cao / Trung bình / Thấp, không hiển thị %.
+- **Mục đích (tab Diễn giải):** cache → AI viết 80–100 từ (kèm câu ràng buộc gọn, mỗi câu phải trỏ về một ràng buộc thô có thật) → AI lỗi/tắt thì `@Operation` → Javadoc → tài liệu đặc tả → câu khung. Thành phần chứa chỉ có tên, loại, mô tả ngắn.
+- **Diagram:** một mức hiển thị. Cột theo §2.2.4 của overview (Frontend gộp 1 cột; mỗi Controller/Service/Repository 1 cột; Database 1 cột). Nhãn mũi tên ngắn, kỹ thuật, tất định (tên API, tên hàm, thao tác dữ liệu).
 - **Dữ liệu mẫu:**
   - AI sinh **một lần** từ JSON Schema của DTO (không có dữ liệu thật).
   - Kết quả phải **khớp schema** rồi mới lưu cache; lần sau dùng lại cho tới khi DTO đổi.
   - AI tắt hoặc lỗi thì dùng `FallbackMockGenerator`.
 - **Kịch bản:**
-  - Khung câu sinh tất định từ trace, mỗi bước khớp 1–1 với một mũi tên.
-  - AI làm mượt phải **giữ nguyên số bước, thứ tự và thành phần** (`ScenarioPolishRule`). Lệch thì dùng khung.
-  - Lời văn ngắn gọn, dễ hiểu; chi tiết kỹ thuật chỉ hiện khi bật công tắc.
+  - Gồm "Các actor tham gia" và "Bước n: …"; khung câu sinh tất định từ trace, bước n khớp đúng mũi tên số n.
+  - AI viết lời kể phải **giữ nguyên số bước, thứ tự và thành phần** (`ScenarioPolishRule`). Lệch thì dùng khung.
+  - Lời văn ngắn gọn, dễ hiểu; không có công tắc "chi tiết kỹ thuật" (chi tiết nằm ở nhãn diagram và popup Xem code).
 - **Quét:**
   - Mỗi Workspace chỉ có **một** lần quét chạy tại một thời điểm.
   - File lỗi không làm dừng lần quét (→ `PARTIAL`).
@@ -205,7 +206,9 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 - **Giao diện, nội dung diễn giải, tài liệu:** tiếng Việt có dấu. **Tên trong code, commit message:** tiếng Anh, theo Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`).
 - **Không tự `git commit` / `git push`** khi người dùng chưa yêu cầu.
 - Thay đổi phạm vi, API, CSDL hay cấu trúc thì cập nhật file tương ứng trong `.context/` **trong cùng thay đổi**.
-- Sau mỗi tác vụ, cập nhật nhật ký phase hiện tại trong `docs/progress/`: việc đã làm, việc còn dở, vấn đề gặp phải.
+- **Nhật ký tiến độ:**
+  - Khi người dùng yêu cầu làm một giai đoạn của `roadmap.md`, xong thì **tạo một file mới** `docs/progress/<ddmm>_gd<N>_<chu-de>.md` (ví dụ `1210_gd1_workspace_import.md`): việc đã làm theo từng task, kết quả kiểm thử, việc còn dở, vấn đề gặp phải. Một giai đoạn một file; không dồn nhiều giai đoạn vào một file.
+  - Việc ngoài giai đoạn (chỉnh giao diện, sửa tài liệu…): ghi vào file theo ngày `docs/progress/<ddmm>_<chu-de>.md`, mỗi ngày một file.
 
 ---
 
@@ -217,7 +220,7 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 | --- | --- |
 | `contracts/` | JSON Schema dùng chung Engine ↔ sidecar (IrFragment, request, tiến độ) |
 | `engine/flowtracer-ir` | Kiểu IR (record), SPI `StackAdapter` (detect / extract / resolve), quy tắc node key |
-| `engine/flowtracer-core` | Lọc file, nhận diện, **Linker**, **Tracer**, diagram (view model, Mermaid, SVG), khung kịch bản, đầu vào/đầu ra/ràng buộc, JSON Schema, kiểm tra & sinh dữ liệu mẫu dự phòng |
+| `engine/flowtracer-core` | Lọc file, nhận diện, **Linker**, **Tracer**, diagram (view model, PlantUML, SVG), khung kịch bản, đầu vào/đầu ra/ràng buộc, JSON Schema, kiểm tra & sinh dữ liệu mẫu dự phòng |
 | `engine/flowtracer-adapter-spring` | Phân tích Java/Spring Boot (JavaParser + SymbolSolver) |
 | `engine/flowtracer-app` | Ứng dụng Spring Boot: REST/SSE, CSDL, pipeline quét, AI |
 | `analyzer-node` | Sidecar CLI: adapter Angular (MVP), PHP-legacy (mở rộng) |
@@ -231,7 +234,7 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 | `workspace` | Workspace, Source (lồng nhau), nhận diện công nghệ, duyệt thư mục, xuất/nhập, bộ lọc nhiễu | `workspace`, `source` | 1 · A, I4–I5 |
 | `scan` | Pipeline DISCOVER → DIFF → EXTRACT → RESOLVE → PERSIST → LINK → FINALIZE; AdapterRegistry; gọi sidecar; cache dữ kiện; SSE tiến độ | `scan_run`, `source_file` | 2 · B |
 | `graph` | **Chủ sở hữu IR** (JdbcClient batch), cây BE/FE, tìm kiếm, chi tiết node, đoạn code, đối chiếu OpenAPI | `ir_node`, `ir_edge` | 3 · C |
-| `linking` | Nối FE ↔ BE, liên kết chốt tay, luật liên kết, AI chọn liên kết, xác minh runtime (mở rộng) | `link_override` | 5 · E |
+| `linking` | Nối FE ↔ BE (và BE ↔ BE, hệ thống ngoài), liên kết chốt tay, luật liên kết, AI phân tích liên kết, xác minh runtime (mở rộng) | `link_override` | 5 · E |
 | `tracing` | Dò vết (không lưu CSDL, cache theo `trace_id`), xuất diagram, flowchart (mở rộng) | — | 4 · D |
 | `explanation` | Tab Diễn giải, dữ liệu mẫu, tab Kịch bản, sinh lại nội dung AI | — | 6 · F |
 | `ai` | **Cổng AI duy nhất**: bật/tắt mục đích → cache → hạn mức → che secret → provider → kiểm tra → lưu & log | `ai_artifact`, `llm_call_log`, `app_setting` | 9 · I1–I3, I6 |

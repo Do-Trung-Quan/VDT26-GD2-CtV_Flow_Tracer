@@ -56,3 +56,6 @@ analyzer-node/src/protocol/generated/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Bản UI offline dùng dữ liệu dự án demo — chỉ ở máy cá nhân
+docs/UI/*.local.html

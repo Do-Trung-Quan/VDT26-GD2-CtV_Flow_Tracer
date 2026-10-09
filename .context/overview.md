@@ -89,7 +89,7 @@ Giá trị: rút ngắn thời gian onboarding, giảm sai sót khi sửa code (
 | Thuật ngữ | Nghĩa trong dự án |
 | :--- | :--- |
 | **Workspace** | Một "dự án" trong tool: tập hợp nhiều Source được phân tích cùng nhau (ví dụ repo BE, repo FE và phần mã cũ). |
-| **Source** | Một thư mục mã nguồn có **vai trò** (`BACKEND`, `FRONTEND`, `LEGACY`), kèm luật include/exclude. Source khai báo theo **thư mục**, không theo repo, và có thể lồng nhau. |
+| **Source** | Một thư mục mã nguồn có **vai trò** (`BACKEND`, `FRONTEND`, `LEGACY`), kèm danh sách thư mục loại trừ. Vai trò do tool **tự nhận diện** từ dấu hiệu dự án (`pom.xml`, `angular.json`…), người dùng không phải chọn. Source khai báo theo **thư mục**, không theo repo, và có thể lồng nhau. |
 | **Stack detection** | Bước tự nhận diện công nghệ của Source (qua `pom.xml`, `angular.json`, …) để chọn Adapter phù hợp. |
 | **Adapter** | Bộ phân tích cho một công nghệ cụ thể (Spring, Angular, PHP-legacy…), dạng plugin. Đầu ra của Adapter là IR. |
 | **IR (Intermediate Representation)** | Mô hình dữ liệu trung gian dạng **graph** (Node + Edge) chung cho mọi ngôn ngữ. Đây là "bản đồ" của Workspace. |
@@ -98,29 +98,29 @@ Giá trị: rút ngắn thời gian onboarding, giảm sai sót khi sửa code (
 | **Linker** | Bước nối lời gọi HTTP ở FE với endpoint ở BE bằng cách chuẩn hóa và so khớp URL. |
 | **Tracer** | Thuật toán đi trên graph từ một node xuất phát để thu được chuỗi bước End-to-End. |
 | **Trace** | Kết quả của Tracer: danh sách participant và các bước có thứ tự. Trace là đầu vào để vẽ diagram và sinh kịch bản. |
-| **Confidence (mức tin cậy)** | Nhãn trên mỗi Edge: `CERTAIN`, `INFERRED`, `AI_RESOLVED`, `UNRESOLVED` (và `RUNTIME_VERIFIED` ở bản mở rộng). |
+| **Confidence (mức tin cậy)** | Nhãn trên mỗi Edge: `CERTAIN`, `INFERRED`, `UNRESOLVED` (và `RUNTIME_VERIFIED` ở bản mở rộng). Liên kết người dùng đã chốt tay hiển thị riêng là "Chốt tay". |
 | **Link override** | Quyết định chốt tay của người dùng cho một liên kết (ghim hoặc loại bỏ). Được lưu lại và áp dụng cho các lần quét sau. |
 | **Feature (Nhóm chức năng)** | *(Mở rộng)* Nhóm các endpoint/thành phần liên quan, được lưu lại để xem diagram và diễn giải ở cấp chức năng. |
-| **Scenario (Kịch bản)** | Diễn giải bằng lời từng bước của sequence diagram theo mẫu "A làm B tới C". |
+| **Scenario (Kịch bản)** | Lời kể từng bước của sequence diagram, dạng "Bước n: A làm gì tới B". Bước n khớp đúng mũi tên số n trên diagram. |
 
 ## 1.2 Yêu cầu chức năng
 
-Toàn bộ chức năng (77 chức năng, 9 nhóm) được mô tả chi tiết trong **[feature_list.md](feature_list.md)**: tên, mức ưu tiên, input, output, mô tả, cùng quy tắc xử lý của từng nhóm. API tương ứng nằm trong **[API_list.md](API_list.md)**.
+Toàn bộ chức năng (72 chức năng, 9 nhóm) được mô tả chi tiết trong **[feature_list.md](feature_list.md)**: tên, mức ưu tiên, input, output, mô tả, cùng quy tắc xử lý của từng nhóm. API tương ứng nằm trong **[API_list.md](API_list.md)**.
 
 Tổng quan các nhóm:
 
 | Nhóm | Mục đích | MVP | Nên có | Mở rộng |
 | :--- | :--- | :---: | :---: | :---: |
-| 1. Quản lý Workspace & nguồn mã | Khai báo dự án và các thư mục mã nguồn cần phân tích | 9 | 2 | 3 |
+| 1. Quản lý Workspace & nguồn mã | Khai báo dự án và các thư mục mã nguồn cần phân tích | 9 | 0 | 3 |
 | 2. Quét & phân tích mã nguồn | Đọc code, dựng "bản đồ" thành phần, quét lại khi code đổi | 8 | 0 | 4 |
 | 3. Khám phá cấu trúc dự án | Xem cây API Backend, cây thành phần Frontend, tìm kiếm, xem code | 4 | 2 | 0 |
-| 4. Dò vết & trực quan hóa luồng | Dò luồng End-to-End và vẽ sequence diagram tương tác | 6 | 1 | 1 |
+| 4. Dò vết & trực quan hóa luồng | Dò luồng End-to-End và vẽ sequence diagram tương tác | 5 | 1 | 1 |
 | 5. Liên kết Frontend – Backend & độ tin cậy | Nối FE với BE, thể hiện mức tin cậy, chốt tay, xác minh runtime | 6 | 0 | 2 |
-| 6. Diễn giải & dữ liệu mẫu | Panel phải: tab Diễn giải và tab Kịch bản | 11 | 0 | 0 |
+| 6. Diễn giải & dữ liệu mẫu | Panel phải: tab Diễn giải và tab Kịch bản | 10 | 0 | 0 |
 | 7. Nhóm chức năng (Feature) | Gom nhiều thành phần thành một chức năng để xem tổng thể | 0 | 0 | 8 |
-| 8. So sánh & đối chiếu hệ thống cũ – mới | Split view, ghép luồng cũ/mới, checklist đối soát khi migrate | 0 | 0 | 5 |
+| 8. So sánh & đối chiếu hệ thống cũ – mới | Split view, ghép luồng cũ/mới, danh sách khác biệt khi migrate | 0 | 0 | 4 |
 | 9. Cấu hình AI & hệ thống | Cấu hình AI, bộ lọc nhiễu, theo dõi sử dụng AI | 4 | 1 | 0 |
-| **Tổng** | | **48** | **6** | **23** |
+| **Tổng** | | **46** | **4** | **22** |
 
 ## 1.3 Yêu cầu phi chức năng
 
@@ -164,7 +164,7 @@ MVP được coi là hoàn thành khi đáp ứng đủ các điều kiện sau:
 
 ## 1.5 Phạm vi người dùng
 
-Đây là **tool cá nhân**: mỗi người tự chạy tool trên máy mình bằng Docker Compose. Không có đăng nhập hay phân quyền; người chạy tool có toàn quyền trên các Workspace của mình. Muốn chuyển cấu hình sang máy khác thì dùng chức năng xuất/nhập Workspace (file JSON).
+Đây là **tool cá nhân**: mỗi người tự chạy tool trên máy mình bằng Docker Compose. Không có đăng nhập hay phân quyền; người chạy tool có toàn quyền trên các Workspace của mình.
 
 | Chân dung | Nhu cầu chính | Chức năng hay dùng |
 | :--- | :--- | :--- |
@@ -172,7 +172,7 @@ MVP được coi là hoàn thành khi đáp ứng đủ các điều kiện sau:
 | **Dev Frontend** | Biết nút bấm gọi API nào, gửi gì và nhận gì | Dò vết từ FE, Đầu vào/Đầu ra JSON, dữ liệu mẫu |
 | **Dev Backend / Tech lead** | Hiểu logic và tác động dữ liệu của API trước khi sửa; biết FE nào đang phụ thuộc | Dò vết từ endpoint, "Được gọi từ", Ràng buộc |
 | **BA / QA** | Hiểu nghiệp vụ và các nhánh lỗi để viết test case | Tab Diễn giải, Kịch bản, nhánh lỗi trên diagram |
-| **Team migration** | Đối chiếu luồng cũ (PHP) và luồng mới | Split view, checklist đối soát (Nhóm 8, mở rộng) |
+| **Team migration** | Đối chiếu luồng cũ (PHP) và luồng mới | Split view, danh sách khác biệt (Nhóm 8, mở rộng) |
 
 ---
 
@@ -260,7 +260,7 @@ Cấu trúc thư mục chi tiết: [project_structure.md](project_structure.md).
 
 7. **Tracer:** đi trên graph từ node xuất phát, áp liên kết chốt tay, bộ lọc nhiễu và giới hạn độ sâu, rồi sinh `Trace` (participant, bước có thứ tự, khối `alt`/`opt`).
 
-8. **Diagram Builder:** chuyển `Trace` thành *view model* cho renderer SVG và thành mã Mermaid để xuất.
+8. **Diagram Builder:** chuyển `Trace` thành *view model* cho renderer SVG và thành mã PlantUML để xuất.
 
 9. **Explanation Service:** sinh nội dung tab Diễn giải, tab Kịch bản và dữ liệu mẫu. Phần tất định tự làm; chỉ gọi AI Gateway cho các mục đích được phép (§2.7).
 
@@ -284,7 +284,7 @@ Cấu trúc thư mục chi tiết: [project_structure.md](project_structure.md).
 | Phân tích Angular | Node Analyzer (sidecar): TypeScript Compiler API + `@angular/compiler` | Cách duy nhất hiểu chính xác TypeScript và template Angular |
 | Hợp đồng dữ liệu | JSON Schema chung trong `contracts/` | Engine (Java) và sidecar (TypeScript) cùng tuân theo; Engine kiểm tra đầu ra của sidecar |
 | Web UI | Angular 21 + Angular Material/CDK | Cùng stack với dự án thực tế của team |
-| Diagram | Renderer SVG tự viết + xuất Mermaid | Kiểm soát hoàn toàn tương tác (highlight, đồng bộ với Kịch bản, thu gọn) |
+| Diagram | Renderer SVG tự viết (phong cách PlantUML `strictuml`) + xuất PlantUML/SVG/PNG | Kiểm soát hoàn toàn tương tác (highlight, đồng bộ với Kịch bản); mã PlantUML dán thẳng vào tài liệu dự án |
 | CSDL | PostgreSQL 16 + Spring Data JPA + JdbcClient (batch) + Flyway | JSONB cho thuộc tính node, tìm kiếm toàn văn sẵn có; ghi hàng loạt IR nhanh; migration có phiên bản |
 | AI | Spring AI, Gemini mặc định | Một API chung cho nhiều provider; đổi provider chỉ bằng cấu hình |
 | Đóng gói | Docker Compose (`flowtracer-app` gồm JRE 21 + Node 22, và `postgres`) | Một lệnh khởi chạy |
@@ -326,8 +326,9 @@ Với adapter trong sidecar, Engine chạy một lệnh cho mỗi Source:
 ### 2.1.5 Nguyên tắc sử dụng AI trong kiến trúc
 
 - **Diagram và trace không bao giờ do AI sinh ra.** Chúng là kết quả tất định từ IR.
-- AI chỉ **bổ sung văn bản** (Mục đích, làm mượt Kịch bản, dữ liệu mẫu sinh một lần từ cấu trúc DTO) hoặc **chọn trong danh sách ứng viên** khi liên kết chưa chắc chắn.
-- Mọi đầu ra của AI đều được **kiểm tra** (JSON schema, số bước, ứng viên hợp lệ). Kiểm tra không đạt thì dùng kết quả tất định.
+- AI chỉ **bổ sung văn bản**: Mục đích và tóm tắt ràng buộc, lời Kịch bản, dữ liệu mẫu sinh một lần từ cấu trúc DTO, và **phân tích giúp người dùng** khi liên kết chưa chắc chắn.
+- AI **không bao giờ tự đổi một liên kết**. Liên kết chỉ đổi khi người dùng chốt tay.
+- Mọi đầu ra của AI đều được **kiểm tra** (JSON schema, số bước, ứng viên phải là thành phần có thật). Kiểm tra không đạt thì dùng kết quả tất định.
 
 ## 2.2 Mô hình dữ liệu trung gian (IR)
 
@@ -344,7 +345,7 @@ IR là "bản đồ" chung cho mọi công nghệ. Mỗi Adapter sinh IR; Linker
 | `UI_FORM` | Form | `fields[]` (tên, loại control, validators) |
 | `UI_ELEMENT` | Phần tử tương tác | `elementType` (button, input, select, table, pagination…), `event`, `label`, `i18nKey` |
 | `FE_METHOD` | Method phía FE | `layer` (COMPONENT / FACADE / USECASE / SERVICE / REPOSITORY), `className`, `signature` |
-| `HTTP_CALL` | Điểm gọi HTTP phía FE | `httpMethod`, `urlExpr` (biểu thức gốc), `urlPattern` (đã chuẩn hóa), `bodyType` |
+| `HTTP_CALL` | Điểm gọi HTTP: phía FE (`HttpClient`) hoặc phía BE gọi service khác / API bên ngoài (`RestTemplate`, `WebClient`, `@FeignClient`) | `httpMethod`, `urlExpr` (biểu thức gốc), `urlPattern` (đã chuẩn hóa), `bodyType`, `origin` (FE / BE) |
 | `API_ENDPOINT` | Endpoint BE | `httpMethod`, `path`, `params[]`, `requestType`, `responseType`, `summary`, `tag`, `security` |
 | `BE_METHOD` | Method phía BE | `layer` (CONTROLLER / SERVICE / REPOSITORY / OTHER), `className`, `signature`, `transactional` |
 | `DATA_QUERY` | Một truy vấn dữ liệu | `queryKind` (DERIVED / JPQL / NATIVE / DYNAMIC / LIB_CALL), `text` (đã rút gọn), `operation` (READ / WRITE / DELETE) |
@@ -362,8 +363,8 @@ Mọi node đều có: `key` (ổn định), `sourceId`, `filePath`, `startLine`
 | `TRIGGERS` | `UI_ELEMENT` → `FE_METHOD` | Sự kiện gọi handler |
 | `CALLS` | Method → Method | Lời gọi hàm (FE hoặc BE) |
 | `OPENS` / `NAVIGATES` | `FE_METHOD` → `UI_DIALOG` / `UI_SCREEN` | Mở dialog / chuyển màn hình |
-| `SENDS` | `FE_METHOD` → `HTTP_CALL` | Method phát ra lời gọi HTTP |
-| `HTTP_REQUEST` | `HTTP_CALL` → `API_ENDPOINT` | Do Linker tạo |
+| `SENDS` | `FE_METHOD` / `BE_METHOD` → `HTTP_CALL` | Method phát ra lời gọi HTTP |
+| `HTTP_REQUEST` | `HTTP_CALL` → `API_ENDPOINT` hoặc `EXTERNAL` | Do Linker tạo. Đích là endpoint trong Workspace (FE→BE, hoặc BE→BE khi nhiều microservice), hoặc `EXTERNAL` khi gọi hệ thống ngoài Workspace |
 | `HANDLED_BY` | `API_ENDPOINT` → `BE_METHOD` | Endpoint được xử lý bởi method controller |
 | `EXECUTES` | `BE_METHOD` → `DATA_QUERY` | Method thực thi truy vấn |
 | `READS` / `WRITES` | `DATA_QUERY` → `DB_TABLE` | Tác động dữ liệu |
@@ -395,26 +396,48 @@ Mọi edge đều có: `confidence`, `reason` (vì sao có mức tin cậy này)
 
 ### 2.2.4 Cấu trúc Trace (kết quả trả cho UI)
 
+Diagram chỉ có **một mức hiển thị**. Cột (participant) được dựng theo quy tắc:
+
+| Vai trò cột (`role`) | Gộp những gì | Nhãn cột |
+| :--- | :--- | :--- |
+| `USER` | Người dùng (luồng bắt đầu từ FE) hoặc nơi gọi API (luồng bắt đầu từ BE) | "User" / "Client" |
+| `FRONTEND` | **Toàn bộ** phần FE (component, facade, repository FE…) | "Frontend" |
+| `CONTROLLER` | Một cột cho **mỗi** controller đi qua | "Controller" + tên nghiệp vụ, vd "Controller Danh mục" |
+| `SERVICE` | Một cột cho **mỗi** service đi qua (gọi nhiều service thì nhiều cột) | "Service Danh mục", "Service Sản phẩm" |
+| `REPOSITORY` | Một cột cho mỗi repository / DAO | "Repository Danh mục" |
+| `DATABASE` | Mọi bảng dữ liệu | "Database" (tên bảng nằm trong nhãn mũi tên) |
+| `EXTERNAL` | Service khác (microservice) hoặc hệ thống bên ngoài | Tên service / host |
+
+- Tên nghiệp vụ lấy theo thứ tự: `@Tag` của Swagger → tên module FE (menu, i18n) → tên class. Lớp `ServiceImpl` gộp chung cột với interface của nó.
+- **Nhãn mũi tên ngắn, mang tính kỹ thuật** và sinh tất định: tên API (`POST /api/v1/categories`), tên hàm (`create(request)`), thao tác dữ liệu (`INSERT category`). Câu mô tả đầy đủ chỉ nằm ở tab Kịch bản.
+- **Bước tự xử lý** (`Service → Service`): các đoạn kiểm tra trong thân method (`if … throw`, gọi kiểm tra quyền, hàm private) được gom thành một bước, nhãn là tên các hàm/điều kiện chính.
+- Trên canvas: số thứ tự từng bước, thanh kích hoạt (activation), chiều trả về vẽ nét đứt, khối `alt`/`opt`/`loop`.
+
 ```json
 {
   "traceId": "…",
   "start": "ng:element:admin-app/category-form-dialog#btn-save",
-  "detailLevel": "COMPONENT",
   "participants": [
-    { "id": "p1", "label": "Người dùng", "layer": "ACTOR" },
-    { "id": "p2", "label": "Hộp thoại Thêm danh mục", "layer": "FE", "nodeKey": "…" },
-    { "id": "p3", "label": "API Danh mục", "layer": "BE", "nodeKey": "…" }
+    { "id": "user", "label": "User", "role": "USER" },
+    { "id": "fe", "label": "Frontend", "role": "FRONTEND" },
+    { "id": "c1", "label": "Controller Danh mục", "role": "CONTROLLER", "nodeKey": "…" },
+    { "id": "s1", "label": "Service Danh mục", "role": "SERVICE", "nodeKey": "…" },
+    { "id": "db", "label": "Database", "role": "DATABASE" }
   ],
   "steps": [
-    { "index": 1, "from": "p1", "to": "p2", "kind": "TRIGGERS", "label": "Bấm \"Lưu\"", "confidence": "CERTAIN", "edgeId": "…" },
-    { "index": 2, "from": "p2", "to": "p3", "kind": "HTTP_REQUEST", "label": "POST /api/v1/categories", "confidence": "INFERRED", "reason": "…" }
+    { "index": 1, "from": "user", "to": "fe", "kind": "TRIGGERS", "label": "Bấm \"Lưu\"", "confidence": "CERTAIN" },
+    { "index": 2, "from": "fe", "to": "c1", "kind": "HTTP_REQUEST", "label": "POST /api/v1/categories", "confidence": "INFERRED", "reason": "…", "edgeRef": "…" },
+    { "index": 3, "from": "c1", "to": "s1", "kind": "CALLS", "label": "create(request)", "confidence": "CERTAIN" },
+    { "index": 4, "from": "s1", "to": "s1", "label": "checkPermission, existsByCode", "confidence": "CERTAIN" }
   ],
   "blocks": [
-    { "type": "alt", "label": "Mã danh mục đã tồn tại", "fromStep": 4, "toStep": 5 }
+    { "type": "ALT", "label": "Mã danh mục đã tồn tại", "fromStep": 10, "toStep": 12 }
   ],
   "warnings": [ "1 lời gọi không xác định được đích (xem bước 6)" ]
 }
 ```
+
+Bước có `from` = `to` là bước tự xử lý. Bước đi qua liên kết người dùng đã chốt tay có thêm `"pinned": true`.
 
 ## 2.3 Thiết kế cơ sở dữ liệu
 
@@ -446,10 +469,13 @@ Tên gọi các bộ phận trong kịch bản:
 
 ### 2.4.1 Kịch bản 1: Tạo Workspace và quét lần đầu
 
-1. **Người dùng** bấm "Tạo Workspace" trên **Giao diện**, đặt tên và chọn thư mục Backend, Frontend bằng trình duyệt thư mục.
-2. **Giao diện** gửi thông tin Workspace tới **Bộ máy phân tích**.
-3. **Bộ máy phân tích** nhận diện công nghệ của từng thư mục (ví dụ: Backend là Spring Boot 3.3, Frontend là Angular 21) và lưu Workspace vào **CSDL**.
-4. **Giao diện** hiển thị kết quả nhận diện. **Người dùng** kiểm tra rồi bấm "Quét".
+1. **Người dùng** bấm "Import dự án" trên **Giao diện**, đặt tên và chọn thư mục mã nguồn bằng trình duyệt thư mục (chỉ duyệt trong `SOURCE_ROOT`).
+2. **Giao diện** nhờ **Bộ máy phân tích** nhận diện thư mục vừa chọn.
+3. **Bộ máy phân tích** tìm các "gốc dự án" bên trong thư mục (ví dụ: `engine/` là Spring Boot, `web/` là Angular) và trả về vai trò, công nghệ của từng gốc.
+   - 3a. *Không tìm thấy gốc nào:* báo thư mục không hợp lệ, không cho thêm.
+   - 3b. *Thư mục nằm bên trong một dự án:* gợi ý dùng thư mục gốc của dự án đó.
+   - 3c. *Có nhiều gốc (BE và FE chung repo):* tự tách thành nhiều Source.
+4. **Giao diện** hiển thị kết quả nhận diện. **Người dùng** bấm "Tạo & quét"; **Bộ máy phân tích** lưu Workspace vào **CSDL**.
 5. **Bộ máy phân tích** tạo một lần quét mới và báo ngay cho **Giao diện** là đã bắt đầu; việc quét chạy ở chế độ nền.
 6. **Giao diện** mở kênh nhận tiến độ và hiển thị thanh tiến độ.
 7. **Bộ quét** lập danh sách file cần đọc (bỏ qua thư viện, file build, file nhị phân) và tính mã băm từng file.
@@ -466,17 +492,16 @@ Tên gọi các bộ phận trong kịch bản:
 1. **Người dùng** chọn nút "Lưu" trong cây Frontend.
 2. **Giao diện** yêu cầu **Bộ máy phân tích** dò luồng bắt đầu từ nút này.
 3. **Bộ dò vết** lấy từ **CSDL** các thành phần, quan hệ liên quan và những liên kết người dùng đã chốt tay. Sau đó nó đi lần lượt: nút → hàm xử lý → lời gọi API → máy chủ xử lý → bảng dữ liệu.
-   - 3a. *Nếu gặp chỗ có nhiều khả năng ngang nhau:* **Bộ dò vết** nhờ **Cổng AI** chọn.
-     - **Cổng AI** tìm trong bộ nhớ đệm trước. Nếu chưa có, nó che thông tin bí mật, gửi đoạn code và danh sách ứng viên tới AI, kiểm tra câu trả lời có nằm trong danh sách không, rồi lưu kết quả.
-     - AI không chắc chắn thì giữ nhãn "Không xác định".
+   - 3a. *Nếu gặp chỗ có nhiều khả năng ngang nhau:* **Bộ dò vết** đánh dấu bước đó "Chưa xác định" kèm danh sách ứng viên, không tự chọn.
 4. **Bộ dò vết** trả chuỗi bước cho **Giao diện**, và **Giao diện** vẽ sequence diagram ở canvas giữa.
 5. Cùng lúc, **Giao diện** lấy nội dung tab **Diễn giải** từ **Bộ diễn giải**:
-   - **Bộ diễn giải** tự lập đầu vào, đầu ra và ràng buộc trực tiếp từ code.
-   - Mục "Mục đích" lấy từ chú thích có sẵn trong code. Chỉ khi không có, **Bộ diễn giải** mới nhờ **Cổng AI** viết (hoặc dùng bản đã lưu).
+   - **Bộ diễn giải** tự lập đầu vào, đầu ra và danh sách ràng buộc thô trực tiếp từ code.
+   - Mục "Mục đích" và phần ràng buộc gọn gàng do **Cổng AI** viết (dùng bản đã lưu nếu có). AI lỗi hoặc tắt thì dùng mô tả từ `@Operation`/Javadoc và danh sách ràng buộc thô.
    - Dữ liệu mẫu lấy từ bản đã lưu. Nếu chưa có, **Cổng AI** sinh **một lần** từ cấu trúc DTO; **Bộ diễn giải** kiểm tra dữ liệu khớp cấu trúc rồi lưu lại.
    - Nội dung hiện dần lên panel.
-6. Cùng lúc, **Giao diện** lấy nội dung tab **Kịch bản**: **Bộ diễn giải** dựng câu mô tả cho từng bước từ chuỗi bước. Nếu bật làm mượt, nó nhờ **Cổng AI** viết lại câu cho tự nhiên và kiểm tra số bước không bị đổi.
+6. Cùng lúc, **Giao diện** lấy nội dung tab **Kịch bản**: **Bộ diễn giải** dựng khung câu cho từng bước từ chuỗi bước, rồi nhờ **Cổng AI** viết thành lời kể tự nhiên và kiểm tra số bước, thứ tự, thành phần không bị đổi.
 7. **Người dùng** đọc diagram và hai tab. Di chuột vào một bước trong Kịch bản thì mũi tên tương ứng trên diagram sáng lên, và ngược lại.
+8. *Nếu có bước "Chưa xác định":* **Người dùng** bấm vào mũi tên đó để xem các ứng viên, có thể bấm "Nhờ AI phân tích" để đọc giải thích, rồi **chốt tay** một ứng viên. **Bộ dò vết** dò lại với liên kết đã chốt.
 
 ### 2.4.3 Kịch bản 3: Quét lại sau khi code thay đổi
 
@@ -501,9 +526,9 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 
 ## 2.6 Thiết kế giao diện (mô tả bằng lời)
 
-> Thiết kế hình ảnh chi tiết (màu sắc, spacing, mockup) sẽ làm sau. Phần này chỉ mô tả bố cục và hành vi để dev có thể dựng khung.
+> Bản vẽ giao diện chạy được (dữ liệu mẫu, sự kiện giả lập): [docs/UI/UI_offline.html](../docs/UI/UI_offline.html). Phần này mô tả bố cục và hành vi để dev dựng khung.
 
-**Thanh trên cùng:** tên Workspace (dropdown để chuyển), trạng thái quét (thời điểm quét gần nhất, số cảnh báo), nút "Quét lại", ô tìm kiếm (`Ctrl+K`), nút Cài đặt, chỉ báo AI (bật/tắt/lỗi).
+**Thanh trên cùng (chỉ các nút quan trọng):** chọn Workspace (dropdown), ô tìm kiếm nhanh (`Ctrl+K`), chỉ báo AI (bật/tắt/lỗi), nút "Import dự án". Điều hướng các trang (Workspace, Màn hình chính, Cài đặt, Cấu hình AI) nằm ở thanh icon dọc bên trái.
 
 **Cột trái (có thể thu gọn, kéo được độ rộng):**
 - Tab **Backend**: cây `Module → Endpoint` (badge method, path, cảnh báo nếu có node không xác định).
@@ -511,18 +536,31 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 - Tab **Chức năng** *(mở rộng)*: danh sách nhóm chức năng đã lưu và gợi ý.
 - Ô lọc nhanh ở đầu mỗi tab. Node đang mở được highlight.
 
-**Canvas giữa:**
-- Thanh công cụ: chuyển mức chi tiết (Tầng / Thành phần / Chi tiết), Sequence ↔ Flowchart *(mở rộng)*, zoom, vừa khung, xuất (SVG/PNG/Mermaid), "Mở thêm để so sánh" *(mở rộng)*.
-- Chú giải nét vẽ theo mức tin cậy.
-- Cảnh báo phía trên diagram nếu trace có bước không xác định (bấm để nhảy tới bước đó).
+**Canvas giữa** (chỉ đặt nổi trên canvas những gì dành riêng cho canvas):
+- Góc trái trên: ẩn/hiện cây, trạng thái quét (kèm số file lỗi), nút "Quét lại".
+- Góc phải dưới: zoom, vừa khung, xuất (PlantUML / SVG / PNG). Sequence ↔ Flowchart và "Mở thêm để so sánh" thuộc phần *mở rộng*.
+- Diagram một mức hiển thị, phong cách PlantUML (`strictuml`, `autonumber`): cột theo §2.2.4, thanh kích hoạt, số bước, chiều trả về nét đứt.
+- Mũi tên "Suy luận" / "Chưa xác định" có kiểu nét riêng. Bấm vào thì mở popover: lý do, danh sách ứng viên kèm mức khớp (Cao / Trung bình / Thấp), nút **"Nhờ AI phân tích"** và nút **"Chốt tay"**.
+- Chú giải nét vẽ theo mức tin cậy; cảnh báo phía trên diagram nếu có bước chưa xác định (bấm để nhảy tới bước đó).
 - Trạng thái rỗng: hướng dẫn "Chọn một endpoint hoặc một phần tử ở cột trái".
+- Tiêu đề cột trên diagram không bấm được; cột phải chỉ đổi khi chọn node ở cây hoặc chọn một bước.
 
-**Cột phải (có thể thu gọn):** tiêu đề là tên node (tên thân thiện kèm loại), và hai tab:
-- **Diễn giải:** Mục đích → Thuộc chức năng → Đầu vào (khối JSON) → Đầu ra (khối JSON và các trường hợp lỗi) → Ràng buộc → Dữ liệu mẫu (khối JSON, nút sao chép).
-- **Kịch bản:** danh sách bước đánh số, nhánh `alt` thụt vào; hover/click đồng bộ với diagram; công tắc "Hiện chi tiết kỹ thuật".
+**Cột phải:** tiêu đề là tên node (tên thân thiện kèm loại) và nút "Xem code". Nút này mở popup có tab theo từng lớp trong luồng (API: Controller / Service / Repository / Entity; UI: template / component / facade / kết nối API).
+
+- **Khi chọn thành phần chứa** (module, ứng dụng, màn hình, hộp thoại, form): chỉ hiện tên, loại và một đoạn giải thích ngắn thành phần này dùng để làm gì.
+- **Khi chọn thành phần con** (API, nút, ô nhập…), tab **Diễn giải** gồm:
+  - *Mục đích:* 80–100 từ, dễ hiểu (§2.7).
+  - *Đầu vào / Đầu ra:* khối JSON. Thành phần UI lấy theo API mà nó gọi (gọi nhiều API thì mỗi API một tab). Luồng chỉ trên giao diện thì ghi "Không có".
+  - *Ràng buộc:* ngắn gọn, cụ thể, chỉ những điều quan trọng (vd bắt buộc đăng nhập, cấm xóa bản ghi đang được tham chiếu, định dạng trường).
+  - *Dữ liệu mẫu:* khớp đúng Đầu vào / Đầu ra.
+  - *Được gọi từ:* với API là các thành phần UI hoặc API khác gọi tới nó; với UI là chuỗi thành phần chứa, sắp từ cao nhất xuống. Bấm để chuyển tới thành phần đó.
+  - *Gọi tới:* chiều ngược lại (API, service ngoài, bảng dữ liệu; với UI là API và hộp thoại nó mở).
+- Tab **Kịch bản:** mục "Các actor tham gia" (tên cột và vai trò của nó), rồi danh sách "Bước n: …" khớp 1–1 với mũi tên số n. Hover/click đồng bộ với diagram.
 - Mục do AI sinh có biểu tượng nhỏ "AI" và nút "Sinh lại".
 
-**Trang Cài đặt Workspace:** danh sách Source (vai trò, đường dẫn, include/exclude, công nghệ nhận diện), luật liên kết, bộ lọc nhiễu, danh sách liên kết chốt tay, xuất/nhập JSON.
+**Trang Cài đặt Workspace:** danh sách Source (vai trò, đường dẫn, thư mục loại trừ, công nghệ nhận diện), luật liên kết, bộ lọc nhiễu, danh sách liên kết chốt tay, đối chiếu OpenAPI, lịch sử quét.
+
+**Trang Cấu hình AI:** nhà cung cấp và kiểm tra kết nối, bật/tắt từng mục đích, hạn mức token hôm nay, thống kê sử dụng (lượt gọi, token, tỷ lệ trúng cache, lỗi) lấy từ `llm_call_log` và `ai_artifact`.
 
 **Các trạng thái chung:** đang quét (thanh tiến độ và giai đoạn), lỗi quét (danh sách file lỗi), AI tắt/lỗi (mục Mục đích hiện thông báo, phần còn lại bình thường).
 
@@ -532,15 +570,16 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 
 | Mục đích (`purpose`) | Khi nào gọi | Đầu vào gửi AI | Đầu ra (đã kiểm tra) | Mặc định |
 | :--- | :--- | :--- | :--- | :--- |
-| `PURPOSE_TEXT` | Node được mở, thiếu `@Operation`/Javadoc/đặc tả | Chữ ký, trace rút gọn, đoạn code liên quan đã che secret | 1–3 câu tiếng Việt | Bật |
-| `SCENARIO_POLISH` | Tab Kịch bản được mở | Khung câu tất định | Câu đã làm mượt, **cùng số bước** | Bật |
-| `EDGE_RESOLUTION` | Trace đi qua cạnh có nhiều ứng viên | Code tại điểm gọi, danh sách ứng viên | `{choice ∈ ứng viên \| null, confidence, reason}` | Bật |
+| `PURPOSE_TEXT` | Thành phần con được mở lần đầu (hoặc code đã đổi) | `@Operation`/Javadoc/đặc tả (nếu có), chữ ký, trace rút gọn, danh sách ràng buộc thô, đoạn code liên quan đã che secret | `{purpose: 80–100 từ tiếng Việt, constraints: [{factId, text}]}`. Mỗi ràng buộc phải trỏ tới một ràng buộc thô có thật | Bật |
+| `SCENARIO_POLISH` | Tab Kịch bản được mở | Khung câu tất định và danh sách actor | Lời kể từng bước, **cùng số bước, thứ tự và thành phần** | Bật |
+| `EDGE_RESOLUTION` | Người dùng bấm "Nhờ AI phân tích" trên một liên kết chưa chắc chắn | Code tại điểm gọi, danh sách ứng viên | `{analyses: [{candidate, advice, reason}], extra?: {nodeKey, reason}}`. Chỉ là gợi ý, **không đổi liên kết** | Bật |
 | `MOCK_DATA` | Mở dữ liệu mẫu của node lần đầu (hoặc DTO đã thay đổi) | Cấu trúc DTO: tên trường, kiểu, ràng buộc (không có dữ liệu thật) | JSON request/response mẫu thỏa cấu trúc; sinh **một lần** rồi lưu cache | Bật |
 | `FEATURE_SUMMARY` *(mở rộng)* | Mở nhóm chức năng | Mục đích của các thành viên | Đoạn tóm tắt | Bật |
 | `LEGACY_MATCH` *(mở rộng)* | Không ghép được cũ/mới bằng tài liệu hay độ tương đồng | Chữ ký, trace rút gọn hai phía | Xếp hạng ứng viên | Bật |
-| `MIGRATION_CHECKLIST` *(mở rộng)* | Người dùng yêu cầu đối soát | Hai trace và hai bộ ràng buộc | Checklist có trỏ vị trí code | Bật |
 
 **Quy tắc:**
+- **Mục đích:** dùng bản cache nếu có; chưa có thì gọi AI. AI lỗi hoặc tắt (và chưa có cache) thì hiện mô tả từ `@Operation` → Javadoc → tài liệu đặc tả, cuối cùng là câu khung tất định.
+- **Phân tích liên kết:** AI giải thích từng ứng viên. AI được đề xuất thêm **một** ứng viên ngoài danh sách, nhưng ứng viên đó chỉ được hiển thị khi là node **có thật** trong IR và **hợp lệ về kiểu** (lớp hiện thực đúng interface, hoặc endpoint khớp phương thức HTTP). Không đạt thì bỏ. Liên kết chỉ đổi khi người dùng chốt tay.
 - Prompt được quản lý có phiên bản (`prompt_version` là một phần của khóa cache).
 - Đầu ra bắt buộc có cấu trúc (JSON mode / schema) và được kiểm tra trước khi dùng.
 - Che secret theo NFR-13 và giới hạn kích thước ngữ cảnh (chỉ gửi đoạn code liên quan, không gửi cả repo).
@@ -555,13 +594,66 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 
 **Người dùng chọn:** cây Frontend › Ứng dụng quản trị › Màn hình "Danh mục" › Hộp thoại "Thêm danh mục" › Nút **Lưu**.
 
-**Sequence diagram (mức "Thành phần")** gồm 8 cột, từ trái sang phải: Người dùng · Hộp thoại Thêm danh mục · Điều phối Danh mục (FE) · Kết nối API Danh mục (FE) · API Danh mục · Dịch vụ Danh mục · Truy cập dữ liệu Danh mục · Bảng category. Mũi tên gửi yêu cầu API từ Frontend sang Backend vẽ **nét đứt** (mức `INFERRED`, vì URL được ghép từ hằng số và luật proxy). Nhánh "Mã đã tồn tại" vẽ thành khối `alt`. Mỗi mũi tên ứng với một bước trong tab Kịch bản bên dưới.
+**Sequence diagram** gồm 6 cột: User · Frontend · Controller Danh mục · Service Danh mục · Repository Danh mục · Database.
+- Mũi tên số 3 (Frontend → Controller) vẽ kiểu "Suy luận", vì URL được ghép từ hằng số và luật proxy.
+- Nhánh "Mã đã tồn tại" vẽ thành khối `alt`.
+- Nhãn mũi tên ngắn, mang tính kỹ thuật. Mã PlantUML khi bấm "Xuất":
+
+```plantuml
+@startuml Them_Moi_Danh_Muc
+autonumber
+skinparam style strictuml
+skinparam responseMessageBelowArrow true
+actor "User" as User
+participant "Frontend" as FE
+participant "Controller Danh mục" as C1
+participant "Service Danh mục" as S1
+participant "Repository Danh mục" as R1
+database "Database" as DB
+
+User -> FE: Bấm "Lưu"
+activate FE
+FE -> FE: validateForm()
+FE -> C1: POST /api/v1/categories
+activate C1
+C1 -> S1: create(request)
+activate S1
+S1 -> S1: checkPermission(), normalize()
+S1 -> R1: existsByCode(code)
+activate R1
+R1 -> DB: SELECT category
+activate DB
+DB --> R1: kết quả
+deactivate DB
+R1 --> S1: true / false
+deactivate R1
+alt Mã đã tồn tại
+  S1 --> C1: CATEGORY_CODE_EXISTS
+  C1 --> FE: 400 Bad Request
+  FE --> User: Hiển thị lỗi
+else Mã chưa tồn tại
+  S1 -> R1: save(entity)
+  activate R1
+  R1 -> DB: INSERT category
+  activate DB
+  DB --> R1: OK
+  deactivate DB
+  R1 --> S1: Category
+  deactivate R1
+  S1 --> C1: CategoryDetailResponse
+  deactivate S1
+  C1 --> FE: 200 ApiResponse
+  deactivate C1
+  FE --> User: Đóng hộp thoại, tải lại danh sách
+end
+deactivate FE
+@enduml
+```
 
 **Tab "Diễn giải":**
 
-- **Mục đích:** Thêm một danh mục mới vào danh sách danh mục dùng chung của hệ thống.
-- **Thuộc chức năng:** Quản lý khai báo › Danh mục
-- **Đầu vào:**
+- **Mục đích:** Nút "Lưu" trong hộp thoại Thêm danh mục dùng để tạo mới một danh mục dùng chung của hệ thống, ví dụ một loại sản phẩm. Khi bấm, giao diện kiểm tra người dùng đã nhập đủ mã và tên chưa, rồi gửi thông tin lên máy chủ. Máy chủ kiểm tra quyền của người dùng, chuẩn hóa dữ liệu và bảo đảm mã danh mục chưa được dùng trước khi lưu. Lưu thành công thì hộp thoại đóng lại và danh sách danh mục được tải lại để hiển thị bản ghi mới. Nếu mã đã tồn tại, hộp thoại giữ nguyên dữ liệu và báo lỗi để người dùng sửa.
+- **Đầu vào** (theo API `POST /api/v1/categories` mà nút này gọi):
   ```json
   {
     "body": {
@@ -577,34 +669,56 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
   {
     "error_code": "string",
     "message": "string",
-    "data": { "id": "string" }
+    "data": { "id": "string", "code": "string", "title": "string", "status": "integer" }
   }
   ```
-  Lỗi có thể gặp: mã đã tồn tại; thiếu trường bắt buộc.
+  Lỗi có thể gặp: mã đã tồn tại; thiếu trường bắt buộc; không đủ quyền.
 - **Ràng buộc:**
-  - Mã và tên không được để trống.
+  - Bắt buộc đăng nhập và có quyền "Quản lý khai báo".
+  - Mã và tên không được để trống; mã tối đa 50 ký tự, tên tối đa 255 ký tự.
   - Mã không được trùng với danh mục đang hoạt động trong cùng đơn vị.
-  - Người dùng phải có quyền quản lý khai báo.
 - **Dữ liệu mẫu:**
   ```json
   {
-    "request": { "code": "SGK", "title": "Sách giáo khoa", "brief": "Sách phục vụ giảng dạy", "status": 1 },
-    "response": { "error_code": "0", "message": "Thêm mới thành công", "data": { "id": "c1f2a9d0-7b3e-4a51-9c2d-5e8f1a2b3c4d" } }
+    "request": { "code": "DT", "title": "Điện thoại", "brief": "Điện thoại di động và phụ kiện", "status": 1 },
+    "response": { "error_code": "0", "message": "Thêm mới thành công", "data": { "id": "c1f2a9d0-7b3e-4a51-9c2d-5e8f1a2b3c4d", "code": "DT", "title": "Điện thoại", "status": 1 } }
   }
   ```
+- **Được gọi từ:** Ứng dụng quản trị → Màn hình Danh mục → Hộp thoại Thêm danh mục → Form danh mục → Nút Lưu.
+- **Gọi tới:** API `POST /api/v1/categories`.
 
 **Tab "Kịch bản":**
 
-1. **Người dùng** bấm nút *Lưu* trên **Hộp thoại Thêm danh mục**.
-2. **Hộp thoại Thêm danh mục** chuyển thông tin vừa nhập cho **Điều phối Danh mục** để lưu.
-3. **Điều phối Danh mục** nhờ **Kết nối API Danh mục** gửi yêu cầu tạo mới.
-4. **Kết nối API Danh mục** gửi yêu cầu *tạo danh mục* tới **API Danh mục** trên máy chủ, kèm mã "SGK" và tên "Sách giáo khoa".
-5. **API Danh mục** chuyển yêu cầu cho **Dịch vụ Danh mục**.
-6. **Dịch vụ Danh mục** kiểm tra trong **Bảng category** xem mã "SGK" đã tồn tại chưa.
-   - 6a. *Nếu đã tồn tại*: **Dịch vụ Danh mục** trả lỗi "Mã danh mục đã tồn tại", **Hộp thoại** hiển thị thông báo lỗi và giữ nguyên dữ liệu đã nhập.
-7. **Dịch vụ Danh mục** lưu danh mục mới vào **Bảng category**.
-8. **API Danh mục** trả về mã định danh của danh mục mới.
-9. **Điều phối Danh mục** báo thành công, **Hộp thoại** đóng lại và **Màn hình Danh mục** tải lại danh sách.
+*Các actor tham gia*
+- **User:** người dùng thao tác trên giao diện.
+- **Frontend:** giao diện ứng dụng web.
+- **Controller Danh mục:** tiếp nhận và điều phối yêu cầu về danh mục ở Backend.
+- **Service Danh mục:** xử lý nghiệp vụ và ràng buộc của danh mục.
+- **Repository Danh mục:** truy xuất dữ liệu danh mục.
+- **Database:** cơ sở dữ liệu lưu trữ.
+
+*Chức năng: Thêm mới danh mục*
+- Bước 1: User bấm nút "Lưu" trên Frontend.
+- Bước 2: Frontend tự kiểm tra dữ liệu đã nhập đủ và đúng định dạng.
+- Bước 3: Frontend gửi yêu cầu tạo mới danh mục đến Controller Danh mục.
+- Bước 4: Controller Danh mục chuyển tiếp yêu cầu tạo mới đến Service Danh mục.
+- Bước 5: Service Danh mục tự kiểm tra quyền hạn và chuẩn hóa dữ liệu.
+- Bước 6: Service Danh mục gửi yêu cầu kiểm tra mã danh mục đã tồn tại chưa đến Repository Danh mục.
+- Bước 7: Repository Danh mục truy vấn danh mục theo mã trên Database.
+- Bước 8: Database trả kết quả tìm kiếm cho Repository Danh mục.
+- Bước 9: Repository Danh mục trả về cho Service Danh mục mã đã tồn tại hay chưa.
+- *Nếu mã đã tồn tại:*
+  - Bước 10: Service Danh mục trả lỗi "Mã danh mục đã tồn tại" cho Controller Danh mục.
+  - Bước 11: Controller Danh mục trả thông báo lỗi cho Frontend.
+  - Bước 12: Frontend hiển thị lỗi và giữ nguyên dữ liệu đã nhập cho User.
+- *Nếu mã chưa tồn tại:*
+  - Bước 13: Service Danh mục gửi danh mục mới đến Repository Danh mục để lưu.
+  - Bước 14: Repository Danh mục lưu bản ghi danh mục mới vào Database.
+  - Bước 15: Database xác nhận đã lưu thành công cho Repository Danh mục.
+  - Bước 16: Repository Danh mục trả về danh mục đã lưu cho Service Danh mục.
+  - Bước 17: Service Danh mục trả về kết quả tạo mới cho Controller Danh mục.
+  - Bước 18: Controller Danh mục trả về thông báo thành công và dữ liệu danh mục mới cho Frontend.
+  - Bước 19: Frontend đóng hộp thoại, hiển thị thông báo "Thêm mới danh mục thành công" và làm mới danh sách danh mục cho User.
 
 ## Phụ lục B — Hồ sơ dự án demo (đã ẩn định danh)
 
