@@ -19,6 +19,21 @@ public interface StackAdapter {
     /** Vai trò Source mà adapter hỗ trợ. */
     Set<SourceRole> roles();
 
+    /**
+     * Adapter có phân tích file này không (vd adapter Spring chỉ đọc {@code .java}). Chỉ file được phân tích mới qua pha
+     * 1 và được ghi vào danh sách file của lần quét; các file khác vẫn đọc được qua loader (file cấu hình).
+     *
+     * @param relativePath đường dẫn tương đối trong Source, dùng dấu '/'
+     */
+    default boolean analyzes(String relativePath) {
+        return true;
+    }
+
+    /** Phiên bản cách trích dữ kiện pha 1 — đổi thì dữ kiện đã cache với phiên bản cũ không được dùng lại. */
+    default String factsVersion() {
+        return "1";
+    }
+
     /** Kiểu dữ kiện pha 1 của adapter — dùng để đọc lại từ cache. */
     Class<? extends FileFacts> factsType();
 

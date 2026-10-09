@@ -63,8 +63,20 @@ public record JavaFileFacts(
         }
     }
 
-    /** Field của một kiểu. {@code type} là FQN nếu giải được, ngược lại là tên ngắn. */
-    public record FieldFact(String declaringType, String name, String type, boolean isFinal, List<String> annotations, int line) {}
+    /**
+     * Field của một kiểu. {@code type} là FQN nếu giải được, ngược lại là tên ngắn.
+     *
+     * @param constantValue giá trị nếu là hằng chuỗi {@code static final String} khởi tạo bằng literal (hoặc nối các
+     *     literal); null nếu không phải
+     */
+    public record FieldFact(
+            String declaringType,
+            String name,
+            String type,
+            boolean isFinal,
+            List<String> annotations,
+            String constantValue,
+            int line) {}
 
     /** Constructor hoặc method. {@code name = "<init>"} với constructor. */
     public record MethodFact(
@@ -77,9 +89,15 @@ public record JavaFileFacts(
             int startLine,
             int endLine) {}
 
+    /** Tiền tố đánh dấu một đường dẫn mapping là tham chiếu hằng số (vd {@code @const:ApiPaths.CATEGORY}), cần giải ở pha 2. */
+    public static final String CONSTANT_REF_PREFIX = "@const:";
+
     /**
      * Một mapping HTTP. {@code method = null} nghĩa là mapping cấp class ({@code @RequestMapping} trên class).
      *
+     * @param method chữ ký handler {@code tên(kiểu tham số,...)}, null với mapping cấp class
+     * @param paths đường dẫn: literal giữ nguyên; tham chiếu hằng số có tiền tố {@link #CONSTANT_REF_PREFIX}
+     * @param httpMethods GET/POST…; rỗng nghĩa là mọi phương thức ({@code @RequestMapping} không khai {@code method})
      * @param openApi summary/description/tag lấy từ {@code @Operation}, {@code @Tag}
      */
     public record MappingFact(

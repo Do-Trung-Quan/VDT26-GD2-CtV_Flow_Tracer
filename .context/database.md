@@ -63,7 +63,7 @@ Mỗi bản ghi là **một lần quét** mã nguồn của Workspace: quét l�
 | workspace_id | UUID (FK) | Workspace được quét, tham chiếu Workspace.id |
 | trigger | ENUM('IMPORT', 'RESCAN') | Kiểu quét: `IMPORT` phân tích toàn bộ, `RESCAN` chỉ phân tích file đã thay đổi |
 | status | ENUM('PENDING', 'RUNNING', 'SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED') | Trạng thái: chờ, đang chạy, thành công, thành công một phần (có file lỗi), thất bại, đã hủy |
-| stats | JSONB | Số liệu của lần quét: số file đọc / thêm / sửa / xóa, số node và edge, số file lỗi, thời gian từng giai đoạn |
+| stats | JSONB | Số liệu của lần quét (mọi số đều đếm/đo thật): số file theo loại (tổng / thêm / sửa / xóa / không đổi / đọc lại / lấy từ cache / lỗi), số node / edge / endpoint của Workspace sau lần quét, số chẩn đoán lỗi / cảnh báo kèm danh sách chẩn đoán (tối đa 100), thời gian từng giai đoạn đã chạy (danh sách có thứ tự), kết quả từng Source; `noChanges` khi quét lại không có file đổi. Rỗng khi lần quét bị hủy / thất bại |
 | error_summary | TEXT (nullable) | Nguyên nhân lỗi chung khi `FAILED`. Lỗi của từng file nằm ở SourceFile |
 | started_at | TIMESTAMPTZ | Thời điểm bắt đầu |
 | finished_at | TIMESTAMPTZ (nullable) | Thời điểm kết thúc. NULL khi đang chạy |

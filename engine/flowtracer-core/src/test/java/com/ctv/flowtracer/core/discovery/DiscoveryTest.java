@@ -24,4 +24,22 @@ class DiscoveryTest {
         assertThat(filter.accept("backend/src/main/java/A.java", 10)).isTrue();
         assertThat(filter.accept("backend/src/main/java/Big.java", 2_000_000)).isFalse();
     }
+
+    @Test
+    void directoriesFullyExcludedArePrunedOthersAreWalked() {
+        var filter = new FileFilter(List.of(), List.of("generated/**", "src/**/*.gen.java"), 1024);
+
+        assertThat(filter.acceptDirectory("")).isTrue();
+        assertThat(filter.acceptDirectory("web/node_modules")).isFalse();
+        assertThat(filter.acceptDirectory("docs")).isFalse();
+        assertThat(filter.acceptDirectory("generated")).isFalse();
+        assertThat(filter.acceptDirectory("src/main/java")).isTrue();
+        assertThat(filter.acceptDirectory("documents")).isTrue();
+
+        // trong thư mục đã được chấp nhận, chỉ còn luật cấp file
+        assertThat(filter.acceptInWalkedDirectory("src/main/java/A.java", 10)).isTrue();
+        assertThat(filter.acceptInWalkedDirectory("src/main/java/A.gen.java", 10)).isFalse();
+        assertThat(filter.acceptInWalkedDirectory("web/app.min.js", 10)).isFalse();
+        assertThat(filter.acceptInWalkedDirectory("src/Big.java", 2048)).isFalse();
+    }
 }

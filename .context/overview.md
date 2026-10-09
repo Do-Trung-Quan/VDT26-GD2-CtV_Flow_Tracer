@@ -306,6 +306,10 @@ public interface StackAdapter {
     List<String> rootMarkers();
     /** Mức độ phù hợp (0..1) dựa trên các file đặc trưng của thư mục ứng viên */
     DetectResult detect(DetectContext ctx);
+    /** Adapter có phân tích file này không (vd Spring chỉ đọc .java); file khác vẫn đọc được qua loader */
+    boolean analyzes(String relativePath);
+    /** Phiên bản cách trích dữ kiện — đổi thì cache dữ kiện cũ không được dùng lại */
+    String factsVersion();
 
     /** Pha 1 – từng file độc lập, chạy song song: trích "dữ kiện" thô (class, hàm, lời gọi, annotation…).
      *  Kết quả được cache theo mã băm file, nên file không đổi thì không phải đọc lại. */
@@ -348,7 +352,7 @@ IR là "bản đồ" chung cho mọi công nghệ. Mỗi Adapter sinh IR; Linker
 | `UI_ELEMENT` | Phần tử tương tác | `elementType` (button, input, select, table, pagination…), `event`, `label`, `i18nKey` |
 | `FE_METHOD` | Method phía FE | `layer` (COMPONENT / FACADE / USECASE / SERVICE / REPOSITORY), `className`, `signature` |
 | `HTTP_CALL` | Điểm gọi HTTP: phía FE (`HttpClient`) hoặc phía BE gọi service khác / API bên ngoài (`RestTemplate`, `WebClient`, `@FeignClient`) | `httpMethod`, `urlExpr` (biểu thức gốc), `urlPattern` (đã chuẩn hóa), `bodyType`, `origin` (FE / BE) |
-| `API_ENDPOINT` | Endpoint BE | `httpMethod`, `path`, `params[]`, `requestType`, `responseType`, `summary`, `tag`, `security` |
+| `API_ENDPOINT` | Endpoint BE | `httpMethod` (`ANY` khi `@RequestMapping` không khai phương thức), `path` (đã cộng context-path), `pathResolved`, `contextPath`, `params[]`, `requestType`, `responseType`, `summary` + `summarySource` (`OPERATION` / `JAVADOC`), `tag`, `module` + `moduleSource` (`TAG` / `CONTROLLER` / `PACKAGE`), `controller`, `handler`, `deprecated`, `security` |
 | `BE_METHOD` | Method phía BE | `layer` (CONTROLLER / SERVICE / REPOSITORY / OTHER), `className`, `signature`, `transactional` |
 | `DATA_QUERY` | Một truy vấn dữ liệu | `queryKind` (DERIVED / JPQL / NATIVE / DYNAMIC / LIB_CALL), `text` (đã rút gọn), `operation` (READ / WRITE / DELETE) |
 | `DB_TABLE` | Bảng hoặc collection | `name`, `entity`, `discriminator` |

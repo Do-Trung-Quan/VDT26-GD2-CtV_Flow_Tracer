@@ -64,6 +64,12 @@ public final class SidecarStackAdapter implements StackAdapter {
         return roles;
     }
 
+    /** TODO (Giai đoạn 4): phân tích qua lệnh {@code analyze}; tới lúc đó chưa phân tích file nào của Source này. */
+    @Override
+    public boolean analyzes(String relativePath) {
+        return false;
+    }
+
     @Override
     public List<String> rootMarkers() {
         return rootMarkers;

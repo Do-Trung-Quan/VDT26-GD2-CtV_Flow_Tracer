@@ -18,7 +18,7 @@
 
 | STT | Tên API | URL / URI | Input | Output | Mô tả chức năng |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Lấy danh sách Workspace** | `GET /api/workspaces` | *(Không cần input)* | Danh sách Workspace: id, name, số Source, thời điểm và trạng thái quét gần nhất | Sắp xếp theo thời điểm cập nhật mới nhất lên đầu. |
+| 1 | **Lấy danh sách Workspace** | `GET /api/workspaces` | *(Không cần input)* | Danh sách Workspace: id, name, số Source, các Source, lần quét gần nhất (trạng thái, thời điểm) | Sắp xếp theo thời điểm cập nhật mới nhất lên đầu. |
 | 2 | **Tạo Workspace** | `POST /api/workspaces` | name, description, sources[] (tùy chọn: root_path, exclude_globs) | Đối tượng Workspace vừa tạo kèm danh sách Source | Kiểm tra `name` không trùng (`409` nếu trùng). Vai trò và công nghệ của từng Source lấy theo kết quả nhận diện (API số 10); thư mục có nhiều gốc dự án được tách thành nhiều Source. |
 | 3 | **Lấy chi tiết Workspace** | `GET /api/workspaces/:id` | workspace_id (param) | Thông tin Workspace, danh sách Source, lần quét gần nhất | Dữ liệu cho trang tổng quan và trang cài đặt Workspace. |
 | 4 | **Cập nhật Workspace** | `PATCH /api/workspaces/:id` | param: id; body: name, description | Workspace đã cập nhật | Chỉ sửa thông tin mô tả. |
@@ -38,12 +38,12 @@
 
 | STT | Tên API | URL / URI | Input | Output | Mô tả chức năng |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Bắt đầu quét** | `POST /api/workspaces/:id/scans` | param: id; body: trigger (`IMPORT` / `RESCAN`) | `202 Accepted` + scan_run_id | `IMPORT` phân tích toàn bộ; `RESCAN` chỉ phân tích file thay đổi (so mã băm). Trả `409` nếu Workspace đang có lần quét chạy. |
-| 2 | **Theo dõi tiến độ quét** (SSE) | `GET /api/scans/:scanRunId/events` | scan_run_id (param) | Luồng sự kiện: giai đoạn, số file đã xử lý / tổng, thông điệp; sự kiện kết thúc | Giao diện dùng để hiển thị thanh tiến độ theo thời gian thực. |
-| 3 | **Lấy trạng thái lần quét** | `GET /api/scans/:scanRunId` | scan_run_id (param) | status, thống kê (số file, số thành phần, số liên kết, số lỗi, thời gian từng giai đoạn) | Dùng khi tải lại trang hoặc mất kết nối SSE. |
-| 4 | **Hủy lần quét** | `POST /api/scans/:scanRunId/cancel` | scan_run_id (param) | Lần quét với trạng thái `CANCELLED` | Dừng lần quét; kết quả của lần quét thành công trước đó vẫn được giữ. |
-| 5 | **Lấy lịch sử quét** | `GET /api/workspaces/:id/scans` | param: id; query: page, limit | Danh sách lần quét (phân trang) | Mới nhất lên đầu. |
-| 6 | **Lấy danh sách file lỗi** | `GET /api/scans/:scanRunId/errors` | param: scanRunId; query: page, limit | Danh sách file không phân tích được: đường dẫn, lý do | Phục vụ trạng thái `PARTIAL`. |
+| 1 | **Bắt đầu quét** | `POST /api/workspaces/:id/scans` | param: id; body: trigger (`IMPORT` / `RESCAN`) | `202 Accepted` + lần quét (id, status `PENDING`) | `IMPORT` phân tích lại toàn bộ file; `RESCAN` chỉ phân tích file thêm/sửa (so mã băm), file không đổi dùng lại dữ kiện đã lưu; không có file nào đổi thì không phân tích lại (`noChanges`). Trả `409` `SCAN_IN_PROGRESS` nếu Workspace đang có lần quét chạy. |
+| 2 | **Theo dõi tiến độ quét** (SSE) | `GET /api/scans/:scanRunId/events` | scan_run_id (param) | Sự kiện `progress`: giai đoạn (mã, tên, thứ tự / tổng), số mục đã xử lý / tổng, thông điệp. Sự kiện `done`: lần quét như API số 3 | Giao diện dùng để hiển thị thanh tiến độ theo thời gian thực. Kết nối muộn nhận ngay sự kiện gần nhất; lần quét đã xong thì nhận ngay `done`. Không bọc vỏ chuẩn. |
+| 3 | **Lấy trạng thái lần quét** | `GET /api/scans/:scanRunId` | scan_run_id (param) | status, thời gian, thống kê: số file theo loại (tổng / thêm / sửa / xóa / không đổi / đọc lại / lấy từ cache / lỗi), số thành phần / quan hệ / endpoint, số chẩn đoán kèm danh sách chẩn đoán, thời gian từng giai đoạn, kết quả từng Source | Dùng khi tải lại trang hoặc mất kết nối SSE. Mọi số đều đếm/đo thật. |
+| 4 | **Hủy lần quét** | `POST /api/scans/:scanRunId/cancel` | scan_run_id (param) | Lần quét với trạng thái `CANCELLED` | Dừng lần quét (chờ tối đa vài giây); kết quả của lần quét thành công trước đó vẫn được giữ. Lần quét đã kết thúc thì trả `409` `SCAN_NOT_RUNNING`. |
+| 5 | **Lấy lịch sử quét** | `GET /api/workspaces/:id/scans` | param: id; query: page (từ 1), limit (≤ 100) | Danh sách lần quét (phân trang: items, total, page, limit) | Mới nhất lên đầu. |
+| 6 | **Lấy danh sách file lỗi** | `GET /api/scans/:scanRunId/errors` | param: scanRunId; query: page, limit (≤ 200) | Danh sách file không phân tích được: Source, đường dẫn (trong Source và trong `SOURCE_ROOT`), lý do | Phục vụ trạng thái `PARTIAL`. Lý do có căn cứ: lỗi cú pháp kèm dòng, quá kích thước, nhị phân, sai bảng mã, quá thời gian, bộ phân tích lỗi. |
 | 7 | **Bật/tắt tự quét khi code đổi** *(Mở rộng)* | `PATCH /api/workspaces/:id/watch` | param: id; body: enabled (boolean) | Trạng thái theo dõi hiện tại | Theo dõi thay đổi file và tự chạy `RESCAN` (gộp các thay đổi liên tiếp trước khi quét). |
 
 > Quét bằng dòng lệnh *(Mở rộng)* dùng trực tiếp thư viện phân tích qua lệnh `flowtracer scan <path> --out ir.json`, không đi qua API.
@@ -54,7 +54,7 @@
 
 | STT | Tên API | URL / URI | Input | Output | Mô tả chức năng |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Lấy cây API Backend** | `GET /api/workspaces/:id/trees/backend` | workspace_id (param); query: role (`BACKEND` mặc định / `LEGACY` *(mở rộng)* — cây Module → Lớp xử lý → Action của hệ thống cũ) | Cây `Module → Endpoint`: node_key, method, path, mô tả ngắn, cờ cảnh báo | Module theo `@Tag`, sau đó theo Controller, cuối cùng theo package. |
+| 1 | **Lấy cây API Backend** | `GET /api/workspaces/:id/trees/backend` | workspace_id (param); query: role (`BACKEND` mặc định / `LEGACY` *(mở rộng)* — cây Module → Lớp xử lý → Action của hệ thống cũ) | Số module, số endpoint; cây `Module → Endpoint`: module (tên, nguồn tên, Source), endpoint (node_key, method, path, mô tả ngắn + nguồn mô tả, ngừng dùng, file + dòng, cảnh báo) | Module theo `@Tag`, sau đó theo Controller, cuối cùng theo package. Mô tả lấy theo `@Operation` rồi Javadoc, không có thì để trống. Cảnh báo chỉ hiện khi có căn cứ (vd đường dẫn chứa hằng số chưa giải được). |
 | 2 | **Lấy cây thành phần Frontend** | `GET /api/workspaces/:id/trees/frontend` | workspace_id (param) | Cây `Ứng dụng → Màn hình → Tab → Hộp thoại/Form → Phần tử`: node_key, loại, nhãn tiếng Việt, cờ "gọi API"/"chỉ giao diện" | Dựng từ quan hệ chứa-trong giữa các thành phần. |
 | 3 | **Tìm kiếm** *(Nên có)* | `GET /api/workspaces/:id/search` | param: id; query: q, kinds (tùy chọn), limit | Danh sách kết quả nhóm theo loại: node_key, tên hiển thị, loại, vị trí | Tìm theo đường dẫn API, nhãn nút, tên màn hình, tên class, tên bảng (tìm kiếm toàn văn trên PostgreSQL). |
 | 4 | **Lấy chi tiết thành phần** | `GET /api/workspaces/:id/nodes/:nodeKey` | workspace_id, node_key (param) | Thông tin thành phần, danh sách "Được gọi từ", "Gọi tới" | Với API: "Được gọi từ" là thành phần UI / API khác gọi tới nó. Với thành phần UI: chuỗi thành phần chứa nó, từ cao nhất xuống. |

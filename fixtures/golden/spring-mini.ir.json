@@ -1,0 +1,284 @@
+{
+  "adapterId" : "spring",
+  "nodes" : [ {
+    "key" : "java:endpoint:ANY /shop-api/api/v1/orders/sync",
+    "kind" : "API_ENDPOINT",
+    "name" : "ANY /shop-api/api/v1/orders/sync",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 26,
+      "endLine" : 27
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#sync()",
+      "httpMethod" : "ANY",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/sync",
+      "pathResolved" : true
+    }
+  }, {
+    "key" : "java:endpoint:DELETE /shop-api/api/v1/categories/{id}",
+    "kind" : "API_ENDPOINT",
+    "name" : "DELETE /shop-api/api/v1/categories/{id}",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 51,
+      "endLine" : 54
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.category.CategoryController",
+      "handler" : "CategoryController#delete(Long)",
+      "httpMethod" : "DELETE",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ {
+        "in" : "PATH",
+        "name" : "id",
+        "required" : true,
+        "type" : "Long"
+      } ],
+      "path" : "/shop-api/api/v1/categories/{id}",
+      "pathResolved" : true,
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/categories",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/categories",
+    "displayName" : "Lấy danh sách danh mục",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 30,
+      "endLine" : 35
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.category.CategoryController",
+      "handler" : "CategoryController#list(int,String)",
+      "httpMethod" : "GET",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ {
+        "defaultValue" : "1",
+        "in" : "QUERY",
+        "name" : "page",
+        "required" : false,
+        "type" : "int"
+      }, {
+        "in" : "QUERY",
+        "name" : "keyword",
+        "required" : false,
+        "type" : "String"
+      } ],
+      "path" : "/shop-api/api/v1/categories",
+      "pathResolved" : true,
+      "responseType" : "List<CategoryResponse>",
+      "summary" : "Lấy danh sách danh mục",
+      "summarySource" : "OPERATION",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/categories/export",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/categories/export",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 56,
+      "endLine" : 59
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.category.CategoryController",
+      "handler" : "CategoryController#export()",
+      "httpMethod" : "GET",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/categories/export",
+      "pathResolved" : true,
+      "responseType" : "byte[]",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/categories/{id}",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/categories/{id}",
+    "displayName" : "Lấy chi tiết một danh mục.",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 40,
+      "endLine" : 43
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.category.CategoryController",
+      "handler" : "CategoryController#get(Long)",
+      "httpMethod" : "GET",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ {
+        "in" : "PATH",
+        "name" : "id",
+        "required" : true,
+        "type" : "Long"
+      } ],
+      "path" : "/shop-api/api/v1/categories/{id}",
+      "pathResolved" : true,
+      "responseType" : "CategoryResponse",
+      "summary" : "Lấy chi tiết một danh mục.",
+      "summarySource" : "JAVADOC",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 16,
+      "endLine" : 19
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#list(String)",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ {
+        "in" : "HEADER",
+        "name" : "X-Shop-Id",
+        "required" : true,
+        "type" : "String"
+      } ],
+      "path" : "/shop-api/api/v1/orders",
+      "pathResolved" : true,
+      "responseType" : "List<OrderResponse>"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/${ExternalPaths.REPORT}",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/${ExternalPaths.REPORT}",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 29,
+      "endLine" : 32
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#report()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/${ExternalPaths.REPORT}",
+      "pathResolved" : false,
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:POST /shop-api/api/v1/categories",
+    "kind" : "API_ENDPOINT",
+    "name" : "POST /shop-api/api/v1/categories",
+    "displayName" : "Tạo danh mục",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 45,
+      "endLine" : 49
+    },
+    "attrs" : {
+      "consumes" : [ "application/json" ],
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.category.CategoryController",
+      "description" : "Mã danh mục không được trùng",
+      "handler" : "CategoryController#create(CategoryRequest)",
+      "httpMethod" : "POST",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ {
+        "in" : "BODY",
+        "name" : "request",
+        "required" : true,
+        "type" : "CategoryRequest"
+      } ],
+      "path" : "/shop-api/api/v1/categories",
+      "pathResolved" : true,
+      "requestType" : "CategoryRequest",
+      "responseType" : "ApiResponse<CategoryResponse>",
+      "summary" : "Tạo danh mục",
+      "summarySource" : "OPERATION",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:POST /shop-api/api/v1/categories/export",
+    "kind" : "API_ENDPOINT",
+    "name" : "POST /shop-api/api/v1/categories/export",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 56,
+      "endLine" : 59
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.category.CategoryController",
+      "handler" : "CategoryController#export()",
+      "httpMethod" : "POST",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/categories/export",
+      "pathResolved" : true,
+      "responseType" : "byte[]",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:PUT /shop-api/api/v1/orders/{id}/status",
+    "kind" : "API_ENDPOINT",
+    "name" : "PUT /shop-api/api/v1/orders/{id}/status",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 21,
+      "endLine" : 24
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#changeStatus(Long,OrderStatusRequest)",
+      "httpMethod" : "PUT",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ {
+        "in" : "PATH",
+        "name" : "id",
+        "required" : true,
+        "type" : "Long"
+      }, {
+        "in" : "BODY",
+        "name" : "request",
+        "required" : true,
+        "type" : "OrderStatusRequest"
+      } ],
+      "path" : "/shop-api/api/v1/orders/{id}/status",
+      "pathResolved" : true,
+      "requestType" : "OrderStatusRequest",
+      "responseType" : "OrderResponse"
+    }
+  } ],
+  "edges" : [ ],
+  "detectedLinkRules" : [ ],
+  "diagnostics" : [ {
+    "severity" : "WARNING",
+    "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+    "line" : 29,
+    "message" : "Không giải được hằng số trong đường dẫn của OrderController#report(); đường dẫn hiển thị giữ nguyên tên hằng số"
+  }, {
+    "severity" : "ERROR",
+    "filePath" : "src/main/java/com/example/shop/product/ProductController.java",
+    "message" : "Dòng 10: Lỗi cú pháp. Found \"{\""
+  } ]
+}

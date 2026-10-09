@@ -6,14 +6,20 @@ import com.ctv.flowtracer.app.config.FlowTracerProperties;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +30,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class LocalSourceReader implements SourceReader {
 
+    private static final int DIR_CACHE_LIMIT = 50_000;
+
     private final Path root;
+    /** Thư mục (tuyệt đối) → đường dẫn thật có nằm trong root không. */
+    private final Map<Path, Boolean> realDirInside = new ConcurrentHashMap<>();
 
     public LocalSourceReader(FlowTracerProperties properties) {
         try {
@@ -67,14 +77,35 @@ public class LocalSourceReader implements SourceReader {
 
     @Override
     public List<Entry> walkFiles(String relativeRoot, BiPredicate<String, Long> accept) {
+        return walkFiles(relativeRoot, dir -> true, accept);
+    }
+
+    @Override
+    public List<Entry> walkFiles(String relativeRoot, Predicate<String> acceptDirectory, BiPredicate<String, Long> accept) {
         Path base = resolveSafe(relativeRoot);
         List<Entry> result = new ArrayList<>();
-        try (Stream<Path> paths = Files.walk(base)) {
-            paths.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS)).forEach(p -> {
-                String inSource = base.relativize(p).toString().replace('\\', '/');
-                long size = sizeOf(p);
-                if (accept.test(inSource, size)) {
-                    result.add(new Entry(relativize(p), p.getFileName().toString(), false, size));
+        try {
+            Files.walkFileTree(base, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    String inSource = base.relativize(dir).toString().replace('\\', '/');
+                    return acceptDirectory.test(inSource) ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    if (attrs.isRegularFile()) {
+                        String inSource = base.relativize(file).toString().replace('\\', '/');
+                        if (accept.test(inSource, attrs.size())) {
+                            result.add(new Entry(relativize(file), file.getFileName().toString(), false, attrs.size()));
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException e) {
+                    return FileVisitResult.CONTINUE; // thư mục / file không đọc được: bỏ qua, không làm hỏng cả lần duyệt
                 }
             });
         } catch (IOException e) {
@@ -128,14 +159,36 @@ public class LocalSourceReader implements SourceReader {
         if (!candidate.startsWith(root)) {
             throw outside(relativePath);
         }
+        if (Files.exists(candidate, LinkOption.NOFOLLOW_LINKS) && !realPathInside(candidate)) {
+            throw outside(relativePath);
+        }
+        return candidate;
+    }
+
+    /**
+     * Đường dẫn thật (sau khi giải symlink) còn nằm trong root. File thường chỉ cần kiểm tra thư mục chứa nó; kết quả
+     * theo thư mục được nhớ lại vì {@code toRealPath()} rất chậm trên Windows khi đọc hàng trăm file.
+     */
+    private boolean realPathInside(Path candidate) {
+        if (Files.isSymbolicLink(candidate)) {
+            return realPath(candidate).startsWith(root);
+        }
+        Path dir = Files.isDirectory(candidate, LinkOption.NOFOLLOW_LINKS) ? candidate : candidate.getParent();
+        if (dir == null || dir.equals(root)) {
+            return true;
+        }
+        if (realDirInside.size() > DIR_CACHE_LIMIT) {
+            realDirInside.clear();
+        }
+        return realDirInside.computeIfAbsent(dir, d -> realPath(d).startsWith(root));
+    }
+
+    private static Path realPath(Path path) {
         try {
-            if (Files.exists(candidate) && !candidate.toRealPath().startsWith(root)) {
-                throw outside(relativePath);
-            }
+            return path.toRealPath();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return candidate;
     }
 
     private String relativize(Path absolute) {

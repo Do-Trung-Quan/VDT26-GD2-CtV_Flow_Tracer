@@ -58,7 +58,8 @@ npm --prefix web start                                                          
 | :--- | :--- | :--- |
 | 0 | Tài liệu `.context/`, khung mã nguồn (engine 4 module, sidecar, web, contracts), migration V1–V2, bản vẽ giao diện | ✅ Xong |
 | 1 | Workspace & Import dự án — nhật ký: `docs/progress/0910_gd1_workspace_import.md` | ✅ Xong, chờ người dùng review |
-| 2 → 11 | Xem bên dưới | ⏳ Chưa làm |
+| 2 | Quét & cây API Backend — phần BE (Task 2.1, 2.2) xong, chờ duyệt; phần FE (Task 2.3) chưa làm. Nhật ký: `docs/progress/0910_gd2_quet_cay_api.md` | 🟡 Đang làm |
+| 3 → 11 | Xem bên dưới | ⏳ Chưa làm |
 
 ---
 

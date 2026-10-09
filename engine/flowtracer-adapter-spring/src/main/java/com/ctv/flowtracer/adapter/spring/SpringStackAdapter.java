@@ -41,6 +41,16 @@ public final class SpringStackAdapter implements StackAdapter {
     }
 
     @Override
+    public boolean analyzes(String relativePath) {
+        return relativePath.endsWith(".java");
+    }
+
+    @Override
+    public String factsVersion() {
+        return JavaFileExtractor.VERSION;
+    }
+
+    @Override
     public List<String> rootMarkers() {
         return SpringDetector.ROOT_MARKERS;
     }

@@ -3,7 +3,10 @@ package com.ctv.flowtracer.app.workspace.service;
 import com.ctv.flowtracer.app.common.error.AppException;
 import com.ctv.flowtracer.app.common.error.ErrorCode;
 import com.ctv.flowtracer.app.scan.adapter.AdapterRegistry;
+import com.ctv.flowtracer.app.scan.dto.response.LastScanResponse;
+import com.ctv.flowtracer.app.scan.service.FactsCache;
 import com.ctv.flowtracer.app.scan.service.RunningScanRegistry;
+import com.ctv.flowtracer.app.scan.service.ScanQueryService;
 import com.ctv.flowtracer.app.workspace.dto.request.CreateWorkspaceRequest;
 import com.ctv.flowtracer.app.workspace.dto.request.NoiseFilterItemRequest;
 import com.ctv.flowtracer.app.workspace.dto.request.UpdateNoiseFiltersRequest;
@@ -12,8 +15,10 @@ import com.ctv.flowtracer.app.workspace.dto.response.NoiseFilterResponse;
 import com.ctv.flowtracer.app.workspace.dto.response.NoiseFiltersResponse;
 import com.ctv.flowtracer.app.workspace.dto.response.SourceResponse;
 import com.ctv.flowtracer.app.workspace.dto.response.WorkspaceResponse;
+import com.ctv.flowtracer.app.workspace.entity.Source;
 import com.ctv.flowtracer.app.workspace.entity.Workspace;
 import com.ctv.flowtracer.app.workspace.entity.WorkspaceSettings;
+import com.ctv.flowtracer.app.workspace.model.SourceScanTarget;
 import com.ctv.flowtracer.app.workspace.repository.SourceRepository;
 import com.ctv.flowtracer.app.workspace.repository.WorkspaceRepository;
 import com.ctv.flowtracer.ir.NoiseFilter;
@@ -21,6 +26,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -33,31 +39,81 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class WorkspaceService {
 
+    /** Thứ tự ổn định của Source: theo thư mục, cùng thư mục thì theo vai trò. */
+    private static final Comparator<Source> SOURCE_ORDER =
+            Comparator.comparing(Source::getRootPath).thenComparing(Source::getRole);
+
     private final WorkspaceRepository workspaces;
     private final SourceRepository sources;
     private final SourceService sourceService;
     private final RunningScanRegistry runningScans;
     private final AdapterRegistry adapters;
+    private final ScanQueryService scanQueries;
+    private final FactsCache factsCache;
 
     public WorkspaceService(
             WorkspaceRepository workspaces,
             SourceRepository sources,
             SourceService sourceService,
             RunningScanRegistry runningScans,
-            AdapterRegistry adapters) {
+            AdapterRegistry adapters,
+            ScanQueryService scanQueries,
+            FactsCache factsCache) {
         this.workspaces = workspaces;
         this.sources = sources;
         this.sourceService = sourceService;
         this.runningScans = runningScans;
         this.adapters = adapters;
+        this.scanQueries = scanQueries;
+        this.factsCache = factsCache;
     }
 
     /** Mới cập nhật lên đầu. */
     @Transactional(readOnly = true)
     public List<WorkspaceResponse> list() {
-        return workspaces.findAll(Sort.by(Sort.Direction.DESC, "updatedAt")).stream()
-                .map(this::toResponse)
+        List<Workspace> all = workspaces.findAll(Sort.by(Sort.Direction.DESC, "updatedAt"));
+        Map<UUID, LastScanResponse> lastScans = scanQueries.summaries(all.stream()
+                .map(Workspace::getLastScanRunId)
+                .filter(Objects::nonNull)
+                .toList());
+        return all.stream().map(ws -> toResponse(ws, lastScans.get(ws.getLastScanRunId()))).toList();
+    }
+
+    /**
+     * Các Source cần quét của Workspace, theo đường dẫn — cho package {@code scan}.
+     *
+     * @throws AppException {@link ErrorCode#WORKSPACE_NOT_FOUND}
+     */
+    @Transactional(readOnly = true)
+    public List<SourceScanTarget> scanTargets(UUID id) {
+        require(id);
+        return sources.findByWorkspaceIdOrderByName(id).stream()
+                .sorted(SOURCE_ORDER)
+                .map(s -> new SourceScanTarget(
+                        s.getId(),
+                        s.getName(),
+                        s.getRole(),
+                        s.getRootPath(),
+                        s.getDetectedStacks().isEmpty() ? null : s.getDetectedStacks().getFirst().adapter(),
+                        s.getIncludeGlobs(),
+                        s.getExcludeGlobs()))
                 .toList();
+    }
+
+    /**
+     * Kiểm tra Workspace tồn tại — cho package khác.
+     *
+     * @throws AppException {@link ErrorCode#WORKSPACE_NOT_FOUND}
+     */
+    @Transactional(readOnly = true)
+    public void requireExists(UUID id) {
+        require(id);
+    }
+
+    /** Ghi nhận lần quét gần nhất của Workspace — package {@code scan} gọi khi bắt đầu quét. */
+    @Transactional
+    public void recordLastScan(UUID id, UUID scanRunId) {
+        require(id).setLastScanRunId(scanRunId);
     }
 
     @Transactional(readOnly = true)
@@ -95,7 +151,6 @@ public class WorkspaceService {
      * Xóa Workspace cùng toàn bộ dữ liệu phân tích và dữ liệu người dùng (CSDL tự xóa theo khóa ngoại). Không bao giờ
      * đụng tới mã nguồn.
      *
-     * <p>TODO (Giai đoạn 2): xóa cả cache dữ kiện trên ổ đĩa của Workspace.
      */
     @Transactional
     public void delete(UUID id) {
@@ -104,6 +159,7 @@ public class WorkspaceService {
             throw scanInProgress(id);
         }
         workspaces.delete(ws);
+        factsCache.evictWorkspace(id);
     }
 
     @Transactional(readOnly = true)
@@ -141,13 +197,20 @@ public class WorkspaceService {
     }
 
     private WorkspaceResponse toResponse(Workspace ws) {
+        LastScanResponse lastScan = ws.getLastScanRunId() == null
+                ? null
+                : scanQueries.summaries(List.of(ws.getLastScanRunId())).get(ws.getLastScanRunId());
+        return toResponse(ws, lastScan);
+    }
+
+    private WorkspaceResponse toResponse(Workspace ws, LastScanResponse lastScan) {
         List<SourceResponse> list = ws.getId() == null
                 ? List.of()
                 : sources.findByWorkspaceIdOrderByName(ws.getId()).stream()
-                        .sorted(Comparator.comparing(s -> s.getRootPath() + "\u0000" + s.getRole()))
+                        .sorted(SOURCE_ORDER)
                         .map(SourceResponse::from)
                         .toList();
-        return WorkspaceResponse.from(ws, list);
+        return WorkspaceResponse.from(ws, list, lastScan);
     }
 
     private Workspace require(UUID id) {

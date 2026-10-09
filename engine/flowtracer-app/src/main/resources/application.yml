@@ -17,6 +17,11 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+    properties:
+      # Ghi theo lô (vd danh sách file của lần quét) thay vì từng câu lệnh
+      hibernate.jdbc.batch_size: 100
+      hibernate.order_inserts: true
+      hibernate.order_updates: true
   flyway:
     enabled: true
     locations: classpath:db/migration

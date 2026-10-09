@@ -193,6 +193,40 @@ class WorkspaceApiIT {
         assertThat(call("DELETE", "/api/workspaces/" + id, null).status).isEqualTo(200);
     }
 
+    // ---------------- B1, C1 với bộ phân tích Spring thật ----------------
+
+    @Test
+    void scanSpringMiniBuildsBackendTree() throws Exception {
+        var created = call("POST", "/api/workspaces", "{\"name\":\"Spring mini IT\",\"sources\":[{\"rootPath\":\"fixtures/spring-mini\"}]}");
+        assertThat(created.status).isEqualTo(201);
+        String id = created.data().get("id").asString();
+
+        var started = call("POST", "/api/workspaces/" + id + "/scans", "{\"trigger\":\"IMPORT\"}");
+        assertThat(started.status).isEqualTo(202);
+        String runId = started.data().get("id").asString();
+        JsonNode run = null;
+        for (int i = 0; i < 300; i++) {
+            run = call("GET", "/api/scans/" + runId, null).data();
+            if (!List.of("PENDING", "RUNNING").contains(run.get("status").asString())) {
+                break;
+            }
+            Thread.sleep(100);
+        }
+        assertThat(run.get("status").asString()).isEqualTo("PARTIAL");
+        assertThat(run.get("stats").get("files").get("total").asInt()).isEqualTo(6);
+        assertThat(run.get("stats").get("files").get("errors").asInt()).isEqualTo(1);
+        assertThat(run.get("stats").get("endpoints").asInt()).isEqualTo(10);
+
+        var errors = call("GET", "/api/scans/" + runId + "/errors", null).data().get("items");
+        assertThat(names(errors, "filePath")).containsExactly("src/main/java/com/example/shop/product/ProductController.java");
+
+        var tree = call("GET", "/api/workspaces/" + id + "/trees/backend", null).data();
+        assertThat(tree.get("endpointCount").asInt()).isEqualTo(10);
+        assertThat(names(tree.get("modules"), "name")).containsExactly("Danh mục", "Order");
+        assertThat(names(tree.get("modules"), "nameSource")).containsExactly("TAG", "CONTROLLER");
+        assertThat(call("DELETE", "/api/workspaces/" + id, null).status).isEqualTo(200);
+    }
+
     // ---------------- vỏ bọc ApiResponse và kiểm tra dữ liệu ----------------
 
     @Test

@@ -12,8 +12,13 @@ import java.util.regex.Pattern;
  */
 public final class FileFilter {
 
+    /** Tên file giả không thể tồn tại, dùng để kiểm tra luật loại trừ có phủ mọi file trong thư mục không. */
+    private static final String DIRECTORY_PROBE = "\u0000";
+
     private final List<Pattern> includes;
     private final List<Pattern> excludes;
+    /** Luật loại trừ không có dạng {@code …/**} — luật dạng đó đã được áp ở cấp thư mục khi duyệt có cắt tỉa. */
+    private final List<Pattern> fileOnlyExcludes;
     private final long maxBytes;
 
     /**
@@ -26,6 +31,7 @@ public final class FileFilter {
         var allExcludes = new ArrayList<>(DefaultExcludes.GLOBS);
         allExcludes.addAll(excludeGlobs);
         this.excludes = allExcludes.stream().map(FileFilter::toRegex).toList();
+        this.fileOnlyExcludes = allExcludes.stream().filter(g -> !g.endsWith("/**")).map(FileFilter::toRegex).toList();
         this.maxBytes = maxBytes;
     }
 
@@ -39,6 +45,36 @@ public final class FileFilter {
             return false;
         }
         return includes.isEmpty() || includes.stream().anyMatch(p -> p.matcher(path).matches());
+    }
+
+    /**
+     * Như {@link #accept} nhưng dùng khi duyệt cây đã cắt tỉa bằng {@link #acceptDirectory}: bỏ qua các luật dạng
+     * {@code …/**} vì thư mục chứa file đã được chấp nhận (luật đó khớp file thì cũng khớp thư mục cha). Nhanh hơn nhiều
+     * với cây lớn.
+     */
+    public boolean acceptInWalkedDirectory(String relativePath, long sizeBytes) {
+        if (sizeBytes > maxBytes) {
+            return false;
+        }
+        String path = relativePath.replace('\\', '/');
+        if (fileOnlyExcludes.stream().anyMatch(p -> p.matcher(path).matches())) {
+            return false;
+        }
+        return includes.isEmpty() || includes.stream().anyMatch(p -> p.matcher(path).matches());
+    }
+
+    /**
+     * Có duyệt vào thư mục này không: bỏ cả nhánh khi một luật loại trừ phủ toàn bộ thư mục (vd {@code **}{@code /node_modules/**},
+     * {@code docs/**}). Thư mục chỉ bị loại một phần thì vẫn duyệt, file được lọc riêng bằng {@link #accept}.
+     *
+     * @param relativeDir đường dẫn thư mục tương đối trong Source, dùng dấu '/'
+     */
+    public boolean acceptDirectory(String relativeDir) {
+        if (relativeDir.isEmpty()) {
+            return true;
+        }
+        String probe = relativeDir.replace('\\', '/') + "/" + DIRECTORY_PROBE;
+        return excludes.stream().noneMatch(p -> p.matcher(probe).matches());
     }
 
     /** Nhận biết file nhị phân dựa trên vài KB đầu: có byte 0 thì coi là nhị phân. */

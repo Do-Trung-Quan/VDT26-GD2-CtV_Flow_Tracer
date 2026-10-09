@@ -204,6 +204,7 @@ flowtracer-adapter-spring/src/main/java/com/ctv/flowtracer/adapter/spring/
 │                                    #   chỗ báo lỗi, đoạn câu truy vấn, các trường dữ liệu — được lưu tạm để lần sau không phải đọc lại
 ├── extract/                         # BƯỚC 1 — đọc từng file Java riêng lẻ (chạy song song nhiều file cùng lúc)
 │   ├── JavaFileExtractor.java       # Điều phối việc đọc một file: phân tích cú pháp (vẫn chạy được khi file lỗi) rồi gọi các bộ trích dưới đây
+│   ├── AstSupport.java              # Hàm tiện ích đọc cây cú pháp: annotation, giá trị chuỗi/hằng số, Javadoc, số dòng
 │   ├── TypeDeclarationExtractor.java # Lấy thông tin các class trong file: tên, kế thừa ai, và vai trò Spring (là Controller, Service, bảng dữ liệu…)
 │   ├── MemberExtractor.java         # Lấy các thuộc tính và hàm của class: tên, kiểu, ghi chú mô tả, yêu cầu quyền, có dùng giao dịch CSDL không
 │   ├── MappingExtractor.java        # Lấy các API mà Controller khai báo: phương thức (GET/POST…), đường dẫn, tham số, mô tả Swagger
@@ -217,6 +218,7 @@ flowtracer-adapter-spring/src/main/java/com/ctv/flowtracer/adapter/spring/
 │   ├── InjectionResolver.java       # Xác định mỗi class dùng những class nào khác (Spring tự "tiêm" vào qua constructor hoặc @Autowired)
 │   ├── ImplementationResolver.java  # Với một interface, tìm class thực sự làm việc; có nhiều class cùng khả năng thì ghi lại tất cả làm ứng viên
 │   ├── CallResolver.java            # Xác định mỗi lời gọi hàm thực sự chạy vào hàm nào; không xác định được thì ghi rõ lý do
+│   ├── ModuleNameResolver.java      # Tên module của API: @Tag → tên Controller → tên package (kèm nguồn của tên)
 │   ├── EndpointBuilder.java         # Tạo danh sách API hoàn chỉnh (ghép đường dẫn cấp class + cấp hàm) và nối mỗi API với hàm xử lý nó
 │   ├── DataAccessResolver.java      # Nhận ra các hàm truy cập CSDL (findBy…, save…, delete…) và đó là thao tác đọc hay ghi
 │   ├── QueryTextAnalyzer.java       # Đọc nội dung câu truy vấn (JPQL/SQL) để biết nó chạm vào bảng nào, kể cả câu được ghép từ nhiều đoạn
@@ -385,17 +387,27 @@ scan/
 │   │                                #   (API B1, B3–B6; tự quét khi code đổi là MỞ RỘNG)
 │   └── ScanEventsController.java    # Mở kênh để giao diện nhận tiến độ quét theo thời gian thực (thanh tiến độ) (API B2)
 ├── service/
-│   ├── ScanService.java             # Xử lý nghiệp vụ quét: không cho 2 lần quét chạy cùng lúc, cho chạy nền, cho hủy, cho xem kết quả
+│   ├── ScanService.java             # Xử lý nghiệp vụ quét: không cho 2 lần quét chạy cùng lúc, cho chạy nền, cho hủy, cho xem kết quả;
+│   │                                #   Engine khởi động lại thì lần quét dở dang được đánh dấu thất bại
+│   ├── ScanQueryService.java        # Đọc thông tin lần quét cho package khác (thẻ Workspace hiện lần quét gần nhất); đổi thống kê ↔ JSONB
 │   ├── RunningScanRegistry.java     # Sổ ghi nhớ "Workspace nào đang quét" — dùng để chặn quét trùng, chặn xóa Workspace đang quét, và để hủy
-│   └── FactsCache.java              # Kho lưu tạm "những gì đọc được từ mỗi file" trên ổ đĩa — file không đổi thì lần sau lấy lại, khỏi đọc lại
+│   └── FactsCache.java              # Kho lưu tạm "những gì đọc được từ mỗi file" trên ổ đĩa, theo Workspace và mã băm — file không đổi thì
+│                                    #   lần sau lấy lại; xóa Workspace thì xóa luôn
+├── model/                           # Dữ liệu nội bộ của lần quét
+│   ├── ScanHandle.java              # Điều khiển lần quét đang chạy: yêu cầu hủy, chờ kết thúc
+│   ├── ScanStage.java               # Các giai đoạn (DISCOVER … FINALIZE) kèm tên tiếng Việt
+│   └── ScanStats.java, FileCounts.java, SourceScanStats.java, StageDuration.java, ScanDiagnostic.java
+│                                    #   Thống kê lưu ở scan_runs.stats — mọi số đều đếm/đo thật; kèm danh sách chẩn đoán làm căn cứ
 ├── pipeline/                        # CỐT LÕI: các bước của một lần quét, chạy lần lượt
-│   ├── ScanPipeline.java            # Người điều phối: chạy lần lượt các bước dưới đây, xử lý lỗi, cập nhật trạng thái, dừng khi bị hủy
+│   ├── ScanPipeline.java            # Người điều phối: chạy lần lượt các bước dưới đây, đo thời gian từng bước, xử lý lỗi, cập nhật trạng thái,
+│   │                                #   dừng khi bị hủy; quét lại không có thay đổi thì bỏ qua bước 3–5
+│   ├── ScanContext.java, SourceWork.java, DiscoveredFile.java   # Trạng thái của lần quét / từng Source / từng file đi qua các bước
 │   ├── DiscoverStep.java            # Bước 1 — lập danh sách file cần đọc và tính "dấu vân tay" (mã băm) của từng file
 │   ├── DiffStep.java                # Bước 2 — so với lần quét trước để biết file nào mới, đã sửa, đã xóa, giữ nguyên
 │   ├── ExtractStep.java             # Bước 3 — đọc các file cần đọc lại (Java đọc ngay trong Engine; Angular giao cho sidecar)
 │   ├── ResolveStep.java             # Bước 4 — ghép kết quả các file Java lại để hiểu chúng liên quan nhau thế nào
 │   ├── PersistStep.java             # Bước 5 — lưu kết quả phân tích vào CSDL (lưu trọn vẹn một lần, lỗi giữa chừng thì giữ nguyên dữ liệu cũ)
-│   ├── LinkStep.java                # Bước 6 — nối lại các lời gọi API ở Frontend với API ở Backend
+│   ├── LinkStep.java                # (Giai đoạn 5) Bước 6 — nối lại các lời gọi API ở Frontend với API ở Backend
 │   └── ProgressReporter.java        # Gửi thông báo tiến độ của từng bước lên giao diện
 ├── adapter/                         # Quản lý các bộ phân tích theo công nghệ
 │   ├── AdapterRegistry.java         # Danh sách các bộ phân tích tool đang có (Spring, Angular…) — nơi DUY NHẤT đăng ký thêm bộ phân tích mới
@@ -413,10 +425,14 @@ scan/
 │   │                                #   kết quả đọc một file (thành công / lỗi / bỏ qua)
 │   └── SourceFile.java              # Một dòng của bảng source_files — một file đã đọc, kèm dấu vân tay và kết quả đọc (thành công hay lỗi)
 └── dto/                             # Dữ liệu giao diện gửi lên và Engine trả về
-    ├── StartScanRequest.java        # Yêu cầu bắt đầu quét (quét lần đầu hay quét lại)
-    ├── ScanRunResponse.java         # Thông tin một lần quét (trạng thái, thống kê, thời gian)
-    ├── ScanProgressEvent.java       # Một thông báo tiến độ gửi lên giao diện (đang ở bước nào, xong bao nhiêu file)
-    └── ScanErrorItem.java           # Một file không đọc được kèm lý do
+    ├── request/StartScanRequest.java   # Yêu cầu bắt đầu quét (IMPORT: phân tích lại toàn bộ; RESCAN: chỉ file thay đổi)
+    └── response/
+        ├── ScanRunResponse.java     # Thông tin một lần quét (trạng thái, thời gian, thống kê)
+        ├── ScanStatsResponse.java, FileCountsResponse.java, SourceScanStatsResponse.java, StageDurationResponse.java,
+        │   ScanDiagnosticResponse.java   # Thống kê: số file theo loại, số thành phần, thời gian từng bước, chẩn đoán
+        ├── LastScanResponse.java    # Tóm tắt lần quét gần nhất (hiện trên thẻ Workspace)
+        ├── ScanProgressResponse.java   # Một thông báo tiến độ gửi qua SSE (giai đoạn, đã xử lý / tổng)
+        └── ScanFileErrorResponse.java  # Một file không phân tích được kèm lý do
 ```
 
 #### 4.4.5. `graph/` — Lưu trữ & khám phá "bản đồ" IR
@@ -443,10 +459,12 @@ graph/
 │   ├── IrNodeRepository.java        # Nơi đọc/ghi bảng ir_nodes (các thành phần) — ghi theo lô lớn vì mỗi lần quét có rất nhiều dòng
 │   └── IrEdgeRepository.java       # Nơi đọc/ghi bảng ir_edges (các quan hệ giữa thành phần)
 ├── model/
-│   └── IrNodeRow.java, IrEdgeRow.java   # Một dòng của bảng ir_nodes / ir_edges: thành phần (hoặc quan hệ) kèm các mã định danh trong CSDL
-│                                    #   (hai bảng này ghi bằng JdbcClient nên không có entity JPA)
-└── dto/                             # Dữ liệu trả về cho giao diện
-    ├── TreeNodeResponse.java        # Một nút trên cây Backend/Frontend (nhãn, loại, các nút con, cảnh báo)
+│   ├── IrNodeRow.java, IrEdgeRow.java   # Một dòng của bảng ir_nodes / ir_edges: thành phần (hoặc quan hệ) kèm các mã định danh trong CSDL
+│   │                                #   (hai bảng này ghi bằng JdbcClient nên không có entity JPA)
+│   └── SourceGraphWriteResult.java  # Kết quả ghi IR một Source (số node ghi/xóa, key bị bỏ vì trùng Source khác)
+└── dto/response/                    # Dữ liệu trả về cho giao diện
+    ├── BackendTreeResponse.java, ApiModuleResponse.java, EndpointNodeResponse.java   # Cây API Backend Module → Endpoint (C1)
+    ├── TreeNodeResponse.java        # (Giai đoạn 4) Một nút trên cây Frontend
     ├── SearchResultResponse.java    # Một kết quả tìm kiếm
     ├── NodeDetailResponse.java      # Chi tiết một thành phần: thông tin, "được gọi từ", "gọi tới"
     ├── SourceSnippetResponse.java   # Một đoạn code kèm đường dẫn file và số dòng
@@ -796,8 +814,8 @@ Ngoài các service dưới đây, package chức năng **không** gọi thành 
 | Service công khai | Package | Được dùng bởi |
 | :--- | :--- | :--- |
 | `SourceReader` | source | workspace, scan, graph, explanation |
-| `WorkspaceService` | workspace | scan, linking, tracing, explanation |
-| `RunningScanRegistry`, `AdapterRegistry` | scan | workspace (chặn sửa/xóa khi đang quét; nhận diện thư mục, bộ lọc nhiễu mặc định) |
+| `WorkspaceService` | workspace | scan, graph, linking, tracing, explanation |
+| `RunningScanRegistry`, `AdapterRegistry`, `ScanQueryService`, `FactsCache` | scan | workspace (chặn sửa/xóa khi đang quét; nhận diện thư mục, bộ lọc nhiễu mặc định; lần quét gần nhất; xóa cache khi xóa Workspace) |
 | `GraphQueryService` / `GraphWriteService` | graph | scan, linking, tracing, explanation, feature, comparison |
 | `LinkingService` / `LinkOverrideService` / `EdgeAdviceService` | linking | scan, tracing |
 | `TracingService` | tracing | explanation, feature, comparison |

@@ -17,7 +17,7 @@ import org.springframework.http.HttpStatus;
  * <p>Ngoại lệ: luồng SSE (tiến độ quét, nội dung AI đang sinh) và {@code /api/health} của Actuator không bọc.
  *
  * @param status mã HTTP, trùng với status của response
- * @param code {@code OK} / {@code CREATED} khi thành công, tên {@link ErrorCode} khi lỗi
+ * @param code {@code OK} / {@code CREATED} / {@code ACCEPTED} khi thành công, tên {@link ErrorCode} khi lỗi
  * @param message thông điệp tiếng Việt cho người dùng
  * @param data dữ liệu trả về; {@code null} khi lỗi hoặc thao tác không có dữ liệu (vd xóa)
  * @param errors chi tiết lỗi (trường sai → lý do, hoặc ngữ cảnh lỗi); bỏ qua khi rỗng
@@ -32,6 +32,7 @@ public record ApiResponse<T>(
 
     public static final String CODE_OK = "OK";
     public static final String CODE_CREATED = "CREATED";
+    public static final String CODE_ACCEPTED = "ACCEPTED";
 
     public static <T> ApiResponse<T> ok(T data) {
         return ok(data, "Thành công");
@@ -43,6 +44,11 @@ public record ApiResponse<T>(
 
     public static <T> ApiResponse<T> created(T data, String message) {
         return new ApiResponse<>(HttpStatus.CREATED.value(), CODE_CREATED, message, data, Map.of());
+    }
+
+    /** Yêu cầu đã nhận, việc chạy nền (vd bắt đầu quét). */
+    public static <T> ApiResponse<T> accepted(T data, String message) {
+        return new ApiResponse<>(HttpStatus.ACCEPTED.value(), CODE_ACCEPTED, message, data, Map.of());
     }
 
     public static <T> ApiResponse<T> error(ErrorCode code, String message, Map<String, Object> errors) {

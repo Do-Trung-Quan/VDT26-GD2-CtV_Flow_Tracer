@@ -1,0 +1,9 @@
+# Cấu hình mẫu — chỉ context-path được tool đọc
+server:
+  port: 8080
+  servlet:
+    context-path: /shop-api   # tiền tố của mọi API
+
+spring:
+  datasource:
+    password: khong-duoc-doc
