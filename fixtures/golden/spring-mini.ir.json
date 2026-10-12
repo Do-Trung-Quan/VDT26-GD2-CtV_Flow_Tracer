@@ -428,8 +428,638 @@
       "requestType" : "OrderStatusRequest",
       "responseType" : "OrderResponse"
     }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryController#create(CategoryRequest)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.create",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 45,
+      "endLine" : 49
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "request" ],
+      "returnType" : "ResponseEntity<ApiResponse<CategoryResponse>>",
+      "signature" : "create(CategoryRequest)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryController#delete(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.delete",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 51,
+      "endLine" : 54
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "categoryId" ],
+      "returnType" : "void",
+      "signature" : "delete(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryController#export()",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.export",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 56,
+      "endLine" : 59
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "byte[]",
+      "signature" : "export()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryController#get(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.get",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 40,
+      "endLine" : 43
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id" ],
+      "returnType" : "CategoryResponse",
+      "signature" : "get(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryController#list(int,String)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.list",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 30,
+      "endLine" : 35
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "page", "keyword" ],
+      "returnType" : "List<CategoryResponse>",
+      "signature" : "list(int,String)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryService#create(CategoryRequest)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryService.create",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryService.java",
+      "startLine" : 17,
+      "endLine" : 19
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "request" ],
+      "returnType" : "CategoryResponse",
+      "signature" : "create(CategoryRequest)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryService#delete(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryService.delete",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryService.java",
+      "startLine" : 21,
+      "endLine" : 21
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id" ],
+      "returnType" : "void",
+      "signature" : "delete(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryService#export()",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryService.export",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryService.java",
+      "startLine" : 23,
+      "endLine" : 25
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "byte[]",
+      "signature" : "export()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryService#get(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryService.get",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryService.java",
+      "startLine" : 13,
+      "endLine" : 15
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id" ],
+      "returnType" : "CategoryResponse",
+      "signature" : "get(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.category.CategoryService#list(int,String)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryService.list",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryService.java",
+      "startLine" : 9,
+      "endLine" : 11
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.shop.category.CategoryService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "page", "keyword" ],
+      "returnType" : "List<CategoryResponse>",
+      "signature" : "list(int,String)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#archive()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.archive",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 34,
+      "endLine" : 37
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "archive()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#changeStatus(Long,OrderStatusRequest)",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.changeStatus",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 21,
+      "endLine" : 24
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id", "request" ],
+      "returnType" : "OrderResponse",
+      "signature" : "changeStatus(Long,OrderStatusRequest)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#env()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.env",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 44,
+      "endLine" : 47
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "env()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#export()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.export",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 29,
+      "endLine" : 32
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "export()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#list(String)",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.list",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 16,
+      "endLine" : 19
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "shopId" ],
+      "returnType" : "List<OrderResponse>",
+      "signature" : "list(String)"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#missing()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.missing",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 39,
+      "endLine" : 42
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "missing()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#profile()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.profile",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 59,
+      "endLine" : 62
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "profile()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#report()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.report",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 64,
+      "endLine" : 67
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "report()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#secret()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.secret",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 49,
+      "endLine" : 52
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "secret()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#sync()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.sync",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 26,
+      "endLine" : 27
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "void",
+      "signature" : "sync()"
+    }
+  }, {
+    "key" : "java:method:com.example.shop.order.OrderController#tokenPath()",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.tokenPath",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 54,
+      "endLine" : 57
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.shop.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "String",
+      "signature" : "tokenPath()"
+    }
   } ],
-  "edges" : [ ],
+  "edges" : [ {
+    "fromKey" : "java:endpoint:ANY /shop-api/api/v1/orders/sync",
+    "toKey" : "java:method:com.example.shop.order.OrderController#sync()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 26,
+      "endLine" : 27
+    }
+  }, {
+    "fromKey" : "java:endpoint:DELETE /shop-api/api/v1/categories/{id}",
+    "toKey" : "java:method:com.example.shop.category.CategoryController#delete(Long)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 51,
+      "endLine" : 54
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/categories",
+    "toKey" : "java:method:com.example.shop.category.CategoryController#list(int,String)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 30,
+      "endLine" : 35
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/categories/export",
+    "toKey" : "java:method:com.example.shop.category.CategoryController#export()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 56,
+      "endLine" : 59
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/categories/{id}",
+    "toKey" : "java:method:com.example.shop.category.CategoryController#get(Long)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 40,
+      "endLine" : 43
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders",
+    "toKey" : "java:method:com.example.shop.order.OrderController#list(String)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 16,
+      "endLine" : 19
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/${ExternalPaths.REPORT}",
+    "toKey" : "java:method:com.example.shop.order.OrderController#report()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 64,
+      "endLine" : 67
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.api-token}",
+    "toKey" : "java:method:com.example.shop.order.OrderController#secret()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 49,
+      "endLine" : 52
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.env-path}",
+    "toKey" : "java:method:com.example.shop.order.OrderController#env()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 44,
+      "endLine" : 47
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.missing-path}",
+    "toKey" : "java:method:com.example.shop.order.OrderController#missing()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 39,
+      "endLine" : 42
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.profile-path}",
+    "toKey" : "java:method:com.example.shop.order.OrderController#profile()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 59,
+      "endLine" : 62
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/archive",
+    "toKey" : "java:method:com.example.shop.order.OrderController#archive()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 34,
+      "endLine" : 37
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/exports",
+    "toKey" : "java:method:com.example.shop.order.OrderController#export()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 29,
+      "endLine" : 32
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /shop-api/api/v1/orders/tokens",
+    "toKey" : "java:method:com.example.shop.order.OrderController#tokenPath()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 54,
+      "endLine" : 57
+    }
+  }, {
+    "fromKey" : "java:endpoint:POST /shop-api/api/v1/categories",
+    "toKey" : "java:method:com.example.shop.category.CategoryController#create(CategoryRequest)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 45,
+      "endLine" : 49
+    }
+  }, {
+    "fromKey" : "java:endpoint:POST /shop-api/api/v1/categories/export",
+    "toKey" : "java:method:com.example.shop.category.CategoryController#export()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 56,
+      "endLine" : 59
+    }
+  }, {
+    "fromKey" : "java:endpoint:PUT /shop-api/api/v1/orders/{id}/status",
+    "toKey" : "java:method:com.example.shop.order.OrderController#changeStatus(Long,OrderStatusRequest)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 21,
+      "endLine" : 24
+    }
+  }, {
+    "fromKey" : "java:method:com.example.shop.category.CategoryController#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.shop.category.CategoryService#create(CategoryRequest)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 48,
+      "endLine" : 48
+    }
+  }, {
+    "fromKey" : "java:method:com.example.shop.category.CategoryController#delete(Long)",
+    "toKey" : "java:method:com.example.shop.category.CategoryService#delete(Long)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 53,
+      "endLine" : 53
+    }
+  }, {
+    "fromKey" : "java:method:com.example.shop.category.CategoryController#export()",
+    "toKey" : "java:method:com.example.shop.category.CategoryService#export()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 58,
+      "endLine" : 58
+    }
+  }, {
+    "fromKey" : "java:method:com.example.shop.category.CategoryController#get(Long)",
+    "toKey" : "java:method:com.example.shop.category.CategoryService#get(Long)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 42,
+      "endLine" : 42
+    }
+  }, {
+    "fromKey" : "java:method:com.example.shop.category.CategoryController#list(int,String)",
+    "toKey" : "java:method:com.example.shop.category.CategoryService#list(int,String)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/category/CategoryController.java",
+      "startLine" : 34,
+      "endLine" : 34
+    }
+  } ],
   "detectedLinkRules" : [ ],
   "diagnostics" : [ {
     "severity" : "WARNING",

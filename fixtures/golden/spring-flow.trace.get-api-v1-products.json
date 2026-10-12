@@ -1,0 +1,144 @@
+{
+  "traceId" : "e536eac55cd3ce970cb2faa65603bba5",
+  "startKey" : "java:endpoint:GET /api/v1/products",
+  "participants" : [ {
+    "id" : "user",
+    "label" : "Client",
+    "role" : "USER"
+  }, {
+    "id" : "c1",
+    "label" : "Controller Product",
+    "role" : "CONTROLLER",
+    "nodeKey" : "java:method:com.example.flow.product.ProductController#search(String,boolean)"
+  }, {
+    "id" : "s1",
+    "label" : "Service Product",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.product.ProductService#search(String,boolean)"
+  }, {
+    "id" : "r1",
+    "label" : "Repository ProductSearch",
+    "role" : "REPOSITORY",
+    "nodeKey" : "java:method:com.example.flow.product.ProductSearchDao#search(String,boolean)"
+  }, {
+    "id" : "t1",
+    "label" : "Bảng product",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:product"
+  }, {
+    "id" : "t2",
+    "label" : "Bảng product_brand",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:product_brand"
+  } ],
+  "steps" : [ {
+    "index" : 1,
+    "from" : "user",
+    "to" : "c1",
+    "kind" : "HANDLED_BY",
+    "label" : "GET /api/v1/products",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 2,
+    "from" : "c1",
+    "to" : "s1",
+    "kind" : "CALLS",
+    "label" : "search(keyword, withBrand)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 3,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "search(keyword, withBrand)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 4,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "INFERRED",
+    "reason" : "Câu truy vấn ghép từ 3 mảnh chuỗi (1 mảnh có điều kiện); bảng suy ra từ các mảnh này",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 5,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 6,
+    "from" : "r1",
+    "to" : "t2",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "INFERRED",
+    "reason" : "Câu truy vấn ghép từ 3 mảnh chuỗi (1 mảnh có điều kiện); bảng suy ra từ các mảnh này",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 7,
+    "from" : "t2",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 8,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "List<Product>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 9,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "List<Product>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 10,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "200 ApiResponse<List<Product>>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  } ],
+  "blocks" : [ ],
+  "warnings" : [ ]
+}

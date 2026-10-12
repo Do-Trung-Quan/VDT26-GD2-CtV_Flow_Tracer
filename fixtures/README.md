@@ -10,4 +10,6 @@ Sẽ bổ sung khi làm tới phase tương ứng (xem `.context/project_structu
 Đã có:
 - `detection/` — cây thư mục giả cho test nhận diện thư mục (Giai đoạn 1), xem `detection/README.md`.
 - `spring-mini/` — dự án Spring Boot mini cho bộ phân tích endpoint/module (Giai đoạn 2), xem `spring-mini/README.md`.
+- `spring-flow/` — dự án Spring Boot mini cho luồng xử lý Backend và dò vết (Giai đoạn 3), xem `spring-flow/README.md`.
+- `golden/spring-flow.ir.json`, `golden/spring-flow.trace.*.json|puml` — snapshot IR và kết quả dò vết / mã PlantUML của `spring-flow`; sinh lại bằng `./mvnw -f engine/pom.xml -Pgolden-update test`.
 - `golden/spring-mini.ir.json` — snapshot IR của `spring-mini`; sinh lại bằng `./mvnw -f engine/pom.xml -Pgolden-update -pl flowtracer-adapter-spring test` (chỉ khi thay đổi IR có chủ đích).

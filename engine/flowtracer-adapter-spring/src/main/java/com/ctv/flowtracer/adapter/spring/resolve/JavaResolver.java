@@ -3,6 +3,7 @@ package com.ctv.flowtracer.adapter.spring.resolve;
 import com.ctv.flowtracer.adapter.spring.SpringStackAdapter;
 import com.ctv.flowtracer.adapter.spring.config.ApplicationConfigReader;
 import com.ctv.flowtracer.adapter.spring.config.PropertyLookup;
+import com.ctv.flowtracer.adapter.spring.config.QuerySinkRules;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
 import com.ctv.flowtracer.ir.Diagnostic;
 import com.ctv.flowtracer.ir.IrFragment;
@@ -14,8 +15,8 @@ import java.util.List;
 /**
  * PHA 2: ghép dữ kiện của cả Source → IrFragment (đã sắp xếp ổn định).
  *
- * <p>Giai đoạn 2: endpoint + module, chẩn đoán file lỗi cú pháp. Lớp xử lý, tiêm phụ thuộc, truy vấn, bảng làm ở
- * Giai đoạn 3.
+ * <p>Endpoint + module (Giai đoạn 2); từ endpoint đi xuống controller → service → repository → truy vấn → bảng
+ * (Giai đoạn 3, xem {@link FlowResolver}); chẩn đoán file lỗi cú pháp.
  */
 public final class JavaResolver {
 
@@ -41,7 +42,12 @@ public final class JavaResolver {
                 endpointBuilder.build(parsed, config, new PropertyLookup(ctx.allPaths(), ctx.loader()));
         diagnostics.addAll(endpoints.diagnostics());
 
+        FlowResolver.Result flow = new FlowResolver(parsed, new QuerySinkRules(ctx.manualRules())).resolve(endpoints.endpoints());
+        diagnostics.addAll(flow.diagnostics());
+
+        var nodes = new ArrayList<>(endpoints.endpoints());
+        nodes.addAll(flow.nodes());
         diagnostics.sort(DIAGNOSTIC_ORDER);
-        return new IrFragment(SpringStackAdapter.ID, endpoints.endpoints(), List.of(), List.of(), diagnostics).sorted();
+        return new IrFragment(SpringStackAdapter.ID, nodes, flow.edges(), List.of(), diagnostics).sorted();
     }
 }

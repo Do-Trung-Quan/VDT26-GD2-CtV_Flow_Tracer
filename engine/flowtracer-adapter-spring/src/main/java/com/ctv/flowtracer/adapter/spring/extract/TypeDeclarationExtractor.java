@@ -3,6 +3,7 @@ package com.ctv.flowtracer.adapter.spring.extract;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts.TypeFact;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
@@ -50,7 +51,9 @@ public final class TypeDeclarationExtractor {
                 superclass,
                 interfaces,
                 AstSupport.javadoc(type),
-                AstSupport.line(type));
+                AstSupport.line(type),
+                AstSupport.annotationValues(type),
+                type.hasModifier(Modifier.Keyword.ABSTRACT) ? List.of("abstract") : List.of());
     }
 
     private static List<String> names(List<ClassOrInterfaceType> types) {

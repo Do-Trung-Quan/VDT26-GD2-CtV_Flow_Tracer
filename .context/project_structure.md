@@ -162,11 +162,13 @@ flowtracer-core/src/main/java/com/ctv/flowtracer/core/
 │   │                                #   (đường dẫn cụ thể được ưu tiên hơn đường dẫn có biến)
 │   └── Linker.java                  # Điều phối việc nối: với mỗi lời gọi API, kết luận nối tới đâu và chắc chắn đến mức nào, kèm lý do
 ├── tracer/                          # CỐT LÕI: dò luồng từ đầu tới cuối
-│   ├── Tracer.java                  # Bộ dò luồng chính: xuất phát từ nút bấm hoặc API, đi lần lượt qua các lời gọi tới tận bảng dữ liệu
+│   ├── Tracer.java                  # Bộ dò luồng chính: áp liên kết chốt tay rồi giao cho TraceRun (Giai đoạn 3: xuất phát từ API Backend)
+│   ├── TraceRun.java                # Một lần dò: đi qua các lời gọi theo thứ tự thực thi tới tận bảng dữ liệu; phát bước, khối alt/opt/loop, chiều trả về
+│   ├── TraceItem.java               # Phần tử của dòng sự kiện TraceRun phát ra: một bước, hoặc dấu mở / chuyển nhánh / đóng khối
 │   ├── OverrideApplier.java         # Áp các quyết định chốt tay của người dùng trước khi dò (ghim liên kết đúng, bỏ liên kết sai)
 │   ├── NoiseFilterApplier.java      # Ẩn các bước không mang ý nghĩa nghiệp vụ (ghi log, chuyển đổi dữ liệu…) để diagram gọn
 │   ├── CycleGuard.java              # Chống dò vô tận: dừng khi gặp vòng lặp hoặc đi quá sâu (mặc định 12 bước lồng nhau)
-│   ├── BlockBuilder.java            # Gom các bước nằm trong điều kiện (vd "nếu mã đã tồn tại thì báo lỗi") thành khối nhánh trên diagram
+│   ├── BlockBuilder.java            # Đánh số bước và đổi các dấu mở/đóng khối thành khối nhánh trên diagram (vd "nếu mã đã tồn tại thì báo lỗi")
 │   ├── ParticipantBuilder.java      # Dựng các CỘT của diagram từ các thành phần trong luồng: gộp toàn bộ Frontend thành 1 cột, mỗi Controller/Service/
 │   │                                #   Repository một cột (ServiceImpl gộp với interface), mọi bảng vào cột Database; đặt tên kiểu "Service Danh mục"
 │   ├── SelfStepBuilder.java         # Gom các đoạn kiểm tra trong thân một hàm (if…throw, kiểm tra quyền, hàm private) thành một "bước tự xử lý"
@@ -192,7 +194,7 @@ flowtracer-core/src/main/java/com/ctv/flowtracer/core/
 ### 4.3. `flowtracer-adapter-spring/` — Bộ phân tích Java / Spring Boot
 
 **Cách chạy 2 pha:**
-- **Pha 1 (`extract`):** chạy song song từng file trên virtual threads, dùng **JavaParser + JavaSymbolSolver** (type solver trên các thư mục mã nguồn của Source) để ghi sẵn tên đầy đủ (FQN) của kiểu, method được gọi… vào dữ kiện.
+- **Pha 1 (`extract`):** chạy song song từng file trên virtual threads, dùng **JavaParser** để ghi sẵn vào dữ kiện: kiểu khai báo của biến / tham số / field (tên ngắn như viết trong mã), import, tên hàm được gọi và thứ tự gọi. Đổi tên ngắn thành FQN làm ở pha 2 (`ClassIndex`) vì cần biết mọi class của Source.
 - **Pha 2 (`resolve`):** kiểm lại FQN với `ClassIndex` và áp các luật riêng của Spring.
 
 ```text
@@ -208,16 +210,23 @@ flowtracer-adapter-spring/src/main/java/com/ctv/flowtracer/adapter/spring/
 │   ├── TypeDeclarationExtractor.java # Lấy thông tin các class trong file: tên, kế thừa ai, và vai trò Spring (là Controller, Service, bảng dữ liệu…)
 │   ├── MemberExtractor.java         # Lấy các thuộc tính và hàm của class: tên, kiểu, ghi chú mô tả, yêu cầu quyền, có dùng giao dịch CSDL không
 │   ├── MappingExtractor.java        # Lấy các API mà Controller khai báo: phương thức (GET/POST…), đường dẫn, tham số, mô tả Swagger
-│   ├── CallSiteExtractor.java       # Lấy mọi lời gọi hàm bên trong một hàm: gọi tới đâu, theo thứ tự nào, có nằm trong điều kiện if/try không
-│   ├── ThrowExtractor.java          # Lấy các chỗ báo lỗi (throw): loại lỗi, thông báo lỗi, xảy ra trong điều kiện nào — dùng cho nhánh lỗi
+│   ├── CallSiteExtractor.java       # Lấy mọi lời gọi hàm VÀ mọi chỗ báo lỗi (throw) trong một hàm theo thứ tự thực thi, chung một dãy số:
+│   │                                #   gọi tới đâu, có nằm trong điều kiện if/switch/catch/vòng lặp không, loại lỗi và khóa thông báo
+│   ├── GuardResolver.java           # Tìm điều kiện bao quanh gần nhất của một lời gọi / chỗ báo lỗi (then, else, case, catch, thân vòng lặp)
 │   ├── StringFragmentExtractor.java # Gom các đoạn chuỗi trong hàm — để ghép lại câu truy vấn CSDL được viết tay bằng cách nối chuỗi
 │   └── DtoFieldExtractor.java       # Lấy các trường của class dữ liệu: tên trong JSON, kiểu, ràng buộc (bắt buộc, độ dài…) — dùng cho Đầu vào/Đầu ra
 ├── resolve/                         # BƯỚC 2 — ghép kết quả của mọi file để hiểu chúng liên quan nhau thế nào
 │   ├── JavaResolver.java            # Điều phối bước 2 và tạo ra kết quả phân tích cuối cùng của thư mục Backend
-│   ├── ClassIndex.java              # Danh bạ mọi class trong dự án — tra từ tên class ra nơi khai báo
-│   ├── InjectionResolver.java       # Xác định mỗi class dùng những class nào khác (Spring tự "tiêm" vào qua constructor hoặc @Autowired)
-│   ├── ImplementationResolver.java  # Với một interface, tìm class thực sự làm việc; có nhiều class cùng khả năng thì ghi lại tất cả làm ứng viên
-│   ├── CallResolver.java            # Xác định mỗi lời gọi hàm thực sự chạy vào hàm nào; không xác định được thì ghi rõ lý do
+│   ├── ClassIndex.java              # Danh bạ mọi class trong dự án — tra từ tên class (theo import, cùng package) ra nơi khai báo; kế thừa/hiện thực; tìm field, hàm
+│   ├── TypeNames.java               # Hàm nhỏ xử lý chuỗi tên kiểu (bỏ generic, lấy đối số generic, tên ngắn)
+│   ├── InjectionResolver.java       # Xác định field được tiêm vào (kể cả field của lớp cha), kiểu của nó và @Qualifier / @Resource áp cho nó
+│   ├── ImplementationResolver.java  # Với một interface, chọn class thực sự làm việc: 1 bean → CERTAIN; @Qualifier khớp → CERTAIN; @Primary hoặc tên field
+│   │                                #   trùng tên bean → INFERRED; còn lại → UNRESOLVED kèm danh sách ứng viên (không chọn hộ)
+│   ├── LayerClassifier.java         # Xếp mỗi class vào tầng Controller / Service / Repository / khác, kèm căn cứ (annotation, kế thừa Spring Data, tên)
+│   ├── BusinessNames.java           # Tên nghiệp vụ của class để đặt nhãn cột ("Service Danh mục"): @Tag của Controller cùng tên gốc, nếu không thì tên class
+│   ├── FlowResolver.java            # Dựng phần xử lý Backend của IR từ các endpoint: HANDLED_BY → CALLS → EXECUTES → READS/WRITES; chỉ phần đi tới được từ endpoint
+│   ├── ConstantTable.java           # Giải giá trị annotation viết bằng hằng số (@Table(name = Tables.X), @Query(Queries.Y))
+│   ├── SpringDataMethods.java       # Các hàm Spring Data mà repository kế thừa (save, findById…): chữ ký chuẩn, thao tác dữ liệu, kiểu trả về
 │   ├── ModuleNameResolver.java      # Tên module của API: @Tag → tên Controller → tên package (kèm nguồn của tên)
 │   ├── EndpointBuilder.java         # Tạo danh sách API hoàn chỉnh (ghép đường dẫn cấp class + cấp hàm) và nối mỗi API với hàm xử lý nó
 │   ├── DataAccessResolver.java      # Nhận ra các hàm truy cập CSDL (findBy…, save…, delete…) và đó là thao tác đọc hay ghi
@@ -236,7 +245,8 @@ flowtracer-adapter-spring/src/main/java/com/ctv/flowtracer/adapter/spring/
 
 flowtracer-adapter-spring/src/test/java/...
 ├── extract/*Test.java, resolve/*Test.java   # Kiểm thử từng bước đọc/ghép bằng các đoạn Java TỰ VIẾT
-└── SpringGoldenTest.java            # Kiểm thử tổng: phân tích dự án mẫu fixtures/spring-shop-api rồi so với kết quả chuẩn đã lưu
+├── SpringGoldenTest.java            # Kiểm thử tổng: phân tích dự án mẫu fixtures/spring-mini (endpoint, module, đường dẫn) rồi so với kết quả chuẩn đã lưu
+└── SpringFlowGoldenTest.java        # Kiểm thử tổng phần luồng xử lý: phân tích fixtures/spring-flow (DI, interface nhiều lớp hiện thực, truy vấn, bảng)
 ```
 
 ### 4.4. `flowtracer-app/` — Ứng dụng Spring Boot (monolith, package-by-feature)
@@ -519,14 +529,15 @@ tracing/
 │   ├── TraceController.java         # Nhận yêu cầu "dò luồng từ thành phần này" và yêu cầu xuất diagram ra file (API D1–D2)
 │   └── FlowchartController.java     # (MỞ RỘNG) Nhận yêu cầu vẽ flowchart (API D3)
 ├── service/
-│   ├── TracingService.java         # Xử lý dò luồng: lấy vùng bản đồ liên quan → áp liên kết chốt tay và bộ lọc ẩn → chạy bộ dò luồng;
+│   ├── TracingService.java         # Xử lý dò luồng (D1) và xuất diagram (D2): lấy vùng bản đồ liên quan → áp liên kết chốt tay và bộ lọc ẩn → chạy bộ dò luồng;
 │   │                                #   gặp chỗ chưa chắc chắn thì giữ "chưa xác định" kèm ứng viên (không gọi AI) — các chức năng khác cũng gọi dò luồng qua đây
-│   ├── TraceCache.java              # Bộ nhớ tạm giữ các luồng vừa dò để mở lại nhanh; tự xóa khi Workspace được quét lại
-│   └── TraceExportService.java      # Xuất luồng thành mã PlantUML hoặc file ảnh SVG để tải về
+│   └── TraceCache.java              # Bộ nhớ tạm giữ các luồng vừa dò theo trace_id để mở lại / xuất nhanh (tối đa 256 mục, sống 10 phút)
+├── model/
+│   ├── CachedTrace.java             # Một luồng đã dò cùng tên thành phần xuất phát, giữ trong bộ nhớ tạm
+│   └── ExportFormat.java            # Danh sách định dạng xuất: PlantUML / SVG
 └── dto/                             # Dữ liệu giao diện gửi lên (dò từ đâu) và Engine trả về (luồng đã dò)
-    ├── BuildTraceRequest.java       # Yêu cầu dò luồng: bắt đầu từ thành phần nào, dò sâu tối đa bao nhiêu bước
-    ├── TraceResponse.java           # Luồng đã dò: các cột, các mũi tên, các khối nhánh, cảnh báo
-    └── ExportFormat.java            # Danh sách định dạng xuất: PlantUML / SVG
+    ├── request/CreateTraceRequest.java      # Yêu cầu dò luồng: bắt đầu từ thành phần nào, dò sâu tối đa bao nhiêu bước
+    └── response/                    # TraceResponse (luồng đã dò) · TraceParticipantResponse · TraceStepResponse · TraceBlockResponse · TraceBranchResponse · TraceExportResponse
 ```
 
 #### 4.4.8. `explanation/` — Diễn giải & dữ liệu mẫu
@@ -738,7 +749,7 @@ web/
         │   │   ├── generated/schema.d.ts   # Kiểu dữ liệu API TỰ SINH từ /v3/api-docs của Engine (npm run gen:api) — không sửa tay, có commit
         │   │   ├── api-types.ts     # Tên ngắn cho các kiểu sinh ra; vỏ bọc ApiResponse; kiểu sự kiện SSE (không có trong OpenAPI)
         │   │   ├── api-error.ts     # Đọc lỗi từ vỏ bọc (code, message, errors) thành thông báo tiếng Việt
-        │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C, lấy data trong vỏ bọc
+        │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts, trace.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C / D, lấy data trong vỏ bọc
         │   ├── ui/                  # Mảnh giao diện dùng chung: icon SVG, modal (Esc đóng modal trên cùng), hộp xác nhận, toast
         │   └── workspace-context.ts # Danh sách Workspace, Workspace đang mở, trạng thái mở wizard Import
         └── features/                # Mỗi thư mục là một nhóm màn hình
@@ -748,9 +759,14 @@ web/
             │                        #   (6 giai đoạn, giai đoạn bỏ qua, tóm tắt có căn cứ), hộp danh sách file lỗi, bảng Lịch sử quét
             ├── explorer/            # MÀN HÌNH CHÍNH 3 CỘT
             │   ├── explorer.page.ts            # Bố cục: cột trái (kéo đổi độ rộng, thu gọn), canvas (cụm nút nổi trạng thái quét + Quét lại),
-            │   │                               #   cột phải (thông tin endpoint đang chọn)
+            │   │                               #   cột phải (thông tin endpoint đang chọn, tóm tắt luồng, cảnh báo của luồng); chọn API → dò vết (D1)
             │   ├── backend-tree.ts, tree-filter.ts   # Cây API Backend Module → Endpoint, lọc nhanh có tô sáng
-            │   ├── canvas/                     # (Giai đoạn 3) Vẽ sequence diagram, cụm nút zoom / xuất
+            │   ├── sequence/                   # Sequence diagram (Giai đoạn 3)
+            │   │   ├── sequence-model.ts       # Đổi kiểu sinh từ OpenAPI sang kiểu chặt; nhận ra cột "chưa xác định"
+            │   │   ├── sequence-layout.ts      # Dàn cột, mũi tên, khung alt/opt/loop lồng nhau, vạch else, thanh kích hoạt (thuần, test được)
+            │   │   ├── sequence-svg.ts         # Vẽ thành chuỗi SVG thuần (dùng cho cả màn hình lẫn xuất file); thoát ký tự nhãn
+            │   │   ├── sequence-export.ts      # Đo chữ, tải file, đổi SVG → PNG trên trình duyệt
+            │   │   └── sequence-canvas.ts      # Canvas: zoom / kéo / vừa khung, chú giải, thẻ "n bước chưa xác định", mô tả khi di chuột, tô sáng, xuất
             │   └── right-panel/                # (Giai đoạn 5–6) Tab Diễn giải, tab Kịch bản, chi tiết liên kết, popup xem code
             ├── compare/             # (MỞ RỘNG) Màn hình so sánh 2 diagram cạnh nhau và danh sách khác biệt cũ – mới
             └── ai-settings/         # Màn hình cấu hình AI: xem đang dùng AI nào, bật/tắt từng việc, kiểm tra kết nối, hạn mức token, thống kê (lượt gọi, token, trúng cache, lỗi)
@@ -764,8 +780,11 @@ web/
 fixtures/                            # Các dự án mẫu nhỏ TỰ VIẾT 100% — dùng để kiểm thử tool và demo công khai
 ├── README.md                        # Quy tắc dùng fixtures: không sao chép code công ty; mỗi dự án mẫu cố ý chứa các "ca khó" cần kiểm thử
 ├── detection/                       # Cây thư mục giả cho test nhận diện thư mục (monorepo BE + FE, FE nằm trong repo BE, thư mục không liên quan)
-├── spring-shop-api/                 # Dự án Backend Spring Boot mẫu, chứa các tình huống khó: một interface có 2 class xử lý, câu truy vấn
-│                                    #   ghép từ nhiều đoạn, dữ liệu trả về được bọc chung, thông báo lỗi tiếng Việt, bảng dùng chung có cột phân loại
+├── spring-mini/                     # Dự án Backend Spring Boot nhỏ cho bộ phân tích endpoint / module / đường dẫn (Giai đoạn 2)
+├── spring-flow/                     # Dự án Backend Spring Boot nhỏ cho luồng xử lý (Giai đoạn 3): interface có 1 / 2 lớp hiện thực, @Primary, @Qualifier,
+│                                    #   @Query, câu truy vấn ghép bằng StringBuilder, entity không khai @Table, hằng số tên bảng, `if … throw`
+├── spring-shop-api/                 # (Kế hoạch) Dự án Backend Spring Boot mẫu lớn hơn: dữ liệu trả về được bọc chung, thông báo lỗi tiếng Việt,
+│                                    #   bảng dùng chung có cột phân loại
 ├── angular-shop-web/                # Dự án Frontend Angular mẫu, chứa các tình huống khó: nhiều ứng dụng con, màn hình nạp sau, hộp thoại,
 │                                    #   đường dẫn API ghép từ hằng số ở thư viện khác, proxy đổi đường dẫn, nhãn tiếng Việt, nút bấm tự viết
 ├── php-legacy-mini/                 # (MỞ RỘNG) Dự án PHP mẫu mô phỏng hệ thống cũ

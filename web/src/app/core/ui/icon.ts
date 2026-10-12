@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git';
+export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git' | 'minus' | 'fit' | 'download' | 'code' | 'copy' | 'chevd' | 'image';
 
 /** Icon SVG nét mảnh (stroke 1.8) theo bản vẽ giao diện; không tải gì từ mạng. */
 @Component({
@@ -61,6 +61,27 @@ export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'sear
       }
       @case ('dots') {
         <svg:path d="M12 6h.01M12 12h.01M12 18h.01"/>
+      }
+      @case ('minus') {
+        <svg:path d="M5 12h14"/>
+      }
+      @case ('fit') {
+        <svg:path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
+      }
+      @case ('download') {
+        <svg:path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>
+      }
+      @case ('code') {
+        <svg:path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>
+      }
+      @case ('copy') {
+        <svg:rect x="9" y="9" width="11" height="11" rx="2"/><svg:path d="M5 15V6a2 2 0 0 1 2-2h9"/>
+      }
+      @case ('chevd') {
+        <svg:path d="m6 9 6 6 6-6"/>
+      }
+      @case ('image') {
+        <svg:rect x="3" y="4" width="18" height="16" rx="2"/><svg:circle cx="9" cy="10" r="1.6"/><svg:path d="m21 16-5-5-9 9"/>
       }
       @case ('git') {
         <svg:circle cx="6" cy="6" r="2"/><svg:circle cx="6" cy="18" r="2"/><svg:circle cx="18" cy="9" r="2"/><svg:path d="M6 8v8M18 11c0 4-6 3-11 6"/>

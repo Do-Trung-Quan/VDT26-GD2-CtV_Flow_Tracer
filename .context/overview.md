@@ -248,7 +248,7 @@ Cấu trúc thư mục chi tiết: [project_structure.md](project_structure.md).
 
 5. **Adapters (một bộ phân tích cho mỗi công nghệ)**
    - *Spring Adapter (Java, trong Engine):*
-     - **JavaParser + JavaSymbolSolver** phân giải kiểu, import, kế thừa, overload.
+     - **JavaParser** đọc cây cú pháp; kiểu của receiver được giải bằng khai báo biến / tham số / field và import (xem `ClassIndex`), kế thừa và hiện thực tra trên toàn Source. Chưa dùng JavaSymbolSolver: dự án phân tích không có classpath nên SymbolSolver chỉ giải được phần mã của chính dự án, mà phần này đã có `ClassIndex`.
      - Luật riêng cho Spring: DI qua field `final` + Lombok, interface → implementation, Spring Data, JPQL/SQL ghép động.
    - *Angular Adapter (trong Node Analyzer):*
      - **TypeScript Compiler API** cho `.ts`, **`@angular/compiler` (`parseTemplate`)** cho template.
@@ -280,7 +280,7 @@ Cấu trúc thư mục chi tiết: [project_structure.md](project_structure.md).
 | Thành phần | Lựa chọn | Lý do |
 | :--- | :--- | :--- |
 | Engine | Java 21 LTS + Spring Boot 4.x, Maven multi-module | Stack phổ biến ở dự án doanh nghiệp mục tiêu; phân tích Java "cùng nhà" với JavaParser; virtual threads cho xử lý song song |
-| Phân tích Java | JavaParser + JavaSymbolSolver | Phân giải kiểu/tham chiếu có sẵn, chính xác hơn tự viết |
+| Phân tích Java | JavaParser (giải kiểu bằng `ClassIndex`) | Chịu được file sai cú pháp; kết quả tất định, không cần classpath của dự án phân tích |
 | Phân tích Angular | Node Analyzer (sidecar): TypeScript Compiler API + `@angular/compiler` | Cách duy nhất hiểu chính xác TypeScript và template Angular |
 | Hợp đồng dữ liệu | JSON Schema chung trong `contracts/` | Engine (Java) và sidecar (TypeScript) cùng tuân theo; Engine kiểm tra đầu ra của sidecar |
 | Web UI | Angular 21 + Angular Material/CDK | Cùng stack với dự án thực tế của team |
@@ -355,9 +355,9 @@ IR là "bản đồ" chung cho mọi công nghệ. Mỗi Adapter sinh IR; Linker
 | `FE_METHOD` | Method phía FE | `layer` (COMPONENT / FACADE / USECASE / SERVICE / REPOSITORY), `className`, `signature` |
 | `HTTP_CALL` | Điểm gọi HTTP: phía FE (`HttpClient`) hoặc phía BE gọi service khác / API bên ngoài (`RestTemplate`, `WebClient`, `@FeignClient`) | `httpMethod`, `urlExpr` (biểu thức gốc), `urlPattern` (đã chuẩn hóa), `bodyType`, `origin` (FE / BE) |
 | `API_ENDPOINT` | Endpoint BE | `httpMethod` (`ANY` khi `@RequestMapping` không khai phương thức), `path` (đã cộng context-path), `pathResolved` + `pathIssue` (`CONSTANT` / `PROPERTY`) + `pathIssueReason` (lý do tiếng Việt) khi chưa giải được, `pathSources[]` (căn cứ từng thuộc tính đã giải: khóa = giá trị, lấy từ file nào hoặc "mặc định trong code"), `contextPath`, `params[]`, `requestType`, `responseType`, `summary` + `summarySource` (`OPERATION` / `JAVADOC`), `tag`, `module` + `moduleSource` (`TAG` / `CONTROLLER` / `PACKAGE`), `controller`, `handler`, `deprecated`, `security` |
-| `BE_METHOD` | Method phía BE | `layer` (CONTROLLER / SERVICE / REPOSITORY / OTHER), `className`, `signature`, `transactional` |
-| `DATA_QUERY` | Một truy vấn dữ liệu | `queryKind` (DERIVED / JPQL / NATIVE / DYNAMIC / LIB_CALL), `text` (đã rút gọn), `operation` (READ / WRITE / DELETE) |
-| `DB_TABLE` | Bảng hoặc collection | `name`, `entity`, `discriminator` |
+| `BE_METHOD` | Method phía BE (chỉ dựng cho phần đi tới được từ một endpoint) | `layer` (CONTROLLER / SERVICE / REPOSITORY / OTHER) + `layerBasis` (căn cứ xếp tầng: ANNOTATION / INHERITANCE / IMPLEMENTATION / NAME), `className` (FQN lớp khai báo), `signature` (`tên(kiểu,…)`), `paramNames[]`, `returnType`, `businessName` + `businessNameSource` (`TAG` / `CLASS`: tên nghiệp vụ dùng đặt nhãn cột), `transactional`, `private`, `static`, `abstract` (khai báo trong interface), `synthetic` + `inheritedFrom` (method kế thừa từ Spring Data như `save`, `findById`), `throws[]` (mỗi lệnh `throw`: `order`, `exception`, `messageKey`, `guardType`/`guardText`/`guardBranch`, `line`) |
+| `DATA_QUERY` | Một truy vấn dữ liệu | `queryKind` (DERIVED / JPQL / NATIVE / DYNAMIC / LIB_CALL), `verb` (`SELECT`, `SELECT COUNT(*)`, `INSERT/UPDATE`, `UPDATE`, `DELETE`…), `text` (rút gọn ≤ 300 ký tự), `operation` (READ / WRITE / DELETE), `tables[]` |
+| `DB_TABLE` | Bảng hoặc collection | `name` (viết thường), `entity` (tên ngắn; vắng khi bảng chỉ suy ra từ văn bản truy vấn, lúc đó có `reason`), `discriminator` |
 | `DATA_TYPE` | DTO, Entity hoặc model | `fields[]` (tên JSON, kiểu, ràng buộc), `jsonNaming` |
 | `EXTERNAL` | Hệ thống ngoài hoặc đích không xác định | `url`, `reason` |
 
@@ -413,7 +413,7 @@ Diagram chỉ có **một mức hiển thị**. Cột (participant) được d�
 | `CONTROLLER` | Một cột cho **mỗi** controller đi qua | "Controller" + tên nghiệp vụ, vd "Controller Danh mục" |
 | `SERVICE` | Một cột cho **mỗi** service đi qua (gọi nhiều service thì nhiều cột) | "Service Danh mục", "Service Sản phẩm" |
 | `REPOSITORY` | Một cột cho mỗi repository / DAO | "Repository Danh mục" |
-| `DATABASE` | Mọi bảng dữ liệu | "Database" (tên bảng nằm trong nhãn mũi tên) |
+| `DATABASE` | Một bảng dữ liệu | **Mỗi bảng một cột**, nhãn "Bảng <tên>" (vd "Bảng category"); mũi tên chỉ ghi câu lệnh (`SELECT`, `INSERT/UPDATE`). Truy vấn không xác định được bảng thì dùng một cột "Database" chung |
 | `EXTERNAL` | Service khác (microservice) hoặc hệ thống bên ngoài | Tên service / host |
 
 - Tên nghiệp vụ lấy theo thứ tự: `@Tag` của Swagger → tên module FE (menu, i18n) → tên class. Lớp `ServiceImpl` gộp chung cột với interface của nó.
@@ -430,7 +430,7 @@ Diagram chỉ có **một mức hiển thị**. Cột (participant) được d�
     { "id": "fe", "label": "Frontend", "role": "FRONTEND" },
     { "id": "c1", "label": "Controller Danh mục", "role": "CONTROLLER", "nodeKey": "…" },
     { "id": "s1", "label": "Service Danh mục", "role": "SERVICE", "nodeKey": "…" },
-    { "id": "db", "label": "Database", "role": "DATABASE" }
+    { "id": "t1", "label": "Bảng category", "role": "DATABASE", "nodeKey": "java:table:category" }
   ],
   "steps": [
     { "index": 1, "from": "user", "to": "fe", "kind": "TRIGGERS", "label": "Bấm \"Lưu\"", "confidence": "CERTAIN" },
@@ -439,13 +439,30 @@ Diagram chỉ có **một mức hiển thị**. Cột (participant) được d�
     { "index": 4, "from": "s1", "to": "s1", "label": "checkPermission, existsByCode", "confidence": "CERTAIN" }
   ],
   "blocks": [
-    { "type": "ALT", "label": "Mã danh mục đã tồn tại", "fromStep": 10, "toStep": 12 }
+    { "type": "ALT", "label": "categoryRepository.existsByCode(code)", "fromStep": 8, "toStep": 16,
+      "elseBranches": [ { "label": "ngược lại", "fromStep": 10 } ] }
   ],
   "warnings": [ "1 lời gọi không xác định được đích (xem bước 6)" ]
 }
 ```
 
-Bước có `from` = `to` là bước tự xử lý. Bước đi qua liên kết người dùng đã chốt tay có thêm `"pinned": true`.
+Bước có `from` = `to` là bước tự xử lý. Bước đi qua liên kết người dùng đã chốt tay có thêm `"pinned": true`. Chiều trả về có `"returning": true`; chiều trả về do lỗi lan lên (nhánh lỗi của khối `alt`) có thêm `"error": true`.
+
+**Quy tắc dựng bước từ API Backend (Giai đoạn 3, `TraceRun`):**
+
+- Luồng bắt đầu từ endpoint: cột đầu là **Client**; bước 1 là `METHOD path` (cạnh `HANDLED_BY`) tới Controller; bước cuối là chiều trả về `200 <kiểu trả về của API>` từ Controller về Client.
+- **Đi theo thứ tự thực thi** (`callOrder`): đối số và receiver chạy trước lời gọi bao ngoài. Lời gọi sang lớp Controller / Service / Repository khác cột thành một bước, rồi đi sâu vào method đích và cuối cùng có chiều trả về mang **kiểu trả về khai báo** (`boolean` → `true / false`, `void` → `OK`, còn lại là tên kiểu bỏ tên gói).
+- **Bước tự xử lý**: chỉ gom vào MỘT bước tự xử lý (nhãn là tên các hàm, `checkPermission(), normalize()`) các lời gọi mang ý nghĩa nghiệp vụ: hàm cùng lớp (kể cả `private`) và hàm của entity (`attrs.domainModel`). **Không vẽ** lớp tiện ích (mapper, parser, converter, util…) và hàm kiểm tra dữ liệu (`validate…`); nhưng vẫn đi sâu vào bên trong để thấy lời gọi thật sự sang Service / Repository. Thành phần khớp **bộ lọc nhiễu** bị bỏ cùng toàn bộ phần bên trong.
+- **Thao tác dữ liệu**: Repository → cột của TỪNG bảng truy vấn đụng tới (truy vấn nhiều bảng thì mỗi bảng một cặp bước đi / trả về), nhãn là câu lệnh (`SELECT`, `INSERT/UPDATE`); chiều trả về là `kết quả` (đọc) hoặc `OK` (ghi). Mức tin cậy của bước = mức thấp nhất của (method → truy vấn) và (truy vấn → bảng). Truy vấn không xác định được bảng thì tới cột "Database" chung, kèm cảnh báo. Hàm của thư viện không có mã nguồn mà tên kiểu giống lớp truy cập dữ liệu (`…Repository`, `…Dao`, `…Template`) và được gọi từ lớp Repository của dự án được nhận là điểm thực thi truy vấn (`INFERRED`); bảng suy ra từ các mảnh chuỗi truy vấn trong hàm, trong các hàm cùng lớp mà nó gọi và trong hằng chuỗi của lớp. `save()` của Spring Data ghi là `INSERT/UPDATE` vì phân tích tĩnh không biết bản ghi mới hay cũ.
+- **Nhánh lỗi**: lệnh `throw` thành chiều trả về lỗi từ cột đang chạy lên tới Client (nhãn đầu là khóa thông báo hoặc tên exception, các cấp trên là tên exception). `throw` nằm trong `if` thì thành khối `alt`; nếu nhánh then kết thúc bằng `throw` thì **phần còn lại của luồng là nhánh `else`** ("ngược lại") và khối giữ mở tới hết khối bao ngoài hoặc hết luồng. Điều kiện khác (`if` có lời gọi nhưng không `throw`, `case`, `catch`, vòng lặp) thành khối `opt` / `alt` / `loop`.
+- **Chỉ vẽ ngoại lệ nghiệp vụ**: `throw` chỉ được vẽ khi điều kiện bao quanh phụ thuộc dữ liệu lấy từ Service / Repository (hoặc trạng thái của entity vừa nạp) — vd `existsByCode(code)`, `count > 0`, `order.isPending()` — và exception không phải loại kiểm tra dữ liệu (tên chứa `validation`, `invalid`, `illegalargument`, `constraintviolation`, `badrequest`). Kiểm tra đầu vào (`if (x == null) throw …`) không vẽ — chúng là "Ràng buộc" của tab Diễn giải.
+- **Mục tiêu 70 bước nhưng không đánh đổi nghiệp vụ** (`Tracer.MAX_STEPS`): luồng đầy đủ dài hơn thì rút gọn dần theo thứ tự mất ít thông tin nhất và ghi lý do vào `warnings[0]`: (1) **không vẽ lại phần bên trong** của lời gọi lặp lại tới cùng một hàm (bước có `repeatOf` = số bước của lần gọi đầu; thông tin vẫn đủ); (2) bỏ thêm các bước tự xử lý (chỉ mất tên hàm phụ trong cùng một lớp). **Không bao giờ** cắt độ sâu hay bỏ nhánh lỗi nghiệp vụ: sau hai mức mà vẫn dài hơn 70 thì giữ nguyên và `warnings[0]` nói rõ. `traceId` không đổi theo mức rút gọn.
+- **Độ sâu** (`maxDepth`, mặc định 12) chỉ tính các cấp Controller / Service / Repository gọi nhau; hàm gộp vào bước tự xử lý không tốn cấp.
+- **Lời gọi vào Controller / Service / Repository của dự án mà không thấy hàm đích** (vd hàm kế thừa từ thư viện không có mã nguồn): cạnh `UNRESOLVED` không có ứng viên, tới node `BE_METHOD` giữ chỗ (`attrs.unresolvedMethod`); diagram hiện bước "chưa xác định". Getter/setter trên entity / DTO (thường do Lombok sinh) bỏ qua. Hàm CRUD mặc định của Spring Data (`findById`, `save`, `deleteById`…) luôn được nhận là thao tác dữ liệu (`EXECUTES`), không bao giờ là `UNRESOLVED`.
+- **Lời gọi nối chuỗi và biến `var`** (`repo.findById(id).orElseThrow().isPending()`, `var o = repo.findById(id)…; o.isPending()`) được giải bằng kiểu trả về đã khai báo (`Optional<X>` + `get`/`orElseThrow`/`orElse`/`orElseGet` cho ra `X`); không giải được thì bỏ qua, không đoán.
+- **Lời gọi chưa xác định** (`UNRESOLVED`): bước nét "chưa xác định" tới cột của interface kèm lý do và ứng viên, chiều trả về `(chưa xác định)`; Tracer **không đi sâu** và **không chọn hộ**. Chỉ liên kết chốt tay (`OverrideApplier`) mới thay đích; lúc đó bước có `pinned = true`, mức tin cậy `CERTAIN`, lý do "Chốt tay".
+- Cột xếp theo vai trò (Client, Controller, Service, Repository, các bảng) rồi theo thứ tự xuất hiện; hai lớp khác nhau trùng nhãn thì thêm tên lớp vào nhãn.
+- `traceId` = hash(điểm bắt đầu, độ sâu, lần quét, liên kết chốt tay, bộ lọc nhiễu hiệu lực).
 
 ## 2.3 Thiết kế cơ sở dữ liệu
 
@@ -602,7 +619,7 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 
 **Người dùng chọn:** cây Frontend › Ứng dụng quản trị › Màn hình "Danh mục" › Hộp thoại "Thêm danh mục" › Nút **Lưu**.
 
-**Sequence diagram** gồm 6 cột: User · Frontend · Controller Danh mục · Service Danh mục · Repository Danh mục · Database.
+**Sequence diagram** gồm 6 cột: User · Frontend · Controller Danh mục · Service Danh mục · Repository Danh mục · Bảng category (cột Database được ghi rõ tên bảng).
 - Mũi tên số 3 (Frontend → Controller) vẽ kiểu "Suy luận", vì URL được ghép từ hằng số và luật proxy.
 - Nhánh "Mã đã tồn tại" vẽ thành khối `alt`.
 - Nhãn mũi tên ngắn, mang tính kỹ thuật. Mã PlantUML khi bấm "Xuất":
@@ -617,7 +634,7 @@ participant "Frontend" as FE
 participant "Controller Danh mục" as C1
 participant "Service Danh mục" as S1
 participant "Repository Danh mục" as R1
-database "Database" as DB
+database "Bảng category" as DB
 
 User -> FE: Bấm "Lưu"
 activate FE
@@ -629,7 +646,7 @@ activate S1
 S1 -> S1: checkPermission(), normalize()
 S1 -> R1: existsByCode(code)
 activate R1
-R1 -> DB: SELECT category
+R1 -> DB: SELECT
 activate DB
 DB --> R1: kết quả
 deactivate DB
@@ -642,7 +659,7 @@ alt Mã đã tồn tại
 else Mã chưa tồn tại
   S1 -> R1: save(entity)
   activate R1
-  R1 -> DB: INSERT category
+  R1 -> DB: INSERT
   activate DB
   DB --> R1: OK
   deactivate DB
@@ -703,7 +720,7 @@ deactivate FE
 - **Controller Danh mục:** tiếp nhận và điều phối yêu cầu về danh mục ở Backend.
 - **Service Danh mục:** xử lý nghiệp vụ và ràng buộc của danh mục.
 - **Repository Danh mục:** truy xuất dữ liệu danh mục.
-- **Database:** cơ sở dữ liệu lưu trữ.
+- **Bảng category:** bảng dữ liệu lưu danh mục.
 
 *Chức năng: Thêm mới danh mục*
 - Bước 1: User bấm nút "Lưu" trên Frontend.

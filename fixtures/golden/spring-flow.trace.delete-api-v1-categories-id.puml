@@ -1,0 +1,47 @@
+@startuml DELETE_api_v1_categories_id
+autonumber
+skinparam style strictuml
+skinparam responseMessageBelowArrow true
+actor "Client" as User
+participant "Controller Danh mục" as C1
+participant "Service Danh mục" as S1
+participant "Service ProductQuery" as S2
+participant "Repository Danh mục" as R1
+database "Bảng category" as T1
+
+User -> C1: DELETE /api/v1/categories/{id}
+activate C1
+C1 -> S1: delete(id)
+activate S1
+S1 -> S1: checkPermission()
+S1 -> R1: findById(id)
+activate R1
+R1 -> T1: SELECT
+activate T1
+T1 --> R1: kết quả
+deactivate T1
+R1 --> S1: Optional<Category>
+deactivate R1
+S1 -> S2: countByCategoryId(categoryId)
+activate S2
+S2 --> S1: (chưa xác định)
+deactivate S2
+alt productQueryService.countByCategoryId(id) > 0
+  S1 --> C1: CATEGORY_IN_USE
+  C1 --> User: BusinessException
+else ngược lại
+  S1 -> S1: markDeleted()
+  S1 -> R1: save(entity)
+  activate R1
+  R1 -> T1: INSERT/UPDATE
+  activate T1
+  T1 --> R1: OK
+  deactivate T1
+  R1 --> S1: Category
+  deactivate R1
+  S1 --> C1: true / false
+  deactivate S1
+  C1 --> User: 200 ApiResponse<Boolean>
+  deactivate C1
+end
+@enduml

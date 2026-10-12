@@ -2,12 +2,16 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { toApiError } from '../../core/api/api-error';
 import type { BackendTreeDto, EndpointNodeDto, WorkspaceDto } from '../../core/api/api-types';
+import { TraceApi } from '../../core/api/trace.api';
 import { GraphApi } from '../../core/api/graph.api';
 import { WorkspaceApi } from '../../core/api/workspace.api';
 import { Icon } from '../../core/ui/icon';
 import { isRunning, statusLabel } from '../scan/scan-format';
 import { ScanTracker } from '../scan/scan-tracker';
 import { BackendTree } from './backend-tree';
+import { SequenceCanvas } from './sequence/sequence-canvas';
+import type { SequenceTrace } from './sequence/sequence-model';
+import { normalizeTrace } from './sequence/sequence-model';
 
 const MIN_LEFT = 220;
 const MAX_LEFT = 560;
@@ -15,12 +19,12 @@ const DEFAULT_LEFT = 300;
 const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
 
 /**
- * Màn hình chính 3 cột: cột trái cây API Backend (C1), canvas giữa (sequence diagram ở Giai đoạn 3) với cụm nút nổi
+ * Màn hình chính 3 cột: cột trái cây API Backend (C1), canvas giữa (sequence diagram của API đang chọn, D1) với cụm nút nổi
  * trạng thái quét / Quét lại, cột phải thông tin endpoint đang chọn (tab Diễn giải ở Giai đoạn 6).
  */
 @Component({
   selector: 'app-explorer',
-  imports: [BackendTree, Icon],
+  imports: [BackendTree, Icon, SequenceCanvas],
   template: `
     <div class="explorer" [style.--lw.px]="collapsed() ? 0 : leftWidth()">
       <aside class="left" [class.hidden]="collapsed()">
@@ -57,16 +61,8 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
             <app-icon name="upload" [small]="true" />{{ ws()?.lastScan ? 'Quét lại' : 'Quét' }}
           </button>
         </div>
-        <div class="empty center">
-          <div class="ic"><app-icon name="layout" /></div>
-          @if (tree()?.endpointCount) {
-            <h3>Chọn một API ở cột trái</h3>
-            <span>Sequence diagram của luồng xử lý có từ Giai đoạn 3.</span>
-          } @else {
-            <h3>Chưa có dữ liệu</h3>
-            <span>Bấm <b>Quét</b> để phân tích mã nguồn của Workspace.</span>
-          }
-        </div>
+        <app-sequence-canvas [workspaceId]="workspaceId()" [trace]="trace()" [loading]="traceLoading()" [error]="traceError()"
+          [emptyTitle]="emptyTitle()" [emptyText]="emptyHint()" />
       </section>
 
       <aside class="right">
@@ -94,6 +90,20 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
             }
             @for (w of e.warnings ?? []; track w) {
               <div class="warn gap">{{ w }}</div>
+            }
+            @if (trace(); as t) {
+              <div class="sec">
+                <h4>Luồng xử lý</h4>
+                <p>{{ t.steps.length }} bước · {{ t.lanes.length }} cột</p>
+                <div class="chips">
+                  @for (l of t.lanes; track l.id) {
+                    <span class="pill p-gray">{{ l.label }}</span>
+                  }
+                </div>
+              </div>
+              @for (w of t.warnings; track w) {
+                <div class="warn gap">{{ w }}</div>
+              }
             }
             <div class="hint">Tab Diễn giải và Kịch bản có từ Giai đoạn 6.</div>
           </div>
@@ -132,6 +142,7 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
     .sec h4 { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--t3); }
     .sec p { margin: 0; overflow-wrap: anywhere; }
     .gap { margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .mt { font: 700 11px var(--mono); padding: 2px 6px; border-radius: 4px; background: #f3f4f6; }
     .mt.GET { background: var(--green-l); color: var(--green); }
     .mt.POST { background: var(--blue-l); color: var(--blue); }
@@ -143,6 +154,7 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
 export class ExplorerPage {
   private readonly workspaceApi = inject(WorkspaceApi);
   private readonly graphApi = inject(GraphApi);
+  private readonly traceApi = inject(TraceApi);
   private readonly tracker = inject(ScanTracker);
 
   /** Tham số route :workspaceId. */
@@ -153,6 +165,10 @@ export class ExplorerPage {
   protected readonly treeLoading = signal(false);
   protected readonly treeError = signal<string | null>(null);
   protected readonly selected = signal<EndpointNodeDto | null>(null);
+  protected readonly trace = signal<SequenceTrace | null>(null);
+  protected readonly traceLoading = signal(false);
+  protected readonly traceError = signal<string | null>(null);
+  private traceToken = 0;
   protected readonly collapsed = signal(false);
   protected readonly leftWidth = signal(readLeftWidth());
 
@@ -194,6 +210,11 @@ export class ExplorerPage {
     return statusLabel(s.status) + (isRunning(s.status) ? '…' : when);
   });
 
+  protected readonly emptyTitle = computed(() => (this.tree()?.endpointCount ? 'Chọn một API ở cột trái' : 'Chưa có dữ liệu'));
+  protected readonly emptyHint = computed(() =>
+    this.tree()?.endpointCount ? 'Sequence diagram của luồng xử lý sẽ hiện ở đây.' : 'Bấm Quét để phân tích mã nguồn của Workspace.'
+  );
+
   protected readonly emptyText = computed(() =>
     this.ws()?.lastScan ? 'Lần quét không tìm thấy endpoint nào trong các nguồn Backend.' : 'Workspace chưa được quét.'
   );
@@ -208,11 +229,16 @@ export class ExplorerPage {
         void this.load(id);
       });
     });
-    // Lần quét của Workspace này vừa xong → tải lại cây và thông tin Workspace
+    // Chọn API khác → dò vết luồng của nó (D1)
+    effect(() => {
+      const endpoint = this.selected();
+      untracked(() => void this.loadTrace(endpoint));
+    });
+    // Lần quét của Workspace này vừa xong → tải lại cây, thông tin Workspace và luồng đang xem
     effect(() => {
       const done = this.tracker.finished();
       if (done && done.workspaceId === untracked(() => this.workspaceId())) {
-        untracked(() => void this.load(done.workspaceId));
+        untracked(() => void this.load(done.workspaceId).then(() => this.loadTrace(this.selected())));
       }
     });
   }
@@ -237,6 +263,32 @@ export class ExplorerPage {
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
+  }
+
+  private async loadTrace(endpoint: EndpointNodeDto | null): Promise<void> {
+    const token = ++this.traceToken;
+    this.traceError.set(null);
+    if (!endpoint?.nodeKey) {
+      this.trace.set(null);
+      this.traceLoading.set(false);
+      return;
+    }
+    this.traceLoading.set(true);
+    try {
+      const dto = await this.traceApi.trace(this.workspaceId(), endpoint.nodeKey);
+      if (token === this.traceToken) {
+        this.trace.set(normalizeTrace(dto));
+      }
+    } catch (e) {
+      if (token === this.traceToken) {
+        this.trace.set(null);
+        this.traceError.set(toApiError(e).message);
+      }
+    } finally {
+      if (token === this.traceToken) {
+        this.traceLoading.set(false);
+      }
+    }
   }
 
   private async load(id: string): Promise<void> {

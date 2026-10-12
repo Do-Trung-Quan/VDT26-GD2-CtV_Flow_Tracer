@@ -2,23 +2,14 @@ package com.ctv.flowtracer.adapter.spring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
 import com.ctv.flowtracer.ir.Diagnostic;
 import com.ctv.flowtracer.ir.IrFragment;
 import com.ctv.flowtracer.ir.IrNode;
-import com.ctv.flowtracer.ir.spi.ExtractContext;
-import com.ctv.flowtracer.ir.spi.FileFacts;
-import com.ctv.flowtracer.ir.spi.ResolveContext;
-import com.ctv.flowtracer.ir.spi.SourceFile;
-import java.io.IOException;
+import com.ctv.flowtracer.ir.NodeKind;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.util.HexFormat;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.cfg.DateTimeFeature;
@@ -30,10 +21,8 @@ import tools.jackson.databind.json.JsonMapper;
  */
 class SpringGoldenTest {
 
-    private static final Path FIXTURE = Path.of("..", "..", "fixtures", "spring-mini");
     private static final Path GOLDEN = Path.of("..", "..", "fixtures", "golden", "spring-mini.ir.json");
 
-    private final SpringStackAdapter adapter = new SpringStackAdapter();
     private final JsonMapper json = JsonMapper.builder()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
@@ -54,7 +43,9 @@ class SpringGoldenTest {
     void endpointsModulesAndDiagnostics() throws Exception {
         IrFragment fragment = analyze();
 
-        assertThat(fragment.nodes()).extracting(IrNode::name).containsExactly(
+        assertThat(fragment.nodes().stream().filter(n -> n.kind() == NodeKind.API_ENDPOINT))
+                .extracting(IrNode::name)
+                .containsExactly(
                 "ANY /shop-api/api/v1/orders/sync",
                 "DELETE /shop-api/api/v1/categories/{id}",
                 "GET /shop-api/api/v1/categories",
@@ -123,42 +114,8 @@ class SpringGoldenTest {
 
     // ---------------- chạy adapter trên fixture ----------------
 
-    private IrFragment analyze() throws IOException {
-        List<String> allPaths;
-        try (Stream<Path> files = Files.walk(FIXTURE)) {
-            allPaths = files.filter(Files::isRegularFile)
-                    .map(p -> FIXTURE.relativize(p).toString().replace('\\', '/'))
-                    .sorted()
-                    .toList();
-        }
-        var extractCtx = new ExtractContext("spring-mini", allPaths, this::load, null);
-        List<FileFacts> facts = allPaths.stream()
-                .filter(adapter::analyzes)
-                .map(p -> adapter.extract(extractCtx, sourceFile(p)))
-                .toList();
-        assertThat(facts).allMatch(f -> f instanceof JavaFileFacts);
-        return adapter.resolve(new ResolveContext("spring-mini", allPaths, this::load, null, null), facts);
-    }
-
-    private Optional<String> load(String relativePath) {
-        try {
-            return Optional.of(Files.readString(FIXTURE.resolve(relativePath), StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
-    private SourceFile sourceFile(String relativePath) {
-        String content = load(relativePath).orElseThrow();
-        return new SourceFile(relativePath, content, sha256(content));
-    }
-
-    private static String sha256(String content) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+    private IrFragment analyze() {
+        return new FixtureRunner("spring-mini").analyze();
     }
 
     private static void assertUnresolved(IrFragment fragment, String key, String reasonPart) {

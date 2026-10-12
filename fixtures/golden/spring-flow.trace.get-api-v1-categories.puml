@@ -1,0 +1,28 @@
+@startuml GET_api_v1_categories
+autonumber
+skinparam style strictuml
+skinparam responseMessageBelowArrow true
+actor "Client" as User
+participant "Controller Danh mục" as C1
+participant "Service Danh mục" as S1
+participant "Repository Danh mục" as R1
+database "Bảng category" as T1
+
+User -> C1: GET /api/v1/categories
+activate C1
+C1 -> S1: search(keyword)
+activate S1
+S1 -> R1: search(keyword)
+activate R1
+R1 -> T1: SELECT
+activate T1
+T1 --> R1: kết quả
+deactivate T1
+R1 --> S1: List<Category>
+deactivate R1
+S1 -> S1: toResponse()
+S1 --> C1: List<CategoryResponse>
+deactivate S1
+C1 --> User: 200 ApiResponse<List<CategoryResponse>>
+deactivate C1
+@enduml

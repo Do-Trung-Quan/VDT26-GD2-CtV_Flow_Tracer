@@ -1,0 +1,182 @@
+{
+  "traceId" : "b4f64e97cf1b008c34cbc96448a210eb",
+  "startKey" : "java:endpoint:PUT /api/v1/orders/{id}/confirm",
+  "participants" : [ {
+    "id" : "user",
+    "label" : "Client",
+    "role" : "USER"
+  }, {
+    "id" : "c1",
+    "label" : "Controller Order",
+    "role" : "CONTROLLER",
+    "nodeKey" : "java:method:com.example.flow.order.OrderController#confirm(Long)"
+  }, {
+    "id" : "s1",
+    "label" : "Service Order",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)"
+  }, {
+    "id" : "s2",
+    "label" : "Service Audit",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.common.AuditService#record(?)"
+  }, {
+    "id" : "r1",
+    "label" : "Repository Order",
+    "role" : "REPOSITORY",
+    "nodeKey" : "java:method:com.example.flow.order.OrderRepository#findById(ID)"
+  }, {
+    "id" : "t1",
+    "label" : "Bảng shop_order",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:shop_order"
+  } ],
+  "steps" : [ {
+    "index" : 1,
+    "from" : "user",
+    "to" : "c1",
+    "kind" : "HANDLED_BY",
+    "label" : "PUT /api/v1/orders/{id}/confirm",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 2,
+    "from" : "c1",
+    "to" : "s1",
+    "kind" : "CALLS",
+    "label" : "confirm(id)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 3,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "findById(id)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 4,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 5,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 6,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "Optional<Order>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 7,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "isPending()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 8,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "ORDER_NOT_PENDING",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 9,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "BusinessException",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 10,
+    "from" : "s1",
+    "to" : "s2",
+    "kind" : "CALLS",
+    "label" : "record(…)",
+    "confidence" : "UNRESOLVED",
+    "reason" : "Không tìm thấy hàm record trong AuditService và các lớp cha trong mã nguồn (có thể kế thừa từ thư viện không có mã nguồn)",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 11,
+    "from" : "s2",
+    "to" : "s1",
+    "label" : "(chưa xác định)",
+    "confidence" : "UNRESOLVED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 12,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "OK",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 13,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "200 OK",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  } ],
+  "blocks" : [ {
+    "type" : "ALT",
+    "label" : "!order.isPending()",
+    "fromStep" : 8,
+    "toStep" : 13,
+    "elseBranches" : [ {
+      "label" : "ngược lại",
+      "fromStep" : 10
+    } ]
+  } ],
+  "warnings" : [ "1 lời gọi chưa xác định được đích (xem bước 10)" ]
+}

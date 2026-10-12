@@ -59,7 +59,8 @@ npm --prefix web start                                                          
 | 0 | Tài liệu `.context/`, khung mã nguồn (engine 4 module, sidecar, web, contracts), migration V1–V2, bản vẽ giao diện | ✅ Xong |
 | 1 | Workspace & Import dự án — nhật ký: `docs/progress/0910_gd1_workspace_import.md` | ✅ Xong, chờ người dùng review |
 | 2 | Quét & cây API Backend — nhật ký: `docs/progress/0910_gd2_quet_cay_api.md` | ✅ Xong, chờ người dùng review |
-| 3 → 11 | Xem bên dưới | ⏳ Chưa làm |
+| 3 | Luồng Backend & sequence diagram (Task 3.1–3.3) — nhật ký: `docs/progress/1210_gd3_be_luong_xu_ly.md` | ✅ Xong, chờ người dùng review |
+| 4 → 11 | Xem bên dưới | ⏳ Chưa làm |
 
 ---
 
@@ -210,10 +211,10 @@ Tôi sẽ làm:
 Tôi sẽ làm:
 - Trích xuất:
   - `MemberExtractor` (Lombok `@RequiredArgsConstructor`, `@Qualifier`, `@Primary`);
-  - `CallSiteExtractor` (thứ tự lời gọi, điều kiện bao quanh);
-  - `ThrowExtractor`, `StringFragmentExtractor`.
+  - `CallSiteExtractor` (thứ tự lời gọi, điều kiện bao quanh, và cả lệnh `throw` trong cùng một lượt duyệt để chung thứ tự);
+  - `StringFragmentExtractor`.
 - Phân giải:
-  - `ClassIndex`, `JavaResolver` (SymbolSolver), `InjectionResolver`, `ImplementationResolver`;
+  - `ClassIndex`, `FlowResolver` (thay cho `CallResolver`; **không dùng JavaSymbolSolver** vì dự án phân tích không có classpath — kiểu của receiver được giải bằng khai báo biến/tham số/field và import), `InjectionResolver`, `ImplementationResolver`, `LayerClassifier`;
   - mức tin cậy: `CERTAIN` / `INFERRED` / `UNRESOLVED` + ứng viên;
   - `DataAccessResolver` + `QueryTextAnalyzer` (Spring Data, `@Query`, câu ghép động, `QuerySinkRules`), `EntityTableResolver`.
 - Mini fixture: interface có 2 lớp hiện thực (`@Primary`), repository có `@Query` và câu ghép bằng `StringBuilder`.

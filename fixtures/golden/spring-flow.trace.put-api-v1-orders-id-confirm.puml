@@ -1,0 +1,38 @@
+@startuml PUT_api_v1_orders_id_confirm
+autonumber
+skinparam style strictuml
+skinparam responseMessageBelowArrow true
+actor "Client" as User
+participant "Controller Order" as C1
+participant "Service Order" as S1
+participant "Service Audit" as S2
+participant "Repository Order" as R1
+database "Bảng shop_order" as T1
+
+User -> C1: PUT /api/v1/orders/{id}/confirm
+activate C1
+C1 -> S1: confirm(id)
+activate S1
+S1 -> R1: findById(id)
+activate R1
+R1 -> T1: SELECT
+activate T1
+T1 --> R1: kết quả
+deactivate T1
+R1 --> S1: Optional<Order>
+deactivate R1
+S1 -> S1: isPending()
+alt !order.isPending()
+  S1 --> C1: ORDER_NOT_PENDING
+  C1 --> User: BusinessException
+else ngược lại
+  S1 -> S2: record(…)
+  activate S2
+  S2 --> S1: (chưa xác định)
+  deactivate S2
+  S1 --> C1: OK
+  deactivate S1
+  C1 --> User: 200 OK
+  deactivate C1
+end
+@enduml

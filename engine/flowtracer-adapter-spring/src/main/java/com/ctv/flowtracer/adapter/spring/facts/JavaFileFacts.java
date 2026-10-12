@@ -50,9 +50,30 @@ public record JavaFileFacts(
         return list == null ? List.of() : List.copyOf(list);
     }
 
-    /** Khai báo kiểu (class/interface/enum/record). */
+    /**
+     * Khai báo kiểu (class/interface/enum/record).
+     *
+     * @param annotationValues giá trị chuỗi/enum/boolean của annotation, khóa {@code TênAnnotation.thuộc_tính}
+     *     (vd {@code Table.name}, {@code Qualifier.value}); thuộc tính không phải hằng đơn giản bị bỏ
+     * @param modifiers {@code abstract} nếu là lớp trừu tượng
+     */
     public record TypeFact(
-            String fqn, Kind kind, List<String> annotations, String superclass, List<String> interfaces, String javadoc, int line) {
+            String fqn,
+            Kind kind,
+            List<String> annotations,
+            String superclass,
+            List<String> interfaces,
+            String javadoc,
+            int line,
+            Map<String, String> annotationValues,
+            List<String> modifiers) {
+
+        public TypeFact {
+            annotations = annotations == null ? List.of() : List.copyOf(annotations);
+            interfaces = interfaces == null ? List.of() : List.copyOf(interfaces);
+            annotationValues = annotationValues == null ? Map.of() : Map.copyOf(annotationValues);
+            modifiers = modifiers == null ? List.of() : List.copyOf(modifiers);
+        }
 
         public enum Kind {
             CLASS,
@@ -68,6 +89,7 @@ public record JavaFileFacts(
      *
      * @param constantValue giá trị nếu là hằng chuỗi {@code static final String} khởi tạo bằng literal (hoặc nối các
      *     literal); null nếu không phải
+     * @param annotationValues như {@link TypeFact#annotationValues()}
      */
     public record FieldFact(
             String declaringType,
@@ -76,9 +98,24 @@ public record JavaFileFacts(
             boolean isFinal,
             List<String> annotations,
             String constantValue,
-            int line) {}
+            int line,
+            boolean isStatic,
+            Map<String, String> annotationValues) {
 
-    /** Constructor hoặc method. {@code name = "<init>"} với constructor. */
+        public FieldFact {
+            annotations = annotations == null ? List.of() : List.copyOf(annotations);
+            annotationValues = annotationValues == null ? Map.of() : Map.copyOf(annotationValues);
+        }
+    }
+
+    /**
+     * Constructor hoặc method. {@code name = "<init>"} với constructor.
+     *
+     * @param paramNames tên tham số, cùng thứ tự {@code paramTypes}
+     * @param paramQualifiers giá trị {@code @Qualifier} của từng tham số, "" nếu không có; cùng thứ tự {@code paramTypes}
+     * @param annotationValues như {@link TypeFact#annotationValues()} (vd {@code Query.value}, {@code Query.nativeQuery})
+     * @param hasBody false với method trừu tượng / khai báo trong interface
+     */
     public record MethodFact(
             String declaringType,
             String name,
@@ -87,7 +124,25 @@ public record JavaFileFacts(
             List<String> annotations,
             String javadoc,
             int startLine,
-            int endLine) {}
+            int endLine,
+            List<String> paramNames,
+            List<String> paramQualifiers,
+            Map<String, String> annotationValues,
+            boolean hasBody) {
+
+        public MethodFact {
+            paramTypes = paramTypes == null ? List.of() : List.copyOf(paramTypes);
+            annotations = annotations == null ? List.of() : List.copyOf(annotations);
+            paramNames = paramNames == null ? List.of() : List.copyOf(paramNames);
+            paramQualifiers = paramQualifiers == null ? List.of() : List.copyOf(paramQualifiers);
+            annotationValues = annotationValues == null ? Map.of() : Map.copyOf(annotationValues);
+        }
+
+        /** Chữ ký {@code tên(kiểu,...)} — cùng dạng với {@link MappingFact#method()}. */
+        public String signature() {
+            return name + "(" + String.join(",", paramTypes) + ")";
+        }
+    }
 
     /** Tiền tố đánh dấu một đường dẫn mapping là tham chiếu hằng số (vd {@code @const:ApiPaths.CATEGORY}), cần giải ở pha 2. */
     public static final String CONSTANT_REF_PREFIX = "@const:";
@@ -124,34 +179,48 @@ public record JavaFileFacts(
     }
 
     /**
-     * Một lời gọi trong thân method.
+     * Một lời gọi trong thân method. Chỉ ghi lời gọi có receiver đơn giản (tên biến / field / kiểu / {@code this} /
+     * {@code super}); lời gọi nối chuỗi như {@code a.b().c()} chỉ ghi {@code a.b()}.
      *
-     * @param callerMethod chữ ký method chứa lời gọi ({@code Type#name(params)})
-     * @param receiverType FQN kiểu của receiver nếu giải được (null nếu không)
-     * @param receiverExpr biểu thức receiver gốc (vd {@code categoryRepository}, {@code this})
-     * @param resolvedTarget chữ ký method đích nếu SymbolSolver giải được
+     * @param callerMethod method chứa lời gọi, dạng {@code FQN#tên(kiểu,...)}
+     * @param receiverType kiểu khai báo của receiver nếu là biến cục bộ / tham số (tên ngắn như viết trong mã, đã bỏ
+     *     generic); null nếu receiver là field hoặc tên kiểu — pha 2 tra theo field của lớp
+     * @param receiverExpr tên receiver: biến, field, tên kiểu (gọi static), {@code this}, {@code super}; hoặc
+     *     {@code @call} (receiver là kết quả một lời gọi khác), {@code @new} ({@code new X().m()}), {@code @cast}
+     * @param receiverCall {@code callOrder} của lời gọi tạo ra receiver (nối chuỗi {@code a.b().c()} hoặc biến {@code var});
+     *     null nếu không có
+     * @param argCount số đối số; -1 với tham chiếu hàm ({@code mapper::toResponse}) không rõ số đối số
+     * @param callOrder thứ tự trong method, chung dãy số với {@link ThrowFact#order()}
      */
     public record CallSiteFact(
             String callerMethod,
             String receiverType,
             String receiverExpr,
+            Integer receiverCall,
             String methodName,
             int argCount,
-            String resolvedTarget,
             int callOrder,
             Guard guard,
             int line) {}
 
-    /** Câu lệnh throw: loại exception và khóa/chuỗi thông báo (nếu là literal). */
-    public record ThrowFact(String method, String exceptionType, String messageKey, Guard guard, int line) {}
+    /**
+     * Câu lệnh throw.
+     *
+     * @param method method chứa lệnh throw, dạng {@code FQN#tên(kiểu,...)}
+     * @param exceptionType tên ngắn của exception ({@code new X(...)}); biểu thức khác thì văn bản rút gọn của nó
+     * @param messageKey khóa/chuỗi thông báo nếu là literal hoặc hằng số (đối số đầu tiên có dạng đó)
+     * @param order thứ tự trong method, chung dãy số với {@link CallSiteFact#callOrder()}
+     */
+    public record ThrowFact(String method, String exceptionType, String messageKey, Guard guard, int line, int order) {}
 
     /**
-     * Các mảnh chuỗi trong một method (literal, text block, StringBuilder.append) — nguyên liệu phân tích truy vấn
-     * ghép động.
+     * Một mảnh chuỗi trông như câu truy vấn (literal, text block, nối literal) trong một method — nguyên liệu phân tích
+     * truy vấn ghép động. Chỉ giữ mảnh chứa từ khóa SQL/JPQL.
      *
-     * @param conditional true nếu có mảnh được nối bên trong if/else
+     * @param method method chứa mảnh chuỗi, dạng {@code FQN#tên(kiểu,...)}
+     * @param conditional true nếu mảnh nằm trong if/else, switch, toán tử ba ngôi hoặc vòng lặp
      */
-    public record StringFragmentFact(String method, List<String> fragments, boolean conditional, int line) {}
+    public record StringFragmentFact(String method, String text, boolean conditional, int line) {}
 
     /** Trường của DTO/Entity kèm tên JSON và ràng buộc validation. */
     public record DtoFieldFact(

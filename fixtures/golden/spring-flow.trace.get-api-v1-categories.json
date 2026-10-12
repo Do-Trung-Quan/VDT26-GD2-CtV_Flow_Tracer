@@ -1,0 +1,127 @@
+{
+  "traceId" : "46ebab87ab8de031094ad89201cbfdca",
+  "startKey" : "java:endpoint:GET /api/v1/categories",
+  "participants" : [ {
+    "id" : "user",
+    "label" : "Client",
+    "role" : "USER"
+  }, {
+    "id" : "c1",
+    "label" : "Controller Danh mục",
+    "role" : "CONTROLLER",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryController#search(String)"
+  }, {
+    "id" : "s1",
+    "label" : "Service Danh mục",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryServiceImpl#search(String)"
+  }, {
+    "id" : "r1",
+    "label" : "Repository Danh mục",
+    "role" : "REPOSITORY",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryRepository#search(String)"
+  }, {
+    "id" : "t1",
+    "label" : "Bảng category",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:category"
+  } ],
+  "steps" : [ {
+    "index" : 1,
+    "from" : "user",
+    "to" : "c1",
+    "kind" : "HANDLED_BY",
+    "label" : "GET /api/v1/categories",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 2,
+    "from" : "c1",
+    "to" : "s1",
+    "kind" : "CALLS",
+    "label" : "search(keyword)",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 3,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "search(keyword)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 4,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 5,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 6,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "List<Category>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 7,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "toResponse()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 8,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "List<CategoryResponse>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 9,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "200 ApiResponse<List<CategoryResponse>>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  } ],
+  "blocks" : [ ],
+  "warnings" : [ ]
+}

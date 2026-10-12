@@ -35,6 +35,8 @@ final class SourceWork {
     final Map<String, SourceFile> previousConfig = new TreeMap<>();
     /** File cấu hình thêm / sửa / xóa so với lần quét trước. */
     final TreeSet<String> configChanged = new TreeSet<>();
+    /** Bộ phân tích đã đổi phiên bản so với lần quét thành công trước: phải phân tích lại dù không file nào đổi. */
+    boolean analysisChanged;
     final TreeSet<String> added = new TreeSet<>();
     final TreeSet<String> modified = new TreeSet<>();
     final TreeSet<String> removed = new TreeSet<>();

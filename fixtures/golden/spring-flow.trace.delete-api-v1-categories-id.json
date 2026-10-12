@@ -1,0 +1,235 @@
+{
+  "traceId" : "2ab62316fa2106283d72bd21b54e8124",
+  "startKey" : "java:endpoint:DELETE /api/v1/categories/{id}",
+  "participants" : [ {
+    "id" : "user",
+    "label" : "Client",
+    "role" : "USER"
+  }, {
+    "id" : "c1",
+    "label" : "Controller Danh mục",
+    "role" : "CONTROLLER",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryController#delete(Long)"
+  }, {
+    "id" : "s1",
+    "label" : "Service Danh mục",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)"
+  }, {
+    "id" : "s2",
+    "label" : "Service ProductQuery",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.product.ProductQueryService#countByCategoryId(Long)"
+  }, {
+    "id" : "r1",
+    "label" : "Repository Danh mục",
+    "role" : "REPOSITORY",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryRepository#findById(ID)"
+  }, {
+    "id" : "t1",
+    "label" : "Bảng category",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:category"
+  } ],
+  "steps" : [ {
+    "index" : 1,
+    "from" : "user",
+    "to" : "c1",
+    "kind" : "HANDLED_BY",
+    "label" : "DELETE /api/v1/categories/{id}",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 2,
+    "from" : "c1",
+    "to" : "s1",
+    "kind" : "CALLS",
+    "label" : "delete(id)",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 3,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "checkPermission()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 4,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "findById(id)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 5,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 6,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 7,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "Optional<Category>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 8,
+    "from" : "s1",
+    "to" : "s2",
+    "kind" : "CALLS",
+    "label" : "countByCategoryId(categoryId)",
+    "confidence" : "UNRESOLVED",
+    "reason" : "ProductQueryService có 2 lớp hiện thực; không có @Primary hay @Qualifier nào phân định lớp được dùng",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 9,
+    "from" : "s2",
+    "to" : "s1",
+    "label" : "(chưa xác định)",
+    "confidence" : "UNRESOLVED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 10,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "CATEGORY_IN_USE",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 11,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "BusinessException",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 12,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "markDeleted()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 13,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "save(entity)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 14,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "WRITES",
+    "label" : "INSERT/UPDATE",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 15,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "OK",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 16,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "Category",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 17,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "true / false",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 18,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "200 ApiResponse<Boolean>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  } ],
+  "blocks" : [ {
+    "type" : "ALT",
+    "label" : "productQueryService.countByCategoryId(id) > 0",
+    "fromStep" : 10,
+    "toStep" : 18,
+    "elseBranches" : [ {
+      "label" : "ngược lại",
+      "fromStep" : 12
+    } ]
+  } ],
+  "warnings" : [ "1 lời gọi chưa xác định được đích (xem bước 8)" ]
+}

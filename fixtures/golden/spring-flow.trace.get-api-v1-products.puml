@@ -1,0 +1,32 @@
+@startuml GET_api_v1_products
+autonumber
+skinparam style strictuml
+skinparam responseMessageBelowArrow true
+actor "Client" as User
+participant "Controller Product" as C1
+participant "Service Product" as S1
+participant "Repository ProductSearch" as R1
+database "Bảng product" as T1
+database "Bảng product_brand" as T2
+
+User -> C1: GET /api/v1/products
+activate C1
+C1 -> S1: search(keyword, withBrand)
+activate S1
+S1 -> R1: search(keyword, withBrand)
+activate R1
+R1 -> T1: SELECT
+activate T1
+T1 --> R1: kết quả
+deactivate T1
+R1 -> T2: SELECT
+activate T2
+T2 --> R1: kết quả
+deactivate T2
+R1 --> S1: List<Product>
+deactivate R1
+S1 --> C1: List<Product>
+deactivate S1
+C1 --> User: 200 ApiResponse<List<Product>>
+deactivate C1
+@enduml

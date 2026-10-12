@@ -104,6 +104,9 @@ class ScanPipelineIT {
     @Value("${local.server.port}")
     int port;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     private final HttpClient http = HttpClient.newHttpClient();
     private final JsonMapper json = JsonMapper.builder().build();
 
@@ -198,6 +201,37 @@ class ScanPipelineIT {
 
     @Test
     @Order(5)
+    void newAnalyzerVersionReanalyzesEverythingEvenWhenNoFileChanged() throws Exception {
+        // Lần quét ghi trước khi có thông tin phiên bản (như dữ liệu của người dùng đã quét bằng bản cũ): coi là đã đổi
+        jdbc.update("""
+                UPDATE scan_runs SET stats = jsonb_set(stats, '{sources}',
+                    (SELECT jsonb_agg(s - 'analysisVersion') FROM jsonb_array_elements(stats->'sources') s))
+                WHERE workspace_id = ?::uuid AND stats IS NOT NULL
+                """, workspaceId);
+        JsonNode legacy = scanAndWait("RESCAN");
+        assertThat(legacy.get("status").asString()).isEqualTo("SUCCEEDED");
+        assertThat(legacy.get("stats").get("noChanges").asBoolean()).isFalse();
+        // phân tích lại toàn bộ nhưng nội dung file và phiên bản không đổi nên dữ kiện lấy từ cache
+        assertThat(files(legacy.get("stats"))).containsEntry("extracted", 0).containsEntry("fromCache", 3);
+        assertThat(scanAndWait("RESCAN").get("stats").get("noChanges").asBoolean()).isTrue();
+
+        FakeAdapter.VERSION = "2";
+
+        JsonNode run = scanAndWait("RESCAN");
+
+        assertThat(run.get("status").asString()).isEqualTo("SUCCEEDED");
+        assertThat(run.get("errorSummary").asString()).contains("Bộ phân tích đã được nâng cấp");
+        JsonNode stats = run.get("stats");
+        assertThat(stats.get("noChanges").asBoolean()).isFalse();
+        assertThat(files(stats)).containsEntry("unchanged", 3).containsEntry("extracted", 3).containsEntry("fromCache", 0);
+        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "FINALIZE");
+
+        // đã dựng lại bằng phiên bản mới: lần quét kế tiếp không còn gì để làm
+        assertThat(scanAndWait("RESCAN").get("stats").get("noChanges").asBoolean()).isTrue();
+    }
+
+    @Test
+    @Order(6)
     void brokenFileMakesScanPartialAndIsListed() throws Exception {
         write("e.fake", "GET /api/e\nBROKEN");
 
@@ -217,7 +251,7 @@ class ScanPipelineIT {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     void cancelKeepsPreviousResultAndBlocksConcurrentScan() throws Exception {
         List<String> before = endpointPaths();
         write("slow.fake", "GET /api/slow\nSLOW");
@@ -246,12 +280,12 @@ class ScanPipelineIT {
         assertThat(unchanged.get("stats").get("diagnostics").get(0).get("filePath").asString()).isEqualTo("e.fake");
 
         var history = call("GET", "/api/workspaces/" + workspaceId + "/scans?page=1&limit=2", null);
-        assertThat(history.data().get("total").asInt()).isEqualTo(8);
+        assertThat(history.data().get("total").asInt()).isEqualTo(12);
         assertThat(history.data().get("items").get(1).get("status").asString()).isEqualTo("CANCELLED");
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     void deletingWorkspaceRemovesScanDataButNotSourceFiles() throws Exception {
         assertThat(call("DELETE", "/api/workspaces/" + workspaceId, null).status).isEqualTo(200);
         assertThat(Files.exists(PROJECT.resolve("a.fake"))).isTrue();
@@ -335,6 +369,14 @@ class ScanPipelineIT {
             implements FileFacts {}
 
     static final class FakeAdapter implements StackAdapter {
+        /** Phiên bản bộ phân tích; test đổi giá trị này để mô phỏng nâng cấp bộ phân tích. */
+        static volatile String VERSION = "1";
+
+        @Override
+        public String factsVersion() {
+            return VERSION;
+        }
+
         @Override
         public String id() {
             return "fake";

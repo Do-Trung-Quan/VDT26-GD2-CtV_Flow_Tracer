@@ -19,9 +19,11 @@ import com.ctv.flowtracer.app.workspace.entity.Source;
 import com.ctv.flowtracer.app.workspace.entity.Workspace;
 import com.ctv.flowtracer.app.workspace.entity.WorkspaceSettings;
 import com.ctv.flowtracer.app.workspace.model.SourceScanTarget;
+import com.ctv.flowtracer.app.workspace.model.TraceSettings;
 import com.ctv.flowtracer.app.workspace.repository.SourceRepository;
 import com.ctv.flowtracer.app.workspace.repository.WorkspaceRepository;
 import com.ctv.flowtracer.ir.NoiseFilter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -108,6 +110,20 @@ public class WorkspaceService {
     @Transactional(readOnly = true)
     public void requireExists(UUID id) {
         require(id);
+    }
+
+    /**
+     * Thiết lập dò vết của Workspace — cho package {@code tracing}.
+     *
+     * @throws AppException {@link ErrorCode#WORKSPACE_NOT_FOUND}
+     */
+    @Transactional(readOnly = true)
+    public TraceSettings traceSettings(UUID id) {
+        Workspace ws = require(id);
+        List<NoiseFilter> filters = new ArrayList<>(defaultNoiseFilters());
+        ws.getSettings().noiseFilters().stream().filter(f -> !filters.contains(f)).forEach(filters::add);
+        filters.sort(Comparator.comparing(NoiseFilter::pattern));
+        return new TraceSettings(List.copyOf(filters), ws.getSettings().defaultMaxDepth(), ws.getLastScanRunId());
     }
 
     /** Ghi nhận lần quét gần nhất của Workspace — package {@code scan} gọi khi bắt đầu quét. */

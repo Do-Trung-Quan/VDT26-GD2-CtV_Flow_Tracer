@@ -1,0 +1,208 @@
+{
+  "traceId" : "c445f1ef8f984ce4fa18b85a0bdd916c",
+  "startKey" : "java:endpoint:POST /api/v1/categories",
+  "participants" : [ {
+    "id" : "user",
+    "label" : "Client",
+    "role" : "USER"
+  }, {
+    "id" : "c1",
+    "label" : "Controller Danh mục",
+    "role" : "CONTROLLER",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)"
+  }, {
+    "id" : "s1",
+    "label" : "Service Danh mục",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)"
+  }, {
+    "id" : "r1",
+    "label" : "Repository Danh mục",
+    "role" : "REPOSITORY",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryRepository#existsByCode(String)"
+  }, {
+    "id" : "t1",
+    "label" : "Bảng category",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:category"
+  } ],
+  "steps" : [ {
+    "index" : 1,
+    "from" : "user",
+    "to" : "c1",
+    "kind" : "HANDLED_BY",
+    "label" : "POST /api/v1/categories",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 2,
+    "from" : "c1",
+    "to" : "s1",
+    "kind" : "CALLS",
+    "label" : "create(request)",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 3,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "checkPermission(), normalize()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 4,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "existsByCode(code)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 5,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 6,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 7,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "true / false",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 8,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "CATEGORY_CODE_EXISTS",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 9,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "BusinessException",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 10,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "save(entity)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 11,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "WRITES",
+    "label" : "INSERT/UPDATE",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 12,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "OK",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 13,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "Category",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 14,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "toResponse()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 15,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "CategoryResponse",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 16,
+    "from" : "c1",
+    "to" : "user",
+    "label" : "200 ApiResponse<CategoryResponse>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  } ],
+  "blocks" : [ {
+    "type" : "ALT",
+    "label" : "categoryRepository.existsByCode(code)",
+    "fromStep" : 8,
+    "toStep" : 16,
+    "elseBranches" : [ {
+      "label" : "ngược lại",
+      "fromStep" : 10
+    } ]
+  } ],
+  "warnings" : [ ]
+}

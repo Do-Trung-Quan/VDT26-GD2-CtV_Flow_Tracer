@@ -26,6 +26,13 @@ export type BackendTreeDto = Schemas['BackendTreeResponse'];
 export type ApiModuleDto = Schemas['ApiModuleResponse'];
 export type EndpointNodeDto = Schemas['EndpointNodeResponse'];
 
+export type TraceDto = Schemas['TraceResponse'];
+export type TraceStepDto = Schemas['TraceStepResponse'];
+export type TraceBlockDto = Schemas['TraceBlockResponse'];
+export type TraceParticipantDto = Schemas['TraceParticipantResponse'];
+export type TraceExportDto = Schemas['TraceExportResponse'];
+export type ExportFormat = 'plantuml' | 'svg';
+
 /** Kết quả phân trang dùng chung của Engine. */
 export interface PageDto<T> {
   items: T[];

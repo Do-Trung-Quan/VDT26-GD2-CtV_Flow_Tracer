@@ -1,0 +1,1637 @@
+{
+  "adapterId" : "spring",
+  "nodes" : [ {
+    "key" : "java:endpoint:DELETE /api/v1/categories/{id}",
+    "kind" : "API_ENDPOINT",
+    "name" : "DELETE /api/v1/categories/{id}",
+    "displayName" : "Xóa danh mục",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 38,
+      "endLine" : 42
+    },
+    "attrs" : {
+      "controller" : "com.example.flow.category.CategoryController",
+      "handler" : "CategoryController#delete(Long)",
+      "httpMethod" : "DELETE",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ {
+        "in" : "PATH",
+        "name" : "id",
+        "required" : true,
+        "type" : "Long"
+      } ],
+      "path" : "/api/v1/categories/{id}",
+      "pathResolved" : true,
+      "responseType" : "ApiResponse<Boolean>",
+      "summary" : "Xóa danh mục",
+      "summarySource" : "OPERATION",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:GET /api/v1/categories",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /api/v1/categories",
+    "displayName" : "Tìm kiếm danh mục",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 32,
+      "endLine" : 36
+    },
+    "attrs" : {
+      "controller" : "com.example.flow.category.CategoryController",
+      "handler" : "CategoryController#search(String)",
+      "httpMethod" : "GET",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ {
+        "in" : "QUERY",
+        "name" : "keyword",
+        "required" : true,
+        "type" : "String"
+      } ],
+      "path" : "/api/v1/categories",
+      "pathResolved" : true,
+      "responseType" : "ApiResponse<List<CategoryResponse>>",
+      "summary" : "Tìm kiếm danh mục",
+      "summarySource" : "OPERATION",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:GET /api/v1/products",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /api/v1/products",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 25,
+      "endLine" : 28
+    },
+    "attrs" : {
+      "controller" : "com.example.flow.product.ProductController",
+      "handler" : "ProductController#search(String,boolean)",
+      "httpMethod" : "GET",
+      "module" : "Product",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ {
+        "in" : "QUERY",
+        "name" : "keyword",
+        "required" : true,
+        "type" : "String"
+      }, {
+        "in" : "QUERY",
+        "name" : "withBrand",
+        "required" : true,
+        "type" : "boolean"
+      } ],
+      "path" : "/api/v1/products",
+      "pathResolved" : true,
+      "responseType" : "ApiResponse<List<Product>>"
+    }
+  }, {
+    "key" : "java:endpoint:GET /api/v1/products/options",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /api/v1/products/options",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 20,
+      "endLine" : 23
+    },
+    "attrs" : {
+      "controller" : "com.example.flow.product.ProductController",
+      "handler" : "ProductController#options()",
+      "httpMethod" : "GET",
+      "module" : "Product",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/api/v1/products/options",
+      "pathResolved" : true,
+      "responseType" : "ApiResponse<List<Product>>"
+    }
+  }, {
+    "key" : "java:endpoint:POST /api/v1/categories",
+    "kind" : "API_ENDPOINT",
+    "name" : "POST /api/v1/categories",
+    "displayName" : "Thêm mới danh mục",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 26,
+      "endLine" : 30
+    },
+    "attrs" : {
+      "controller" : "com.example.flow.category.CategoryController",
+      "handler" : "CategoryController#create(CategoryRequest)",
+      "httpMethod" : "POST",
+      "module" : "Danh mục",
+      "moduleSource" : "TAG",
+      "params" : [ {
+        "in" : "BODY",
+        "name" : "request",
+        "required" : true,
+        "type" : "CategoryRequest"
+      } ],
+      "path" : "/api/v1/categories",
+      "pathResolved" : true,
+      "requestType" : "CategoryRequest",
+      "responseType" : "ApiResponse<CategoryResponse>",
+      "summary" : "Thêm mới danh mục",
+      "summarySource" : "OPERATION",
+      "tag" : "Danh mục"
+    }
+  }, {
+    "key" : "java:endpoint:PUT /api/v1/orders/{id}/confirm",
+    "kind" : "API_ENDPOINT",
+    "name" : "PUT /api/v1/orders/{id}/confirm",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderController.java",
+      "startLine" : 18,
+      "endLine" : 21
+    },
+    "attrs" : {
+      "controller" : "com.example.flow.order.OrderController",
+      "handler" : "OrderController#confirm(Long)",
+      "httpMethod" : "PUT",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ {
+        "in" : "PATH",
+        "name" : "id",
+        "required" : true,
+        "type" : "Long"
+      } ],
+      "path" : "/api/v1/orders/{id}/confirm",
+      "pathResolved" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.Category#markDeleted()",
+    "kind" : "BE_METHOD",
+    "name" : "Category.markDeleted",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/Category.java",
+      "startLine" : 15,
+      "endLine" : 17
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.Category",
+      "domainModel" : true,
+      "layer" : "OTHER",
+      "layerBasis" : "NONE",
+      "returnType" : "void",
+      "signature" : "markDeleted()"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.create",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 26,
+      "endLine" : 30
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "request" ],
+      "returnType" : "ResponseEntity<ApiResponse<CategoryResponse>>",
+      "signature" : "create(CategoryRequest)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryController#delete(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.delete",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 38,
+      "endLine" : 42
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id" ],
+      "returnType" : "ApiResponse<Boolean>",
+      "signature" : "delete(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryController#search(String)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryController.search",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 32,
+      "endLine" : 36
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "keyword" ],
+      "returnType" : "ApiResponse<List<CategoryResponse>>",
+      "signature" : "search(String)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryRepository#existsByCode(String)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryRepository.existsByCode",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 11,
+      "endLine" : 11
+    },
+    "attrs" : {
+      "abstract" : true,
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryRepository",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "INHERITANCE",
+      "paramNames" : [ "code" ],
+      "returnType" : "boolean",
+      "signature" : "existsByCode(String)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryRepository#findById(ID)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryRepository.findById",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryRepository",
+      "inheritedFrom" : "Spring Data",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "INHERITANCE",
+      "paramNames" : [ "id" ],
+      "returnType" : "Optional<Category>",
+      "signature" : "findById(ID)",
+      "synthetic" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryRepository#save(S)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryRepository.save",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryRepository",
+      "inheritedFrom" : "Spring Data",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "INHERITANCE",
+      "paramNames" : [ "entity" ],
+      "returnType" : "Category",
+      "signature" : "save(S)",
+      "synthetic" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryRepository#search(String)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryRepository.search",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 13,
+      "endLine" : 14
+    },
+    "attrs" : {
+      "abstract" : true,
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryRepository",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "INHERITANCE",
+      "paramNames" : [ "keyword" ],
+      "returnType" : "List<Category>",
+      "signature" : "search(String)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryServiceImpl#checkPermission()",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryServiceImpl.checkPermission",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 52,
+      "endLine" : 52
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryServiceImpl",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "private" : true,
+      "returnType" : "void",
+      "signature" : "checkPermission()",
+      "transactional" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryServiceImpl.create",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 21,
+      "endLine" : 33
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryServiceImpl",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "request" ],
+      "returnType" : "CategoryResponse",
+      "signature" : "create(CategoryRequest)",
+      "throws" : [ {
+        "exception" : "BusinessException",
+        "guardBranch" : "then",
+        "guardText" : "categoryRepository.existsByCode(code)",
+        "guardType" : "IF",
+        "line" : 26,
+        "messageKey" : "CATEGORY_CODE_EXISTS",
+        "order" : 4
+      } ],
+      "transactional" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryServiceImpl.delete",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 40,
+      "endLine" : 50
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryServiceImpl",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id" ],
+      "returnType" : "boolean",
+      "signature" : "delete(Long)",
+      "throws" : [ {
+        "exception" : "BusinessException",
+        "guardBranch" : "then",
+        "guardText" : "productQueryService.countByCategoryId(id) > 0",
+        "guardType" : "IF",
+        "line" : 45,
+        "messageKey" : "CATEGORY_IN_USE",
+        "order" : 4
+      } ],
+      "transactional" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryServiceImpl#normalize(String)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryServiceImpl.normalize",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 54,
+      "endLine" : 56
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryServiceImpl",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "code" ],
+      "private" : true,
+      "returnType" : "String",
+      "signature" : "normalize(String)",
+      "transactional" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryServiceImpl#search(String)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryServiceImpl.search",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 35,
+      "endLine" : 38
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryServiceImpl",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "keyword" ],
+      "returnType" : "List<CategoryResponse>",
+      "signature" : "search(String)",
+      "transactional" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.category.CategoryServiceImpl#toResponse(Category)",
+    "kind" : "BE_METHOD",
+    "name" : "CategoryServiceImpl.toResponse",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 58,
+      "endLine" : 60
+    },
+    "attrs" : {
+      "businessName" : "Danh mục",
+      "businessNameSource" : "TAG",
+      "className" : "com.example.flow.category.CategoryServiceImpl",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "category" ],
+      "private" : true,
+      "returnType" : "CategoryResponse",
+      "signature" : "toResponse(Category)",
+      "transactional" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.common.ApiResponse#ok(T)",
+    "kind" : "BE_METHOD",
+    "name" : "ApiResponse.ok",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/common/ApiResponse.java",
+      "startLine" : 14,
+      "endLine" : 16
+    },
+    "attrs" : {
+      "businessName" : "ApiResponse",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.common.ApiResponse",
+      "layer" : "OTHER",
+      "layerBasis" : "NONE",
+      "paramNames" : [ "data" ],
+      "returnType" : "ApiResponse<T>",
+      "signature" : "ok(T)",
+      "static" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.common.AuditService#record(?)",
+    "kind" : "BE_METHOD",
+    "name" : "AuditService.record",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/common/AuditService.java",
+      "startLine" : 7,
+      "endLine" : 7
+    },
+    "attrs" : {
+      "abstract" : true,
+      "businessName" : "Audit",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.common.AuditService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "…" ],
+      "signature" : "record(?)",
+      "unresolvedMethod" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.notify.EmailSender#send(String)",
+    "kind" : "BE_METHOD",
+    "name" : "EmailSender.send",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/notify/EmailSender.java",
+      "startLine" : 10,
+      "endLine" : 11
+    },
+    "attrs" : {
+      "businessName" : "EmailSender",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.notify.EmailSender",
+      "layer" : "OTHER",
+      "layerBasis" : "NONE",
+      "paramNames" : [ "message" ],
+      "returnType" : "void",
+      "signature" : "send(String)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.notify.SmsSender#send(String)",
+    "kind" : "BE_METHOD",
+    "name" : "SmsSender.send",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/notify/SmsSender.java",
+      "startLine" : 8,
+      "endLine" : 9
+    },
+    "attrs" : {
+      "businessName" : "SmsSender",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.notify.SmsSender",
+      "layer" : "OTHER",
+      "layerBasis" : "NONE",
+      "paramNames" : [ "message" ],
+      "returnType" : "void",
+      "signature" : "send(String)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.order.Order#isPending()",
+    "kind" : "BE_METHOD",
+    "name" : "Order.isPending",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/Order.java",
+      "startLine" : 14,
+      "endLine" : 16
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.order.Order",
+      "domainModel" : true,
+      "layer" : "OTHER",
+      "layerBasis" : "NONE",
+      "returnType" : "boolean",
+      "signature" : "isPending()"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.order.OrderController#confirm(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "OrderController.confirm",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderController.java",
+      "startLine" : 18,
+      "endLine" : 21
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.order.OrderController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id" ],
+      "returnType" : "void",
+      "signature" : "confirm(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.order.OrderRepository#findById(ID)",
+    "kind" : "BE_METHOD",
+    "name" : "OrderRepository.findById",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderRepository.java",
+      "startLine" : 5,
+      "endLine" : 5
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.order.OrderRepository",
+      "inheritedFrom" : "Spring Data",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "INHERITANCE",
+      "paramNames" : [ "id" ],
+      "returnType" : "Optional<Order>",
+      "signature" : "findById(ID)",
+      "synthetic" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "OrderService.confirm",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 28,
+      "endLine" : 36
+    },
+    "attrs" : {
+      "businessName" : "Order",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.order.OrderService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "id" ],
+      "returnType" : "void",
+      "signature" : "confirm(Long)",
+      "throws" : [ {
+        "exception" : "BusinessException",
+        "guardBranch" : "then",
+        "guardText" : "!order.isPending()",
+        "guardType" : "IF",
+        "line" : 31,
+        "messageKey" : "ORDER_NOT_PENDING",
+        "order" : 3
+      } ]
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ArchivedProductService#countByCategoryId(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "ArchivedProductService.countByCategoryId",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ArchivedProductService.java",
+      "startLine" : 16,
+      "endLine" : 19
+    },
+    "attrs" : {
+      "businessName" : "ArchivedProduct",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ArchivedProductService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "categoryId" ],
+      "returnType" : "long",
+      "signature" : "countByCategoryId(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductController#options()",
+    "kind" : "BE_METHOD",
+    "name" : "ProductController.options",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 20,
+      "endLine" : 23
+    },
+    "attrs" : {
+      "businessName" : "Product",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "ApiResponse<List<Product>>",
+      "signature" : "options()"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductController#search(String,boolean)",
+    "kind" : "BE_METHOD",
+    "name" : "ProductController.search",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 25,
+      "endLine" : 28
+    },
+    "attrs" : {
+      "businessName" : "Product",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductController",
+      "layer" : "CONTROLLER",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "keyword", "withBrand" ],
+      "returnType" : "ApiResponse<List<Product>>",
+      "signature" : "search(String,boolean)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductQueryService#countByCategoryId(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "ProductQueryService.countByCategoryId",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductQueryService.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "abstract" : true,
+      "businessName" : "ProductQuery",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductQueryService",
+      "layer" : "SERVICE",
+      "layerBasis" : "IMPLEMENTATION",
+      "paramNames" : [ "categoryId" ],
+      "returnType" : "long",
+      "signature" : "countByCategoryId(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductRepository#count()",
+    "kind" : "BE_METHOD",
+    "name" : "ProductRepository.count",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "businessName" : "Product",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductRepository",
+      "inheritedFrom" : "Spring Data",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "INHERITANCE",
+      "returnType" : "long",
+      "signature" : "count()",
+      "synthetic" : true
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductRepository#countByCategory(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "ProductRepository.countByCategory",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 8,
+      "endLine" : 9
+    },
+    "attrs" : {
+      "abstract" : true,
+      "businessName" : "Product",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductRepository",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "INHERITANCE",
+      "paramNames" : [ "categoryId" ],
+      "returnType" : "long",
+      "signature" : "countByCategory(Long)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductSearchDao#search(String,boolean)",
+    "kind" : "BE_METHOD",
+    "name" : "ProductSearchDao.search",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductSearchDao.java",
+      "startLine" : 17,
+      "endLine" : 24
+    },
+    "attrs" : {
+      "businessName" : "ProductSearch",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductSearchDao",
+      "layer" : "REPOSITORY",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "keyword", "withBrand" ],
+      "returnType" : "List<Product>",
+      "signature" : "search(String,boolean)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductService#getOptions()",
+    "kind" : "BE_METHOD",
+    "name" : "ProductService.getOptions",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductService.java",
+      "startLine" : 16,
+      "endLine" : 18
+    },
+    "attrs" : {
+      "businessName" : "Product",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "returnType" : "List<Product>",
+      "signature" : "getOptions()"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductService#search(String,boolean)",
+    "kind" : "BE_METHOD",
+    "name" : "ProductService.search",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductService.java",
+      "startLine" : 20,
+      "endLine" : 22
+    },
+    "attrs" : {
+      "businessName" : "Product",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductService",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "keyword", "withBrand" ],
+      "returnType" : "List<Product>",
+      "signature" : "search(String,boolean)"
+    }
+  }, {
+    "key" : "java:method:com.example.flow.product.ProductServiceImpl#countByCategoryId(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "ProductServiceImpl.countByCategoryId",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductServiceImpl.java",
+      "startLine" : 14,
+      "endLine" : 17
+    },
+    "attrs" : {
+      "businessName" : "Product",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.product.ProductServiceImpl",
+      "layer" : "SERVICE",
+      "layerBasis" : "ANNOTATION",
+      "paramNames" : [ "categoryId" ],
+      "returnType" : "long",
+      "signature" : "countByCategoryId(Long)"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.category.CategoryRepository#existsByCode(String):0",
+    "kind" : "DATA_QUERY",
+    "name" : "SELECT category",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 11,
+      "endLine" : 11
+    },
+    "attrs" : {
+      "operation" : "READ",
+      "queryKind" : "DERIVED",
+      "tables" : [ "category" ],
+      "verb" : "SELECT"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.category.CategoryRepository#findById(ID):0",
+    "kind" : "DATA_QUERY",
+    "name" : "SELECT category",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    },
+    "attrs" : {
+      "operation" : "READ",
+      "queryKind" : "DERIVED",
+      "tables" : [ "category" ],
+      "verb" : "SELECT"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.category.CategoryRepository#save(S):0",
+    "kind" : "DATA_QUERY",
+    "name" : "INSERT/UPDATE category",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    },
+    "attrs" : {
+      "operation" : "WRITE",
+      "queryKind" : "DERIVED",
+      "tables" : [ "category" ],
+      "verb" : "INSERT/UPDATE"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.category.CategoryRepository#search(String):0",
+    "kind" : "DATA_QUERY",
+    "name" : "SELECT category",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 13,
+      "endLine" : 14
+    },
+    "attrs" : {
+      "operation" : "READ",
+      "queryKind" : "JPQL",
+      "tables" : [ "category" ],
+      "text" : "select c from Category c where lower(c.title) like lower(concat('%', :keyword, '%'))",
+      "verb" : "SELECT"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.order.OrderRepository#findById(ID):0",
+    "kind" : "DATA_QUERY",
+    "name" : "SELECT shop_order",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderRepository.java",
+      "startLine" : 5,
+      "endLine" : 5
+    },
+    "attrs" : {
+      "operation" : "READ",
+      "queryKind" : "DERIVED",
+      "tables" : [ "shop_order" ],
+      "verb" : "SELECT"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.product.ProductRepository#count():0",
+    "kind" : "DATA_QUERY",
+    "name" : "SELECT COUNT(*) product",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "operation" : "READ",
+      "queryKind" : "DERIVED",
+      "tables" : [ "product" ],
+      "verb" : "SELECT COUNT(*)"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.product.ProductRepository#countByCategory(Long):0",
+    "kind" : "DATA_QUERY",
+    "name" : "SELECT COUNT(*) product",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 8,
+      "endLine" : 9
+    },
+    "attrs" : {
+      "operation" : "READ",
+      "queryKind" : "NATIVE",
+      "tables" : [ "product" ],
+      "text" : "select count(*) from product where category_id = :categoryId",
+      "verb" : "SELECT COUNT(*)"
+    }
+  }, {
+    "key" : "java:query:java:method:com.example.flow.product.ProductSearchDao#search(String,boolean):0",
+    "kind" : "DATA_QUERY",
+    "name" : "SELECT product, product_brand",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductSearchDao.java",
+      "startLine" : 23,
+      "endLine" : 23
+    },
+    "attrs" : {
+      "operation" : "READ",
+      "queryKind" : "DYNAMIC",
+      "tables" : [ "product", "product_brand" ],
+      "text" : "select p from Product p join ProductBrand b on b.id = p.brandId where lower(p.title) like :keyword",
+      "verb" : "SELECT"
+    }
+  }, {
+    "key" : "java:table:category",
+    "kind" : "DB_TABLE",
+    "name" : "category",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/Category.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "entity" : "Category",
+      "name" : "category"
+    }
+  }, {
+    "key" : "java:table:product",
+    "kind" : "DB_TABLE",
+    "name" : "product",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/Product.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "entity" : "Product",
+      "name" : "product"
+    }
+  }, {
+    "key" : "java:table:product_brand",
+    "kind" : "DB_TABLE",
+    "name" : "product_brand",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductBrand.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "entity" : "ProductBrand",
+      "name" : "product_brand"
+    }
+  }, {
+    "key" : "java:table:shop_order",
+    "kind" : "DB_TABLE",
+    "name" : "shop_order",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/Order.java",
+      "startLine" : 7,
+      "endLine" : 7
+    },
+    "attrs" : {
+      "entity" : "Order",
+      "name" : "shop_order"
+    }
+  } ],
+  "edges" : [ {
+    "fromKey" : "java:endpoint:DELETE /api/v1/categories/{id}",
+    "toKey" : "java:method:com.example.flow.category.CategoryController#delete(Long)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 38,
+      "endLine" : 42
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/categories",
+    "toKey" : "java:method:com.example.flow.category.CategoryController#search(String)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 32,
+      "endLine" : 36
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/products",
+    "toKey" : "java:method:com.example.flow.product.ProductController#search(String,boolean)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 25,
+      "endLine" : 28
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/products/options",
+    "toKey" : "java:method:com.example.flow.product.ProductController#options()",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 20,
+      "endLine" : 23
+    }
+  }, {
+    "fromKey" : "java:endpoint:POST /api/v1/categories",
+    "toKey" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 26,
+      "endLine" : 30
+    }
+  }, {
+    "fromKey" : "java:endpoint:PUT /api/v1/orders/{id}/confirm",
+    "toKey" : "java:method:com.example.flow.order.OrderController#confirm(Long)",
+    "kind" : "HANDLED_BY",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderController.java",
+      "startLine" : 18,
+      "endLine" : 21
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 29,
+      "endLine" : 29
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.flow.common.ApiResponse#ok(T)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 29,
+      "endLine" : 29
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryController#delete(Long)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 41,
+      "endLine" : 41
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryController#delete(Long)",
+    "toKey" : "java:method:com.example.flow.common.ApiResponse#ok(T)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 41,
+      "endLine" : 41
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryController#search(String)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#search(String)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 35,
+      "endLine" : 35
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryController#search(String)",
+    "toKey" : "java:method:com.example.flow.common.ApiResponse#ok(T)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 35,
+      "endLine" : 35
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryRepository#existsByCode(String)",
+    "toKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#existsByCode(String):0",
+    "kind" : "EXECUTES",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 11,
+      "endLine" : 11
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryRepository#findById(ID)",
+    "toKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#findById(ID):0",
+    "kind" : "EXECUTES",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryRepository#save(S)",
+    "toKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#save(S):0",
+    "kind" : "EXECUTES",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryRepository#search(String)",
+    "toKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#search(String):0",
+    "kind" : "EXECUTES",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 13,
+      "endLine" : 14
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#checkPermission()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 23,
+      "endLine" : 23
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#normalize(String)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 2,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 24,
+      "endLine" : 24
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.flow.category.CategoryRepository#existsByCode(String)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 3,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 25,
+      "endLine" : 25
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.flow.category.CategoryRepository#save(S)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 8,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 31,
+      "endLine" : 31
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#toResponse(Category)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 9,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 32,
+      "endLine" : 32
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#checkPermission()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 42,
+      "endLine" : 42
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)",
+    "toKey" : "java:method:com.example.flow.category.CategoryRepository#findById(ID)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 43,
+      "endLine" : 43
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)",
+    "toKey" : "java:method:com.example.flow.product.ProductQueryService#countByCategoryId(Long)",
+    "kind" : "CALLS",
+    "confidence" : "UNRESOLVED",
+    "reason" : "ProductQueryService có 2 lớp hiện thực; không có @Primary hay @Qualifier nào phân định lớp được dùng",
+    "callOrder" : 3,
+    "candidates" : [ {
+      "nodeKey" : "java:method:com.example.flow.product.ProductServiceImpl#countByCategoryId(Long)",
+      "score" : 0.5,
+      "reason" : "Lớp hiện thực ProductServiceImpl"
+    }, {
+      "nodeKey" : "java:method:com.example.flow.product.ArchivedProductService#countByCategoryId(Long)",
+      "score" : 0.4,
+      "reason" : "Chỉ tạo khi @ConditionalOnProperty(shop.product.archive)"
+    } ],
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 44,
+      "endLine" : 44
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)",
+    "toKey" : "java:method:com.example.flow.category.Category#markDeleted()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 5,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 47,
+      "endLine" : 47
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#delete(Long)",
+    "toKey" : "java:method:com.example.flow.category.CategoryRepository#save(S)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 6,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 48,
+      "endLine" : 48
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#search(String)",
+    "toKey" : "java:method:com.example.flow.category.CategoryRepository#search(String)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 37,
+      "endLine" : 37
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.category.CategoryServiceImpl#search(String)",
+    "toKey" : "java:method:com.example.flow.category.CategoryServiceImpl#toResponse(Category)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 2,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryServiceImpl.java",
+      "startLine" : 37,
+      "endLine" : 37
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderController#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderController.java",
+      "startLine" : 20,
+      "endLine" : 20
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderRepository#findById(ID)",
+    "toKey" : "java:query:java:method:com.example.flow.order.OrderRepository#findById(ID):0",
+    "kind" : "EXECUTES",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderRepository.java",
+      "startLine" : 5,
+      "endLine" : 5
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.order.OrderRepository#findById(ID)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 29,
+      "endLine" : 29
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.order.Order#isPending()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 2,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 30,
+      "endLine" : 30
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.notify.EmailSender#send(String)",
+    "kind" : "CALLS",
+    "confidence" : "INFERRED",
+    "reason" : "NotificationSender có 2 lớp hiện thực; chọn EmailSender vì được đánh dấu @Primary",
+    "callOrder" : 4,
+    "candidates" : [ {
+      "nodeKey" : "java:method:com.example.flow.notify.EmailSender#send(String)",
+      "score" : 0.9,
+      "reason" : "Lớp được chọn"
+    }, {
+      "nodeKey" : "java:method:com.example.flow.notify.SmsSender#send(String)",
+      "score" : 0.3,
+      "reason" : "Lớp hiện thực SmsSender"
+    } ],
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 33,
+      "endLine" : 33
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.notify.SmsSender#send(String)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "reason" : "@Qualifier(\"sms\") khớp đúng SmsSender",
+    "callOrder" : 5,
+    "candidates" : [ {
+      "nodeKey" : "java:method:com.example.flow.notify.SmsSender#send(String)",
+      "score" : 0.9,
+      "reason" : "Lớp được chọn"
+    }, {
+      "nodeKey" : "java:method:com.example.flow.notify.EmailSender#send(String)",
+      "score" : 0.3,
+      "reason" : "Lớp hiện thực EmailSender"
+    } ],
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 34,
+      "endLine" : 34
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.common.AuditService#record(?)",
+    "kind" : "CALLS",
+    "confidence" : "UNRESOLVED",
+    "reason" : "Không tìm thấy hàm record trong AuditService và các lớp cha trong mã nguồn (có thể kế thừa từ thư viện không có mã nguồn)",
+    "callOrder" : 6,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 35,
+      "endLine" : 35
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ArchivedProductService#countByCategoryId(Long)",
+    "toKey" : "java:method:com.example.flow.product.ProductRepository#count()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ArchivedProductService.java",
+      "startLine" : 18,
+      "endLine" : 18
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductController#options()",
+    "toKey" : "java:method:com.example.flow.product.ProductService#getOptions()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 22,
+      "endLine" : 22
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductController#options()",
+    "toKey" : "java:method:com.example.flow.common.ApiResponse#ok(T)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 22,
+      "endLine" : 22
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductController#search(String,boolean)",
+    "toKey" : "java:method:com.example.flow.product.ProductService#search(String,boolean)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 27,
+      "endLine" : 27
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductController#search(String,boolean)",
+    "toKey" : "java:method:com.example.flow.common.ApiResponse#ok(T)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 27,
+      "endLine" : 27
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductRepository#count()",
+    "toKey" : "java:query:java:method:com.example.flow.product.ProductRepository#count():0",
+    "kind" : "EXECUTES",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 6,
+      "endLine" : 6
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductRepository#countByCategory(Long)",
+    "toKey" : "java:query:java:method:com.example.flow.product.ProductRepository#countByCategory(Long):0",
+    "kind" : "EXECUTES",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 8,
+      "endLine" : 9
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductSearchDao#search(String,boolean)",
+    "toKey" : "java:query:java:method:com.example.flow.product.ProductSearchDao#search(String,boolean):0",
+    "kind" : "EXECUTES",
+    "confidence" : "INFERRED",
+    "reason" : "Câu truy vấn ghép từ 3 mảnh chuỗi (1 mảnh có điều kiện); bảng suy ra từ các mảnh này",
+    "callOrder" : 3,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductSearchDao.java",
+      "startLine" : 23,
+      "endLine" : 23
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductService#getOptions()",
+    "toKey" : "java:method:com.example.flow.product.ProductSearchDao#search(String,boolean)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductService.java",
+      "startLine" : 17,
+      "endLine" : 17
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductService#search(String,boolean)",
+    "toKey" : "java:method:com.example.flow.product.ProductSearchDao#search(String,boolean)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductService.java",
+      "startLine" : 21,
+      "endLine" : 21
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.product.ProductServiceImpl#countByCategoryId(Long)",
+    "toKey" : "java:method:com.example.flow.product.ProductRepository#countByCategory(Long)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductServiceImpl.java",
+      "startLine" : 16,
+      "endLine" : 16
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#existsByCode(String):0",
+    "toKey" : "java:table:category",
+    "kind" : "READS",
+    "confidence" : "CERTAIN",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 11,
+      "endLine" : 11
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#findById(ID):0",
+    "toKey" : "java:table:category",
+    "kind" : "READS",
+    "confidence" : "CERTAIN",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#save(S):0",
+    "toKey" : "java:table:category",
+    "kind" : "WRITES",
+    "confidence" : "CERTAIN",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 9,
+      "endLine" : 9
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.category.CategoryRepository#search(String):0",
+    "toKey" : "java:table:category",
+    "kind" : "READS",
+    "confidence" : "CERTAIN",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRepository.java",
+      "startLine" : 13,
+      "endLine" : 14
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.order.OrderRepository#findById(ID):0",
+    "toKey" : "java:table:shop_order",
+    "kind" : "READS",
+    "confidence" : "CERTAIN",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderRepository.java",
+      "startLine" : 5,
+      "endLine" : 5
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.product.ProductRepository#count():0",
+    "toKey" : "java:table:product",
+    "kind" : "READS",
+    "confidence" : "CERTAIN",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 6,
+      "endLine" : 6
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.product.ProductRepository#countByCategory(Long):0",
+    "toKey" : "java:table:product",
+    "kind" : "READS",
+    "confidence" : "CERTAIN",
+    "reason" : "Tên bảng đọc từ văn bản truy vấn",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductRepository.java",
+      "startLine" : 8,
+      "endLine" : 9
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.product.ProductSearchDao#search(String,boolean):0",
+    "toKey" : "java:table:product",
+    "kind" : "READS",
+    "confidence" : "INFERRED",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductSearchDao.java",
+      "startLine" : 23,
+      "endLine" : 23
+    }
+  }, {
+    "fromKey" : "java:query:java:method:com.example.flow.product.ProductSearchDao#search(String,boolean):0",
+    "toKey" : "java:table:product_brand",
+    "kind" : "READS",
+    "confidence" : "INFERRED",
+    "reason" : "Entity ProductBrand không khai @Table(name); tên bảng suy ra theo quy ước đặt tên mặc định của Spring Boot",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductSearchDao.java",
+      "startLine" : 23,
+      "endLine" : 23
+    }
+  } ],
+  "detectedLinkRules" : [ ],
+  "diagnostics" : [ {
+    "severity" : "INFO",
+    "message" : "2 lời gọi chưa xác định được đích (cạnh UNRESOLVED, kèm danh sách ứng viên để chốt tay)"
+  }, {
+    "severity" : "INFO",
+    "message" : "7 lời gọi tới kiểu trong dự án không tìm thấy hàm đích (thường là getter/setter do Lombok sinh hoặc hàm kế thừa từ thư viện); đã bỏ qua, không tạo cạnh"
+  } ]
+}

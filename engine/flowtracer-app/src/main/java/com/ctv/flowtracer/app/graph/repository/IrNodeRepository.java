@@ -140,6 +140,30 @@ public class IrNodeRepository {
                 .list();
     }
 
+    /** Node theo danh sách id (cùng Workspace), sắp theo key. */
+    public List<IrNodeRow> findByIds(UUID workspaceId, Collection<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.sql(SELECT + " WHERE n.workspace_id = :ws AND n.id IN (:ids) ORDER BY n.key")
+                .param("ws", workspaceId)
+                .param("ids", ids)
+                .query(this::mapRow)
+                .list();
+    }
+
+    /** Node theo danh sách key (cùng Workspace), sắp theo key. */
+    public List<IrNodeRow> findByKeys(UUID workspaceId, Collection<String> keys) {
+        if (keys.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.sql(SELECT + " WHERE n.workspace_id = :ws AND n.key IN (:keys) ORDER BY n.key")
+                .param("ws", workspaceId)
+                .param("keys", keys)
+                .query(this::mapRow)
+                .list();
+    }
+
     public Optional<IrNodeRow> findByKey(UUID workspaceId, String key) {
         return jdbc.sql(SELECT + " WHERE n.workspace_id = :ws AND n.key = :key")
                 .param("ws", workspaceId)

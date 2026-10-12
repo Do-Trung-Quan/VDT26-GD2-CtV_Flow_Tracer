@@ -36,6 +36,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/traces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["trace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{id}/sources": {
         parameters: {
             query?: never;
@@ -140,6 +156,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["backend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{id}/traces/{traceId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["export"];
         put?: never;
         post?: never;
         delete?: never;
@@ -307,6 +339,73 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        CreateTraceRequest: {
+            startKey: string;
+            /** Format: int32 */
+            maxDepth?: number;
+        };
+        ApiResponseTraceResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["TraceResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        TraceBlockResponse: {
+            /** @enum {string} */
+            type?: "ALT" | "OPT" | "LOOP";
+            label?: string;
+            /** Format: int32 */
+            fromStep?: number;
+            /** Format: int32 */
+            toStep?: number;
+            elseBranches?: components["schemas"]["TraceBranchResponse"][];
+        };
+        TraceBranchResponse: {
+            label?: string;
+            /** Format: int32 */
+            fromStep?: number;
+        };
+        TraceParticipantResponse: {
+            id?: string;
+            label?: string;
+            /** @enum {string} */
+            role?: "USER" | "FRONTEND" | "CONTROLLER" | "SERVICE" | "REPOSITORY" | "DATABASE" | "EXTERNAL";
+            nodeKey?: string;
+        };
+        TraceResponse: {
+            traceId?: string;
+            startKey?: string;
+            startName?: string;
+            startDisplayName?: string;
+            /** Format: int32 */
+            maxDepth?: number;
+            participants?: components["schemas"]["TraceParticipantResponse"][];
+            steps?: components["schemas"]["TraceStepResponse"][];
+            blocks?: components["schemas"]["TraceBlockResponse"][];
+            warnings?: string[];
+        };
+        TraceStepResponse: {
+            /** Format: int32 */
+            index?: number;
+            from?: string;
+            to?: string;
+            /** @enum {string} */
+            kind?: "CONTAINS" | "TRIGGERS" | "CALLS" | "OPENS" | "NAVIGATES" | "SENDS" | "HTTP_REQUEST" | "HANDLED_BY" | "EXECUTES" | "READS" | "WRITES" | "USES_TYPE";
+            label?: string;
+            /** @enum {string} */
+            confidence?: "CERTAIN" | "INFERRED" | "UNRESOLVED" | "RUNTIME_VERIFIED";
+            reason?: string;
+            edgeRef?: string;
+            returning?: boolean;
+            pinned?: boolean;
+            error?: boolean;
+            /** Format: int32 */
+            repeatOf?: number;
         };
         ApiResponseListSourceResponse: {
             /** Format: int32 */
@@ -522,6 +621,23 @@ export interface components {
             line?: number;
             warnings?: string[];
         };
+        ApiResponseTraceExportResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["TraceExportResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        TraceExportResponse: {
+            /** @enum {string} */
+            format?: "PLANTUML" | "SVG";
+            fileName?: string;
+            mediaType?: string;
+            content?: string;
+        };
         ApiResponsePageResponseScanRunResponse: {
             /** Format: int32 */
             status?: number;
@@ -699,6 +815,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseWorkspaceResponse"];
+                };
+            };
+        };
+    };
+    trace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTraceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseTraceResponse"];
                 };
             };
         };
@@ -964,6 +1106,31 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseBackendTreeResponse"];
+                };
+            };
+        };
+    };
+    export: {
+        parameters: {
+            query: {
+                format: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                traceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseTraceExportResponse"];
                 };
             };
         };

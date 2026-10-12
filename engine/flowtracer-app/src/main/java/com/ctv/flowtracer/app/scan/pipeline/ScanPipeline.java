@@ -102,6 +102,7 @@ public class ScanPipeline {
             transition(ctx, ScanStatus.RUNNING, null, null);
             timed(ctx, ScanStage.DISCOVER, () -> discover.run(ctx, reporter));
             timed(ctx, ScanStage.DIFF, () -> diff.run(ctx, reporter));
+            markAnalysisChanges(ctx);
             boolean noChanges = trigger == ScanTrigger.RESCAN && !hasChanges(ctx);
             if (noChanges) {
                 ctx.checkCancelled();
@@ -117,7 +118,11 @@ public class ScanPipeline {
             ctx.stageDurationsMs().put(ScanStage.FINALIZE, (System.nanoTime() - start) / 1_000_000);
             stats = withDurations(stats, ctx);
             ScanStatus status = stats.files().errors() > 0 ? ScanStatus.PARTIAL : ScanStatus.SUCCEEDED;
-            String note = noChanges ? "Không có thay đổi kể từ lần quét trước" : null;
+            String note = noChanges
+                    ? "Không có thay đổi kể từ lần quét trước"
+                    : ctx.sources().stream().anyMatch(w -> w.analysisChanged)
+                            ? "Bộ phân tích đã được nâng cấp kể từ lần quét trước nên phân tích lại toàn bộ"
+                            : null;
             return finish(ctx, status, note, stats);
         } catch (ScanContext.ScanCancelledException e) {
             return finish(ctx, ScanStatus.CANCELLED, "Đã hủy; kết quả của lần quét trước được giữ nguyên", null);
@@ -135,7 +140,39 @@ public class ScanPipeline {
 
     private static boolean hasChanges(ScanContext ctx) {
         return ctx.sources().stream()
-                .anyMatch(w -> !w.added.isEmpty() || !w.modified.isEmpty() || !w.removed.isEmpty() || !w.configChanged.isEmpty());
+                .anyMatch(w -> !w.added.isEmpty() || !w.modified.isEmpty() || !w.removed.isEmpty() || !w.configChanged.isEmpty()
+                        || w.analysisChanged);
+    }
+
+    /** Phiên bản bộ phân tích đang dùng, ghi vào thống kê của lần quét để lần sau so sánh. */
+    private static String analysisVersion(SourceWork w) {
+        return w.adapter == null ? null : w.adapter.id() + "-v" + w.adapter.factsVersion();
+    }
+
+    /**
+     * IR của lần quét thành công trước được dựng bởi một phiên bản bộ phân tích; phiên bản đã đổi (hoặc lần quét đó ghi
+     * trước khi có thông tin này) thì IR cũ thiếu những gì bộ phân tích mới biết, nên phải phân tích lại dù không file nào
+     * đổi — nếu không "Quét lại" sẽ báo "không có thay đổi" và giữ IR cũ mãi.
+     */
+    private void markAnalysisChanges(ScanContext ctx) {
+        ScanStats previous = scanRuns.findFirstByWorkspaceIdAndStatusInAndIdNotOrderByStartedAtDesc(
+                        ctx.workspaceId(), EnumSet.of(ScanStatus.SUCCEEDED, ScanStatus.PARTIAL), ctx.scanRunId())
+                .map(scanQueries::statsOf)
+                .orElse(null);
+        if (previous == null) {
+            return;
+        }
+        for (SourceWork w : ctx.sources()) {
+            if (!w.analyzable()) {
+                continue;
+            }
+            // analysisVersion của lần quét cũ có thể null (ghi trước khi có trường này) → coi như đã đổi
+            SourceScanStats before = previous.sources().stream()
+                    .filter(s -> w.target.sourceId().equals(s.sourceId()))
+                    .findFirst()
+                    .orElse(null);
+            w.analysisChanged = before == null || !analysisVersion(w).equals(before.analysisVersion());
+        }
     }
 
     /** Thống kê từ số liệu thật: số file đếm trong lần quét, số thành phần đọc lại từ CSDL sau khi lưu. */
@@ -207,7 +244,8 @@ public class ScanPipeline {
                 (int) graphQueries.countNodesOfSource(w.target.sourceId()),
                 (int) graphQueries.countNodesOfSource(w.target.sourceId(), NodeKind.API_ENDPOINT),
                 skipped,
-                w.note);
+                w.note,
+                analysisVersion(w));
     }
 
     private static ScanStats withDurations(ScanStats s, ScanContext ctx) {

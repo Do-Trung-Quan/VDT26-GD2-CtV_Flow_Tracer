@@ -19,7 +19,9 @@ import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc;
 import com.github.javaparser.ast.type.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 /** Hàm tiện ích đọc cây cú pháp JavaParser, dùng chung cho các extractor pha 1. */
@@ -155,4 +157,52 @@ final class AstSupport {
         int dot = name.lastIndexOf('.');
         return dot < 0 ? name : name.substring(dot + 1);
     }
+
+    /**
+     * Thuộc tính annotation có giá trị hằng đơn giản (chuỗi, text block, nối literal, boolean, tên enum), khóa
+     * {@code TênAnnotation.thuộc_tính}; dạng một tham số {@code @A("x")} có khóa {@code A.value}. Tham chiếu tên
+     * (hằng số, enum) giữ dạng {@code @const:Tên} để pha 2 giải; giá trị là mảng hoặc biểu thức phức tạp bị bỏ.
+     */
+    static Map<String, String> annotationValues(NodeWithAnnotations<?> node) {
+        Map<String, String> result = new TreeMap<>();
+        for (AnnotationExpr a : node.getAnnotations()) {
+            String name = simpleName(a.getNameAsString());
+            if (a instanceof SingleMemberAnnotationExpr single) {
+                simpleValue(single.getMemberValue()).ifPresent(v -> result.put(name + ".value", v));
+            } else if (a instanceof NormalAnnotationExpr normal) {
+                normal.getPairs().forEach(p ->
+                        simpleValue(p.getValue()).ifPresent(v -> result.put(name + "." + p.getNameAsString(), v)));
+            }
+        }
+        return result;
+    }
+
+    private static Optional<String> simpleValue(Expression expr) {
+        Optional<String> text = stringValue(expr);
+        if (text.isPresent()) {
+            return text;
+        }
+        if (expr instanceof BooleanLiteralExpr b) {
+            return Optional.of(String.valueOf(b.getValue()));
+        }
+        if (expr instanceof FieldAccessExpr || expr instanceof NameExpr) {
+            return Optional.of(JavaFileFacts.CONSTANT_REF_PREFIX + expr);
+        }
+        return Optional.empty();
+    }
+
+    /** Tên kiểu đã bỏ generic và mảng: {@code List<String>} → {@code List}, {@code a.b.Foo[]} → {@code a.b.Foo}. */
+    static String rawType(String typeText) {
+        int generic = typeText.indexOf('<');
+        String raw = generic < 0 ? typeText : typeText.substring(0, generic);
+        return raw.replace("[]", "").replace("...", "").strip();
+    }
+
+    /** Văn bản rút gọn của biểu thức để làm nhãn: một dòng, tối đa {@value #MAX_SNIPPET} ký tự. */
+    static String snippet(Expression expr) {
+        String text = expr.toString().replaceAll("\\s+", " ").strip();
+        return text.length() <= MAX_SNIPPET ? text : text.substring(0, MAX_SNIPPET - 1) + "…";
+    }
+
+    static final int MAX_SNIPPET = 60;
 }

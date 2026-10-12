@@ -15,19 +15,26 @@ import java.util.List;
 /**
  * PHA 1: parse một file (chịu lỗi cú pháp) bằng JavaParser và gom dữ kiện.
  *
- * <p>Giai đoạn 2 trích: package, import, kiểu, field, method, mapping HTTP. Lời gọi, throw, mảnh chuỗi, trường DTO và
- * giải kiểu bằng JavaSymbolSolver làm ở Giai đoạn 3 (để rỗng).
+ * <p>Trích: package, import, kiểu, field, method, mapping HTTP (Giai đoạn 2); lời gọi, throw, mảnh chuỗi truy vấn
+ * (Giai đoạn 3). Trường DTO làm ở Giai đoạn 6 (để rỗng). Kiểu của receiver được giải bằng khai báo (biến, tham số, field)
+ * và import — không dùng JavaSymbolSolver vì dự án phân tích không có classpath.
  */
 public final class JavaFileExtractor {
 
-    /** Tăng khi đổi cách trích dữ kiện — dữ kiện đã cache với phiên bản cũ sẽ bị bỏ qua. */
-    public static final String VERSION = "1";
+    /**
+     * Phiên bản bộ phân tích Spring: TĂNG khi đổi cách trích dữ kiện HOẶC cách ghép IR ở pha 2 (vd luật phân giải lời gọi).
+     * Dữ kiện cache với phiên bản cũ bị bỏ, và "Quét lại" phân tích lại toàn bộ dù không file nào đổi — nếu không IR đã lưu
+     * sẽ thiếu những gì bản mới biết.
+     */
+    public static final String VERSION = "4";
 
     private static final int MAX_REPORTED_PROBLEMS = 5;
 
     private final TypeDeclarationExtractor types = new TypeDeclarationExtractor();
     private final MemberExtractor members = new MemberExtractor();
     private final MappingExtractor mappings = new MappingExtractor();
+    private final CallSiteExtractor callSites = new CallSiteExtractor();
+    private final StringFragmentExtractor fragments = new StringFragmentExtractor();
 
     public JavaFileFacts extract(ExtractContext ctx, SourceFile file) {
         var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21));
@@ -36,6 +43,7 @@ public final class JavaFileExtractor {
             return JavaFileFacts.failed(file.relativePath(), file.contentHash(), problems(result.getProblems()));
         }
         CompilationUnit unit = result.getResult().get();
+        CallSiteExtractor.Result body = callSites.extract(unit);
         return new JavaFileFacts(
                 file.relativePath(),
                 file.contentHash(),
@@ -45,9 +53,9 @@ public final class JavaFileExtractor {
                 members.extractFields(unit),
                 members.extract(unit),
                 mappings.extract(unit),
-                List.of(),
-                List.of(),
-                List.of(),
+                body.callSites(),
+                body.throwsFacts(),
+                fragments.extract(unit),
                 List.of(),
                 List.of());
     }

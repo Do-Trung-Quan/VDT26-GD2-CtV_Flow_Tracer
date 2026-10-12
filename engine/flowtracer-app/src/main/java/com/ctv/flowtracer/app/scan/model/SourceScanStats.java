@@ -13,6 +13,8 @@ import java.util.UUID;
  * @param endpoints số endpoint đã lưu của Source sau lần quét
  * @param skippedNodes số thành phần bị bỏ vì trùng key với Source khác trong Workspace
  * @param note ghi chú khi Source không được phân tích (vd bộ phân tích chưa hỗ trợ); null nếu không có
+ * @param analysisVersion phiên bản bộ phân tích đã dựng IR của Source ({@code id-v<phiên bản>}); đổi phiên bản thì lần quét
+ *     lại kế tiếp phân tích lại toàn bộ dù không file nào đổi; null ở lần quét ghi trước khi có trường này
  */
 public record SourceScanStats(
         UUID sourceId,
@@ -22,4 +24,5 @@ public record SourceScanStats(
         int nodes,
         int endpoints,
         int skippedNodes,
-        String note) {}
+        String note,
+        String analysisVersion) {}

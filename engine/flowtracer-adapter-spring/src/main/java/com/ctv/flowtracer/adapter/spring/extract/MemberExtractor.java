@@ -42,7 +42,9 @@ public final class MemberExtractor {
                     field.isFinal(),
                     AstSupport.annotationNames(field),
                     constants.get(declaringType + "." + v.getNameAsString()),
-                    AstSupport.line(v))));
+                    AstSupport.line(v),
+                    field.isStatic(),
+                    AstSupport.annotationValues(field))));
         }
         return result;
     }
@@ -95,7 +97,17 @@ public final class MemberExtractor {
                 annotationsAndModifiers(callable),
                 AstSupport.javadoc(callable),
                 AstSupport.line(callable),
-                AstSupport.endLine(callable));
+                AstSupport.endLine(callable),
+                callable.getParameters().stream().map(Parameter::getNameAsString).toList(),
+                callable.getParameters().stream().map(MemberExtractor::qualifier).toList(),
+                AstSupport.annotationValues(callable),
+                callable instanceof ConstructorDeclaration
+                        || (callable instanceof MethodDeclaration m && m.getBody().isPresent()));
+    }
+
+    /** Giá trị {@code @Qualifier} của tham số, "" nếu không có. */
+    private static String qualifier(Parameter parameter) {
+        return AstSupport.annotationValues(parameter).getOrDefault("Qualifier.value", "");
     }
 
     private static List<String> paramTypes(CallableDeclaration<?> callable) {
