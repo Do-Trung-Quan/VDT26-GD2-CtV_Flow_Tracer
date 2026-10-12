@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../../core/ui/confirm-dialog';
 import { Icon } from '../../core/ui/icon';
 import { ToastService } from '../../core/ui/toast.service';
 import { WorkspaceContext } from '../../core/workspace-context';
+import { statusLabel, statusPill } from '../scan/scan-format';
 import { ROLE_LABEL, ROLE_PILL, stackText } from './detection-message';
 
 /** Danh sách Workspace (API A1) — màn khởi đầu; menu mỗi thẻ: Mở · Cài đặt · Xóa (A5). */
@@ -54,8 +55,14 @@ import { ROLE_LABEL, ROLE_PILL, stackText } from './detection-message';
                   }
                 </div>
                 <div class="foot">
-                  <span>{{ w.sources?.length ?? 0 }} nguồn mã · <span class="pill p-gray">Chưa quét</span></span>
-                  <span>Tạo {{ w.createdAt | date: 'dd/MM/yyyy' }}</span>
+                  <span>{{ w.sourceCount ?? 0 }} nguồn mã · <span [class]="'pill ' + scanPill(w)">{{ scanLabel(w) }}</span></span>
+                  <span>
+                    @if (w.lastScan; as s) {
+                      Quét {{ (s.finishedAt ?? s.startedAt) | date: 'HH:mm dd/MM/yyyy' }}
+                    } @else {
+                      Tạo {{ w.createdAt | date: 'dd/MM/yyyy' }}
+                    }
+                  </span>
                 </div>
               </button>
               <button class="ibtn menu-btn" type="button" aria-label="Thao tác" (click)="menuFor.set(menuFor() === w.id ? null : w.id!)">
@@ -128,6 +135,14 @@ export class WorkspaceListPage implements OnInit {
 
   protected pill(s: SourceDto): string {
     return ROLE_PILL[s.role ?? 'BACKEND'];
+  }
+
+  protected scanLabel(w: WorkspaceDto): string {
+    return statusLabel(w.lastScan?.status);
+  }
+
+  protected scanPill(w: WorkspaceDto): string {
+    return statusPill(w.lastScan?.status);
   }
 
   protected stack(s: SourceDto): string {

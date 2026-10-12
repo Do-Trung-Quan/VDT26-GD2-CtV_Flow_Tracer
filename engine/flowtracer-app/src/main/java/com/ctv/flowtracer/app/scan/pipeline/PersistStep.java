@@ -57,6 +57,11 @@ class PersistStep {
                 toDelete.add(f);
             }
         });
+        work.previousConfig.forEach((path, f) -> {
+            if (!work.configFiles.containsKey(path)) {
+                toDelete.add(f);
+            }
+        });
         sourceFiles.deleteAll(toDelete);
 
         var toSave = new ArrayList<SourceFile>();
@@ -73,6 +78,19 @@ class PersistStep {
             }
             String error = work.fileErrors.get(file.relativePath());
             entity.markParsed(error == null ? ParseStatus.OK : ParseStatus.ERROR, error);
+            toSave.add(entity);
+        }
+        for (DiscoveredFile file : work.configFiles.values()) {
+            SourceFile entity = work.previousConfig.get(file.relativePath());
+            if (entity == null) {
+                entity = new SourceFile(
+                        work.target.sourceId(), file.relativePath(), file.contentHash(), SourceFile.LANGUAGE_CONFIG,
+                        (int) Math.min(Integer.MAX_VALUE, file.sizeBytes()), scanRunId);
+            } else {
+                entity.setContentHash(file.contentHash());
+                entity.setSizeBytes((int) Math.min(Integer.MAX_VALUE, file.sizeBytes()));
+                entity.setLastScanRunId(scanRunId);
+            }
             toSave.add(entity);
         }
         var ids = new TreeMap<String, UUID>();

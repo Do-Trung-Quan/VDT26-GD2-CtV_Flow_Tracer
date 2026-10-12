@@ -26,6 +26,41 @@ public class OrderController {
     @RequestMapping("/sync")
     public void sync() {}
 
+    @GetMapping("${shop.order.export-path:/export}")
+    public String export() {
+        return "";
+    }
+
+    @GetMapping("${shop.order.archive-path}")
+    public String archive() {
+        return "";
+    }
+
+    @GetMapping("${shop.order.missing-path}")
+    public String missing() {
+        return "";
+    }
+
+    @GetMapping("${shop.order.env-path}")
+    public String env() {
+        return "";
+    }
+
+    @GetMapping("${shop.order.api-token}")
+    public String secret() {
+        return "";
+    }
+
+    @GetMapping("${shop.order.token-path}")
+    public String tokenPath() {
+        return "";
+    }
+
+    @GetMapping("${shop.order.profile-path}")
+    public String profile() {
+        return "";
+    }
+
     @GetMapping(ExternalPaths.REPORT)
     public String report() {
         return "";

@@ -2,6 +2,7 @@ package com.ctv.flowtracer.adapter.spring.resolve;
 
 import com.ctv.flowtracer.adapter.spring.SpringStackAdapter;
 import com.ctv.flowtracer.adapter.spring.config.ApplicationConfigReader;
+import com.ctv.flowtracer.adapter.spring.config.PropertyLookup;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
 import com.ctv.flowtracer.ir.Diagnostic;
 import com.ctv.flowtracer.ir.IrFragment;
@@ -36,7 +37,8 @@ public final class JavaResolver {
 
         ApplicationConfigReader.Result config = configReader.read(ctx);
         diagnostics.addAll(config.diagnostics());
-        EndpointBuilder.Result endpoints = endpointBuilder.build(parsed, config);
+        EndpointBuilder.Result endpoints =
+                endpointBuilder.build(parsed, config, new PropertyLookup(ctx.allPaths(), ctx.loader()));
         diagnostics.addAll(endpoints.diagnostics());
 
         diagnostics.sort(DIAGNOSTIC_ORDER);

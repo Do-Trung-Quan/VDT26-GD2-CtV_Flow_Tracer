@@ -226,8 +226,10 @@ flowtracer-adapter-spring/src/main/java/com/ctv/flowtracer/adapter/spring/
 │   ├── DtoSchemaBuilder.java        # Tạo mô tả cấu trúc dữ liệu vào/ra của API (tên trường, kiểu, ràng buộc)
 │   └── MessageResolver.java         # Đổi mã thông báo lỗi trong code thành câu tiếng Việt (tra file messages_vi.properties của dự án)
 ├── config/
-│   ├── ApplicationConfigReader.java # Đọc vài thiết lập cần thiết trong file cấu hình của dự án (tiền tố đường dẫn API, kiểu đặt tên trường JSON)
-│   │                                #   — CHỈ đọc đúng các khóa này, không giữ mật khẩu hay giá trị bí mật
+│   ├── ApplicationConfigReader.java # Đọc vài thiết lập cố định trong file cấu hình của dự án (tiền tố đường dẫn API, kiểu đặt tên trường JSON)
+│   │                                #   — không giữ mật khẩu hay giá trị bí mật; hiểu file lưu UTF-8 có BOM
+│   ├── PropertyLookup.java          # Giải ${khóa} / ${khóa:mặc định} trong đường dẫn API: tra theo yêu cầu trong application.yml của module
+│   │                                #   (cấu hình thắng mặc định trong code như Spring); chặn khóa nhạy cảm; không đoán — ghi rõ lý do khi chưa giải được
 │   └── QuerySinkRules.java          # Luật do người dùng khai báo: "hàm X của thư viện Y là nơi chạy truy vấn" — dùng khi thư viện không có mã nguồn
 ├── SpringLinkRules.java             # Tự phát hiện luật đường dẫn phía Backend (vd tiền tố chung của mọi API) để nối với Frontend
 └── SpringNoiseFilters.java          # Danh sách mặc định các thành phần cần ẩn khỏi diagram ở dự án Spring (ghi log, chuyển đổi dữ liệu, getter/setter…)
@@ -733,27 +735,23 @@ web/
         ├── app.routes.ts            # Bảng điều hướng: địa chỉ nào mở màn hình nào (danh sách Workspace, màn hình chính, cài đặt, cấu hình AI)
         ├── core/                    # Các dịch vụ dùng chung cho cả giao diện
         │   ├── api/
-        │   │   ├── generated/       # Kiểu dữ liệu API TỰ SINH từ tài liệu Swagger của Engine (lệnh npm run gen:api) — không sửa tay
-        │   │   └── *.api.ts         # Các lớp gọi API lên Engine, mỗi nhóm API (A–I) một file
-        │   ├── sse/sse-client.service.ts        # Nhận dữ liệu thời gian thực từ Engine (tiến độ quét, nội dung AI đang viết), tự kết nối lại khi rớt
-        │   ├── interceptors/api-error.interceptor.ts # Bắt lỗi từ API và đổi thành thông báo tiếng Việt dễ hiểu cho người dùng
-        │   └── i18n/vi.ts           # Toàn bộ chữ hiển thị trên giao diện (tiếng Việt), gom một chỗ để dễ sửa
-        ├── shared/ui/               # Các mảnh giao diện dùng lại nhiều nơi: khối hiển thị JSON, khối xem code, nhãn GET/POST, chú giải
-        │                            #   nét vẽ, nhãn "AI", vùng chia cột kéo được, cây danh sách dài, trạng thái trống/đang tải
+        │   │   ├── generated/schema.d.ts   # Kiểu dữ liệu API TỰ SINH từ /v3/api-docs của Engine (npm run gen:api) — không sửa tay, có commit
+        │   │   ├── api-types.ts     # Tên ngắn cho các kiểu sinh ra; vỏ bọc ApiResponse; kiểu sự kiện SSE (không có trong OpenAPI)
+        │   │   ├── api-error.ts     # Đọc lỗi từ vỏ bọc (code, message, errors) thành thông báo tiếng Việt
+        │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C, lấy data trong vỏ bọc
+        │   ├── ui/                  # Mảnh giao diện dùng chung: icon SVG, modal (Esc đóng modal trên cùng), hộp xác nhận, toast
+        │   └── workspace-context.ts # Danh sách Workspace, Workspace đang mở, trạng thái mở wizard Import
         └── features/                # Mỗi thư mục là một nhóm màn hình
-            ├── workspaces/          # Màn hình danh sách Workspace, tạo Workspace, chọn thư mục, trang cài đặt Workspace, thanh tiến độ quét
+            ├── workspaces/          # Danh sách Workspace (thẻ có trạng thái lần quét gần nhất), wizard Import 3 bước + trình duyệt thư mục,
+            │                        #   trang Cài đặt (tab Nguồn mã, tab Lịch sử quét)
+            ├── scan/                # Quét: ScanTracker (bắt đầu / theo dõi SSE / hủy, tự hỏi lại khi rớt SSE), khung tiến độ góc phải dưới
+            │                        #   (6 giai đoạn, giai đoạn bỏ qua, tóm tắt có căn cứ), hộp danh sách file lỗi, bảng Lịch sử quét
             ├── explorer/            # MÀN HÌNH CHÍNH 3 CỘT
-            │   ├── explorer.page.ts            # Bố cục màn hình chính: thanh trên + cột trái + vùng vẽ diagram + cột phải
-            │   ├── explorer.store.ts           # Nơi giữ trạng thái màn hình (đang mở Workspace nào, đang chọn thành phần nào, đang xem luồng nào…)
-            │   ├── top-bar/                    # Thanh trên (chỉ nút quan trọng): chọn Workspace, ô tìm kiếm nhanh (Ctrl+K), đèn báo AI, nút Import dự án
-            │   ├── left-panel/                 # Cột trái: tab cây Backend, tab cây Frontend, tab nhóm chức năng (mở rộng)
-            │   ├── canvas/                     # Vùng giữa: vẽ diagram
-            │   │   ├── diagram-canvas.component.ts   # Vùng vẽ: phóng to/thu nhỏ, kéo, hiện hướng dẫn khi chưa chọn gì, cảnh báo bước chưa xác định
-            │   │   ├── canvas-status.component.ts    # Cụm nút nổi góc trái trên: ẩn/hiện cây, trạng thái quét, file lỗi, nút Quét lại
-            │   │   ├── diagram-toolbar.component.ts  # Cụm nút nổi góc phải dưới: zoom, vừa khung, xuất PlantUML/SVG/PNG, mở so sánh (mở rộng)
-            │   │   └── sequence/                     # Các phần vẽ sequence diagram kiểu PlantUML: cột (User hình người, Database hình trụ),
-            │   │                                     #   thanh kích hoạt, mũi tên đánh số, chiều trả về nét đứt, bước tự xử lý, khối nhánh
-            │   └── right-panel/                # Cột phải: tab Diễn giải, tab Kịch bản, ô chi tiết liên kết (Nhờ AI phân tích / Chốt tay), popup xem code theo tab
+            │   ├── explorer.page.ts            # Bố cục: cột trái (kéo đổi độ rộng, thu gọn), canvas (cụm nút nổi trạng thái quét + Quét lại),
+            │   │                               #   cột phải (thông tin endpoint đang chọn)
+            │   ├── backend-tree.ts, tree-filter.ts   # Cây API Backend Module → Endpoint, lọc nhanh có tô sáng
+            │   ├── canvas/                     # (Giai đoạn 3) Vẽ sequence diagram, cụm nút zoom / xuất
+            │   └── right-panel/                # (Giai đoạn 5–6) Tab Diễn giải, tab Kịch bản, chi tiết liên kết, popup xem code
             ├── compare/             # (MỞ RỘNG) Màn hình so sánh 2 diagram cạnh nhau và danh sách khác biệt cũ – mới
             └── ai-settings/         # Màn hình cấu hình AI: xem đang dùng AI nào, bật/tắt từng việc, kiểm tra kết nối, hạn mức token, thống kê (lượt gọi, token, trúng cache, lỗi)
 ```

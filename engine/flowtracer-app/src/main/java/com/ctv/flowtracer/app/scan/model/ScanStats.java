@@ -13,6 +13,8 @@ import java.util.List;
  * @param diagnosticErrors số chẩn đoán mức lỗi (file lỗi cú pháp…)
  * @param diagnosticWarnings số chẩn đoán mức cảnh báo (hằng số đường dẫn không giải được…)
  * @param noChanges quét lại nhưng không có file nào thay đổi — không phân tích lại
+ * @param configChanges số file cấu hình (vd {@code application.yml}) thêm / sửa / xóa — không tính vào số file; có thay đổi
+ *     thì kết quả được ghép lại dù không file mã nguồn nào đổi
  * @param stageDurations thời gian từng giai đoạn đã chạy, theo thứ tự chạy
  * @param diagnostics chẩn đoán của bộ phân tích (lỗi trước, tối đa {@value #MAX_DIAGNOSTICS} mục) — căn cứ của hai số
  *     đếm chẩn đoán
@@ -26,6 +28,7 @@ public record ScanStats(
         int diagnosticErrors,
         int diagnosticWarnings,
         boolean noChanges,
+        int configChanges,
         List<StageDuration> stageDurations,
         List<ScanDiagnostic> diagnostics,
         List<SourceScanStats> sources) {

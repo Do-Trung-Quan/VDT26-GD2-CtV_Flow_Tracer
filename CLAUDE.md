@@ -161,7 +161,9 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 - **Không** kết nối CSDL của dự án được phân tích. Dữ liệu mẫu **chỉ** sinh từ cấu trúc DTO.
 - Được gửi **mã nguồn** tới AI bên ngoài, nhưng **bắt buộc che secret** trước khi gửi (`SecretRedactor`): giá trị của khóa chứa `password`, `secret`, `token`, `key`, `credential`; chuỗi kết nối CSDL; khối private key. **Không gửi** file `.env`, keystore, file dữ liệu.
 - API key **chỉ** nằm trong biến môi trường: không lưu CSDL, không trả về API, không gửi xuống trình duyệt, không ghi log. `llm_call_log` **không lưu nội dung prompt** (chỉ lưu hash).
-- `ApplicationConfigReader` chỉ đọc đúng các khóa cần thiết (context-path, Jackson naming), không giữ giá trị bí mật.
+- Đọc cấu hình của dự án được phân tích (`application*.yml/.properties`) chỉ ở hai nơi, đều không giữ giá trị bí mật:
+  - `ApplicationConfigReader`: chỉ hai khóa cố định (context-path, Jackson naming).
+  - `PropertyLookup`: tra theo yêu cầu khóa mà mã nguồn tham chiếu trong đường dẫn mapping (`${khóa}`), chỉ trong file `application` mặc định của module (không đọc file profile để lấy giá trị). Thứ tự như Spring: cấu hình rồi mặc định trong code. Khóa có đoạn `password / secret / token / credential` bị chặn, trừ khi đoạn cuối là `path / paths / endpoint / uri / route` và giá trị bắt đầu bằng `/`. Giá trị phải có hình dạng đường dẫn. Không giải được thì giữ `${khóa}` và cảnh báo — không đoán.
 
 ### 3.5. Vệ sinh repo (BẢO MẬT — không được vi phạm)
 

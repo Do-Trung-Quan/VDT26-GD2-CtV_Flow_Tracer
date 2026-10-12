@@ -54,7 +54,8 @@ final class TreeBuilder {
         Map<String, Object> attrs = node.attrs();
         var warnings = new ArrayList<String>();
         if (Boolean.FALSE.equals(attrs.get("pathResolved"))) {
-            warnings.add("Đường dẫn chứa hằng số chưa giải được");
+            Object reason = attrs.get("pathIssueReason");
+            warnings.add("Đường dẫn chưa giải được" + (reason == null ? "" : ": " + reason));
         }
         return new EndpointNodeResponse(
                 node.key(),

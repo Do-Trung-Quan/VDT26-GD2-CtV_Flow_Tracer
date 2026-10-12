@@ -308,6 +308,8 @@ public interface StackAdapter {
     DetectResult detect(DetectContext ctx);
     /** Adapter có phân tích file này không (vd Spring chỉ đọc .java); file khác vẫn đọc được qua loader */
     boolean analyzes(String relativePath);
+    /** File KHÔNG được phân tích nhưng ảnh hưởng kết quả (vd application.yml): được băm, đổi thì Quét lại ghép kết quả lại */
+    boolean affectsAnalysis(String relativePath);
     /** Phiên bản cách trích dữ kiện — đổi thì cache dữ kiện cũ không được dùng lại */
     String factsVersion();
 
@@ -352,7 +354,7 @@ IR là "bản đồ" chung cho mọi công nghệ. Mỗi Adapter sinh IR; Linker
 | `UI_ELEMENT` | Phần tử tương tác | `elementType` (button, input, select, table, pagination…), `event`, `label`, `i18nKey` |
 | `FE_METHOD` | Method phía FE | `layer` (COMPONENT / FACADE / USECASE / SERVICE / REPOSITORY), `className`, `signature` |
 | `HTTP_CALL` | Điểm gọi HTTP: phía FE (`HttpClient`) hoặc phía BE gọi service khác / API bên ngoài (`RestTemplate`, `WebClient`, `@FeignClient`) | `httpMethod`, `urlExpr` (biểu thức gốc), `urlPattern` (đã chuẩn hóa), `bodyType`, `origin` (FE / BE) |
-| `API_ENDPOINT` | Endpoint BE | `httpMethod` (`ANY` khi `@RequestMapping` không khai phương thức), `path` (đã cộng context-path), `pathResolved`, `contextPath`, `params[]`, `requestType`, `responseType`, `summary` + `summarySource` (`OPERATION` / `JAVADOC`), `tag`, `module` + `moduleSource` (`TAG` / `CONTROLLER` / `PACKAGE`), `controller`, `handler`, `deprecated`, `security` |
+| `API_ENDPOINT` | Endpoint BE | `httpMethod` (`ANY` khi `@RequestMapping` không khai phương thức), `path` (đã cộng context-path), `pathResolved` + `pathIssue` (`CONSTANT` / `PROPERTY`) + `pathIssueReason` (lý do tiếng Việt) khi chưa giải được, `pathSources[]` (căn cứ từng thuộc tính đã giải: khóa = giá trị, lấy từ file nào hoặc "mặc định trong code"), `contextPath`, `params[]`, `requestType`, `responseType`, `summary` + `summarySource` (`OPERATION` / `JAVADOC`), `tag`, `module` + `moduleSource` (`TAG` / `CONTROLLER` / `PACKAGE`), `controller`, `handler`, `deprecated`, `security` |
 | `BE_METHOD` | Method phía BE | `layer` (CONTROLLER / SERVICE / REPOSITORY / OTHER), `className`, `signature`, `transactional` |
 | `DATA_QUERY` | Một truy vấn dữ liệu | `queryKind` (DERIVED / JPQL / NATIVE / DYNAMIC / LIB_CALL), `text` (đã rút gọn), `operation` (READ / WRITE / DELETE) |
 | `DB_TABLE` | Bảng hoặc collection | `name`, `entity`, `discriminator` |

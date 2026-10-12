@@ -52,6 +52,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["history"];
+        put?: never;
+        post: operations["start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scans/{scanRunId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fs/detect": {
         parameters: {
             query?: never;
@@ -98,6 +130,70 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["update_2"];
+        trace?: never;
+    };
+    "/api/workspaces/{id}/trees/backend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["backend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scans/{scanRunId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scans/{scanRunId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scans/{scanRunId}/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["errors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/fs/browse": {
@@ -170,6 +266,18 @@ export interface components {
             stackName?: string;
             version?: string;
         };
+        LastScanResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** @enum {string} */
+            trigger?: "IMPORT" | "RESCAN";
+            /** @enum {string} */
+            status?: "PENDING" | "RUNNING" | "SUCCEEDED" | "PARTIAL" | "FAILED" | "CANCELLED";
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            finishedAt?: string;
+        };
         SourceResponse: {
             /** Format: uuid */
             id?: string;
@@ -194,8 +302,7 @@ export interface components {
             /** Format: int32 */
             sourceCount?: number;
             sources?: components["schemas"]["SourceResponse"][];
-            /** Format: uuid */
-            lastScanRunId?: string;
+            lastScan?: components["schemas"]["LastScanResponse"];
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -210,6 +317,107 @@ export interface components {
             errors?: {
                 [key: string]: unknown;
             };
+        };
+        StartScanRequest: {
+            /** @enum {string} */
+            trigger: "IMPORT" | "RESCAN";
+        };
+        ApiResponseScanRunResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["ScanRunResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        FileCountsResponse: {
+            /** Format: int32 */
+            total?: number;
+            /** Format: int32 */
+            added?: number;
+            /** Format: int32 */
+            modified?: number;
+            /** Format: int32 */
+            removed?: number;
+            /** Format: int32 */
+            unchanged?: number;
+            /** Format: int32 */
+            extracted?: number;
+            /** Format: int32 */
+            fromCache?: number;
+            /** Format: int32 */
+            errors?: number;
+        };
+        ScanDiagnosticResponse: {
+            /** @enum {string} */
+            severity?: "INFO" | "WARNING" | "ERROR";
+            /** Format: uuid */
+            sourceId?: string;
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+            message?: string;
+        };
+        ScanRunResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** @enum {string} */
+            trigger?: "IMPORT" | "RESCAN";
+            /** @enum {string} */
+            status?: "PENDING" | "RUNNING" | "SUCCEEDED" | "PARTIAL" | "FAILED" | "CANCELLED";
+            cancelRequested?: boolean;
+            errorSummary?: string;
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            finishedAt?: string;
+            /** Format: int64 */
+            durationMs?: number;
+            stats?: components["schemas"]["ScanStatsResponse"];
+        };
+        ScanStatsResponse: {
+            files?: components["schemas"]["FileCountsResponse"];
+            /** Format: int64 */
+            nodes?: number;
+            /** Format: int64 */
+            edges?: number;
+            /** Format: int64 */
+            endpoints?: number;
+            /** Format: int32 */
+            diagnosticErrors?: number;
+            /** Format: int32 */
+            diagnosticWarnings?: number;
+            noChanges?: boolean;
+            /** Format: int32 */
+            configChanges?: number;
+            stageDurations?: components["schemas"]["StageDurationResponse"][];
+            diagnostics?: components["schemas"]["ScanDiagnosticResponse"][];
+            sources?: components["schemas"]["SourceScanStatsResponse"][];
+        };
+        SourceScanStatsResponse: {
+            /** Format: uuid */
+            sourceId?: string;
+            sourceName?: string;
+            adapter?: string;
+            files?: components["schemas"]["FileCountsResponse"];
+            /** Format: int32 */
+            nodes?: number;
+            /** Format: int32 */
+            endpoints?: number;
+            /** Format: int32 */
+            skippedNodes?: number;
+            note?: string;
+        };
+        StageDurationResponse: {
+            /** @enum {string} */
+            stage?: "DISCOVER" | "DIFF" | "EXTRACT" | "RESOLVE" | "PERSIST" | "FINALIZE";
+            label?: string;
+            /** Format: int64 */
+            durationMs?: number;
         };
         DetectFolderRequest: {
             rootPath: string;
@@ -274,6 +482,95 @@ export interface components {
             errors?: {
                 [key: string]: unknown;
             };
+        };
+        ApiModuleResponse: {
+            name?: string;
+            nameSource?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceName?: string;
+            /** Format: int32 */
+            endpointCount?: number;
+            endpoints?: components["schemas"]["EndpointNodeResponse"][];
+        };
+        ApiResponseBackendTreeResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["BackendTreeResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        BackendTreeResponse: {
+            /** Format: int32 */
+            moduleCount?: number;
+            /** Format: int32 */
+            endpointCount?: number;
+            modules?: components["schemas"]["ApiModuleResponse"][];
+        };
+        EndpointNodeResponse: {
+            nodeKey?: string;
+            httpMethod?: string;
+            path?: string;
+            summary?: string;
+            summarySource?: string;
+            deprecated?: boolean;
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+            warnings?: string[];
+        };
+        ApiResponsePageResponseScanRunResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["PageResponseScanRunResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        PageResponseScanRunResponse: {
+            items?: components["schemas"]["ScanRunResponse"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            limit?: number;
+        };
+        SseEmitter: {
+            /** Format: int64 */
+            timeout?: number;
+        };
+        ApiResponsePageResponseScanFileErrorResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["PageResponseScanFileErrorResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        PageResponseScanFileErrorResponse: {
+            items?: components["schemas"]["ScanFileErrorResponse"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            limit?: number;
+        };
+        ScanFileErrorResponse: {
+            /** Format: uuid */
+            sourceId?: string;
+            sourceName?: string;
+            filePath?: string;
+            fullPath?: string;
+            reason?: string;
         };
         ApiResponseFolderBrowseResponse: {
             /** Format: int32 */
@@ -432,6 +729,79 @@ export interface operations {
             };
         };
     };
+    history: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseScanRunResponse"];
+                };
+            };
+        };
+    };
+    start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartScanRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseScanRunResponse"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scanRunId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseScanRunResponse"];
+                };
+            };
+        };
+    };
     detect: {
         parameters: {
             query?: never;
@@ -572,6 +942,97 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseSourceResponse"];
+                };
+            };
+        };
+    };
+    backend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseBackendTreeResponse"];
+                };
+            };
+        };
+    };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scanRunId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseScanRunResponse"];
+                };
+            };
+        };
+    };
+    events: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scanRunId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
+                };
+            };
+        };
+    };
+    errors: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                scanRunId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseScanFileErrorResponse"];
                 };
             };
         };

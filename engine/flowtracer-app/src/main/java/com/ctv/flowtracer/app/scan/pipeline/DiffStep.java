@@ -28,8 +28,19 @@ class DiffStep {
 
     private void diff(SourceWork work) {
         for (SourceFile previous : sourceFiles.findBySourceIdOrderByRelPath(work.target.sourceId())) {
-            work.previous.put(previous.getRelPath(), previous);
+            if (SourceFile.LANGUAGE_CONFIG.equals(previous.getLanguage())) {
+                work.previousConfig.put(previous.getRelPath(), previous);
+            } else {
+                work.previous.put(previous.getRelPath(), previous);
+            }
         }
+        work.configFiles.forEach((path, file) -> {
+            SourceFile previous = work.previousConfig.get(path);
+            if (previous == null || !previous.getContentHash().equals(file.contentHash())) {
+                work.configChanged.add(path);
+            }
+        });
+        work.previousConfig.keySet().stream().filter(p -> !work.configFiles.containsKey(p)).forEach(work.configChanged::add);
         work.files.forEach((path, file) -> {
             SourceFile previous = work.previous.get(path);
             if (previous == null) {

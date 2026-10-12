@@ -56,6 +56,17 @@ class ApplicationConfigReaderTest {
     }
 
     @Test
+    void fileSavedWithUtf8BomIsReadLikeAnyOther() {
+        var result = read(Map.of(
+                "src/main/resources/application.yml", "\uFEFFserver:\n  servlet:\n    context-path: /bom\n",
+                "b/src/main/resources/application.properties", "\uFEFFserver.servlet.context-path=/bom-props\n"));
+
+        assertThat(result.forFile("src/main/java/A.java")).hasValueSatisfying(c -> assertThat(c.contextPath()).isEqualTo("/bom"));
+        assertThat(result.forFile("b/src/main/java/A.java"))
+                .hasValueSatisfying(c -> assertThat(c.contextPath()).isEqualTo("/bom-props"));
+    }
+
+    @Test
     void otherKeysAreNeverKept() {
         var result = read(Map.of("src/main/resources/application.yml", "spring:\n  datasource:\n    password: bi-mat\n"));
         assertThat(result.configs()).singleElement().satisfies(c -> {

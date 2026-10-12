@@ -134,7 +134,8 @@ public class ScanPipeline {
     }
 
     private static boolean hasChanges(ScanContext ctx) {
-        return ctx.sources().stream().anyMatch(w -> !w.added.isEmpty() || !w.modified.isEmpty() || !w.removed.isEmpty());
+        return ctx.sources().stream()
+                .anyMatch(w -> !w.added.isEmpty() || !w.modified.isEmpty() || !w.removed.isEmpty() || !w.configChanged.isEmpty());
     }
 
     /** Thống kê từ số liệu thật: số file đếm trong lần quét, số thành phần đọc lại từ CSDL sau khi lưu. */
@@ -155,6 +156,7 @@ public class ScanPipeline {
                     previous == null ? 0 : previous.diagnosticErrors(),
                     previous == null ? 0 : previous.diagnosticWarnings(),
                     true,
+                    0,
                     List.of(),
                     previous == null ? List.of() : previous.diagnostics(),
                     sources);
@@ -177,6 +179,7 @@ public class ScanPipeline {
                 errors,
                 warnings,
                 noChanges,
+                ctx.sources().stream().mapToInt(w -> w.configChanged.size()).sum(),
                 List.of(),
                 diagnostics.stream().limit(ScanStats.MAX_DIAGNOSTICS).toList(),
                 sources);
@@ -212,7 +215,7 @@ public class ScanPipeline {
                 .map(e -> new StageDuration(e.getKey(), e.getValue()))
                 .toList();
         return new ScanStats(s.files(), s.nodes(), s.edges(), s.endpoints(), s.diagnosticErrors(), s.diagnosticWarnings(),
-                s.noChanges(), durations, s.diagnostics(), s.sources());
+                s.noChanges(), s.configChanges(), durations, s.diagnostics(), s.sources());
     }
 
     private void transition(ScanContext ctx, ScanStatus status, String note, ScanStats stats) {

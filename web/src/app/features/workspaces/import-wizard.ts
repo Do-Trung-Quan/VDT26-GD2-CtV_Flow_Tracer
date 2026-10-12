@@ -8,6 +8,7 @@ import { Modal } from '../../core/ui/modal';
 import { ToastService } from '../../core/ui/toast.service';
 import { WorkspaceContext } from '../../core/workspace-context';
 import { DetectionOutcome, ROLE_LABEL, ROLE_PILL, describeDetection, stackText } from './detection-message';
+import { ScanTracker } from '../scan/scan-tracker';
 import { FolderBrowser } from './folder-browser';
 
 /** Import dự án — 3 bước: thông tin → chọn thư mục (tự nhận diện, A6 + A10) → xác nhận và tạo (A2). */
@@ -119,7 +120,7 @@ import { FolderBrowser } from './folder-browser';
         @if (step() < 3) {
           <button class="btn pri" type="button" [disabled]="busy() || (step() === 2 && roots().length === 0)" (click)="next()">Tiếp tục</button>
         } @else {
-          <button class="btn pri" type="button" [disabled]="busy()" (click)="create()">{{ busy() ? 'Đang tạo…' : 'Tạo Workspace' }}</button>
+          <button class="btn pri" type="button" [disabled]="busy()" (click)="create()">{{ busy() ? 'Đang tạo…' : 'Tạo & quét' }}</button>
         }
       </ng-container>
     </app-modal>
@@ -144,6 +145,7 @@ export class ImportWizard {
   private readonly ctx = inject(WorkspaceContext);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly scans = inject(ScanTracker);
 
   readonly closed = output<void>();
 
@@ -220,9 +222,10 @@ export class ImportWizard {
         sources: this.roots().map((r) => ({ rootPath: r.path ?? '' }))
       });
       await this.ctx.reload();
-      this.toast.show(`Đã tạo Workspace "${ws.name}" với ${ws.sources?.length ?? 0} nguồn mã.`, 'ok');
+      this.toast.show(`Đã tạo Workspace "${ws.name}" với ${ws.sources?.length ?? 0} nguồn mã. Bắt đầu quét…`, 'ok');
       this.closed.emit();
-      await this.router.navigate(['/w', ws.id, 'settings']);
+      await this.router.navigate(['/w', ws.id]);
+      void this.scans.start(ws.id!, ws.name ?? '', 'IMPORT');
     } catch (e) {
       const err = toApiError(e);
       if (err.code === 'WORKSPACE_NAME_TAKEN') {

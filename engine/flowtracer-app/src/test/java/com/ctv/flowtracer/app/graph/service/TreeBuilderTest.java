@@ -38,11 +38,12 @@ class TreeBuilderTest {
                 endpoint(API, "GET", "/categories", "Danh mục", Map.of()),
                 endpoint(API, "DELETE", "/categories/{id}", "Danh mục", Map.of("deprecated", true)),
                 endpoint(ADMIN, "GET", "/categories", "Danh mục", Map.of()),
-                endpoint(API, "GET", "/orders/${X}", "Đơn hàng", Map.of("pathResolved", false))),
+                endpoint(API, "GET", "/orders/${X}", "Đơn hàng", Map.of("pathResolved", false, "pathIssue", "CONSTANT", "pathIssueReason", "không tìm thấy giá trị của hằng số X")),
+                endpoint(API, "GET", "/orders/${shop.p}", "Đơn hàng", Map.of("pathResolved", false, "pathIssue", "PROPERTY", "pathIssueReason", "khóa shop.p lấy từ biến môi trường lúc chạy"))),
                 Map.of(API, "shop-api", ADMIN, "shop-admin"));
 
         assertThat(tree.moduleCount()).isEqualTo(3);
-        assertThat(tree.endpointCount()).isEqualTo(5);
+        assertThat(tree.endpointCount()).isEqualTo(6);
         ApiModuleResponse category = tree.modules().stream()
                 .filter(m -> m.name().equals("Danh mục") && m.sourceId().equals(API))
                 .findFirst()
@@ -53,13 +54,14 @@ class TreeBuilderTest {
         assertThat(category.endpoints().get(1).summarySource()).isEqualTo("OPERATION");
         assertThat(category.endpoints().get(2).deprecated()).isTrue();
 
-        EndpointNodeResponse unresolved = tree.modules().stream()
+        List<EndpointNodeResponse> orders = tree.modules().stream()
                 .filter(m -> m.name().equals("Đơn hàng"))
                 .findFirst()
                 .orElseThrow()
-                .endpoints()
-                .getFirst();
-        assertThat(unresolved.warnings()).containsExactly("Đường dẫn chứa hằng số chưa giải được");
+                .endpoints();
+        assertThat(orders.get(0).warnings()).containsExactly("Đường dẫn chưa giải được: không tìm thấy giá trị của hằng số X");
+        assertThat(orders.get(1).warnings())
+                .containsExactly("Đường dẫn chưa giải được: khóa shop.p lấy từ biến môi trường lúc chạy");
     }
 
     @Test

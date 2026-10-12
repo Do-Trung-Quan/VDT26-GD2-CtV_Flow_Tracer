@@ -15,11 +15,15 @@ import com.ctv.flowtracer.ir.spi.SourceFile;
 import com.ctv.flowtracer.ir.spi.StackAdapter;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /** Hiện thực StackAdapter cho Java / Spring Boot: id "spring", vai trò BACKEND. */
 public final class SpringStackAdapter implements StackAdapter {
 
     public static final String ID = "spring";
+
+    private static final Pattern CONFIG_FILE =
+            Pattern.compile("^(?:.*/)?src/main/resources/application(?:-[^/]+)?\\.(?:yml|yaml|properties)$");
 
     private final SpringDetector detector = new SpringDetector();
     private final JavaFileExtractor extractor = new JavaFileExtractor();
@@ -43,6 +47,12 @@ public final class SpringStackAdapter implements StackAdapter {
     @Override
     public boolean analyzes(String relativePath) {
         return relativePath.endsWith(".java");
+    }
+
+    /** Cấu hình Spring của từng module (mặc định và theo profile) — quyết định context-path và đường dẫn dùng thuộc tính. */
+    @Override
+    public boolean affectsAnalysis(String relativePath) {
+        return CONFIG_FILE.matcher(relativePath).matches();
     }
 
     @Override

@@ -9,15 +9,16 @@ import { Modal } from '../../core/ui/modal';
 import { ToastService } from '../../core/ui/toast.service';
 import { WorkspaceContext } from '../../core/workspace-context';
 import { ROLE_LABEL, ROLE_PILL, stackText } from './detection-message';
+import { ScanHistory } from '../scan/scan-history';
 import { FolderBrowser } from './folder-browser';
 
 /**
- * Cài đặt Workspace › tab Nguồn mã: thông tin Workspace (A3, A4), thêm / sửa tên và thư mục loại trừ / gỡ nguồn mã
+ * Cài đặt Workspace › tab Nguồn mã và tab Lịch sử quét (B5). Tab Nguồn mã: thông tin Workspace (A3, A4), thêm / sửa tên và thư mục loại trừ / gỡ nguồn mã
  * (A7–A9), vùng nguy hiểm xóa Workspace (A5). Các tab khác (luật liên kết, bộ lọc nhiễu…) làm ở giai đoạn sau.
  */
 @Component({
   selector: 'app-workspace-settings',
-  imports: [Icon, Modal, ConfirmDialog, FolderBrowser],
+  imports: [Icon, Modal, ConfirmDialog, FolderBrowser, ScanHistory],
   template: `
     <section class="page">
       @if (loading() && !ws()) {
@@ -28,7 +29,14 @@ import { FolderBrowser } from './folder-browser';
       } @else if (ws(); as w) {
         <h1>Cài đặt · {{ w.name }}</h1>
         <div class="sub">Thư mục mã nguồn và thông tin của Workspace.</div>
-        <div class="tabs"><button class="tab on" type="button">Nguồn mã</button></div>
+        <div class="tabs" role="tablist">
+          <button class="tab" type="button" role="tab" [class.on]="tab() === 'sources'" (click)="tab.set('sources')">Nguồn mã</button>
+          <button class="tab" type="button" role="tab" [class.on]="tab() === 'history'" (click)="tab.set('history')">Lịch sử quét</button>
+        </div>
+
+        @if (tab() === 'history') {
+          <app-scan-history [workspaceId]="w.id!" />
+        } @else {
 
         <div class="card pad block">
           <h3 class="h">Thông tin Workspace</h3>
@@ -102,6 +110,7 @@ import { FolderBrowser } from './folder-browser';
             <button class="btn danger" type="button" (click)="deletingWs.set(true)"><app-icon name="trash" [small]="true" />Xóa Workspace</button>
           </div>
         </div>
+        }
       }
     </section>
 
@@ -181,6 +190,7 @@ export class WorkspaceSettingsPage {
   protected readonly editExcludes = signal('');
   protected readonly removing = signal<SourceDto | null>(null);
   protected readonly deletingWs = signal(false);
+  protected readonly tab = signal<'sources' | 'history'>('sources');
 
   constructor() {
     effect(() => {

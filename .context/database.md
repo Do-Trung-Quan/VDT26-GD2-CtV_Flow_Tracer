@@ -78,7 +78,7 @@ Mỗi bản ghi là **một file mã nguồn** đã được tool đọc, kèm *
 | source_id | UUID (FK) | Source chứa file, tham chiếu Source.id |
 | rel_path | TEXT | Đường dẫn file tính từ thư mục của Source. Duy nhất trong mỗi Source |
 | content_hash | CHAR(64) | Mã băm SHA-256 của nội dung file, dùng để phát hiện thay đổi |
-| language | VARCHAR(20) | Loại file: `java`, `ts`, `html`, `php`… |
+| language | VARCHAR(20) | Loại file: `java`, `ts`, `html`, `php`…; riêng `config` là file cấu hình ảnh hưởng kết quả (vd `application.yml`) — chỉ lưu mã băm để phát hiện thay đổi, không được phân tích và không tính vào số file |
 | size_bytes | INTEGER | Kích thước file (byte) |
 | parse_status | ENUM('OK', 'ERROR', 'SKIPPED') | Kết quả phân tích: thành công, lỗi (ví dụ sai cú pháp), hoặc bỏ qua (quá lớn, không hỗ trợ) |
 | parse_error | TEXT (nullable) | Lý do lỗi hoặc lý do bỏ qua, hiển thị cho người dùng |

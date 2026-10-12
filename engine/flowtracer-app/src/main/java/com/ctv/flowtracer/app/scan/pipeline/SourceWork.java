@@ -25,9 +25,16 @@ final class SourceWork {
     /** File bộ phân tích xử lý, theo đường dẫn. */
     final Map<String, DiscoveredFile> files = new TreeMap<>();
 
+    /** File cấu hình ảnh hưởng tới kết quả (không phân tích), đã băm — {@code content} luôn null. */
+    final Map<String, DiscoveredFile> configFiles = new TreeMap<>();
+
     // DIFF
-    /** Bản ghi file của lần quét trước, theo đường dẫn. */
+    /** Bản ghi file ĐƯỢC PHÂN TÍCH của lần quét trước, theo đường dẫn. */
     final Map<String, SourceFile> previous = new TreeMap<>();
+    /** Bản ghi file cấu hình của lần quét trước. */
+    final Map<String, SourceFile> previousConfig = new TreeMap<>();
+    /** File cấu hình thêm / sửa / xóa so với lần quét trước. */
+    final TreeSet<String> configChanged = new TreeSet<>();
     final TreeSet<String> added = new TreeSet<>();
     final TreeSet<String> modified = new TreeSet<>();
     final TreeSet<String> removed = new TreeSet<>();

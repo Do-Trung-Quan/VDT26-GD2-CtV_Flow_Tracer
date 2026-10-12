@@ -29,6 +29,17 @@ public interface StackAdapter {
         return true;
     }
 
+    /**
+     * File KHÔNG được phân tích nhưng ảnh hưởng tới kết quả (vd {@code application.yml} quyết định context-path và đường
+     * dẫn API). Tool băm các file này; một trong số chúng đổi thì Quét lại phải ghép kết quả lại dù không có file mã nguồn
+     * nào đổi.
+     *
+     * @param relativePath đường dẫn tương đối trong Source, dùng dấu '/'
+     */
+    default boolean affectsAnalysis(String relativePath) {
+        return false;
+    }
+
     /** Phiên bản cách trích dữ kiện pha 1 — đổi thì dữ kiện đã cache với phiên bản cũ không được dùng lại. */
     default String factsVersion() {
         return "1";

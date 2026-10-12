@@ -110,7 +110,7 @@ public final class ApplicationConfigReader {
     /** Đọc một khóa (dạng a.b.c) trong file .properties; khóa cuối cùng thắng như Spring. */
     static String propertiesValue(String content, String key) {
         String found = null;
-        for (String raw : content.split("\\R")) {
+        for (String raw : withoutBom(content).split("\\R")) {
             String line = raw.strip();
             if (line.isEmpty() || line.startsWith("#") || line.startsWith("!")) {
                 continue;
@@ -129,7 +129,7 @@ public final class ApplicationConfigReader {
      */
     static String yamlValue(String content, String key) {
         Deque<String[]> stack = new ArrayDeque<>(); // {indent, tên khóa}
-        for (String raw : content.split("\\R")) {
+        for (String raw : withoutBom(content).split("\\R")) {
             if (raw.strip().equals("---")) {
                 break;
             }
@@ -156,6 +156,11 @@ public final class ApplicationConfigReader {
             }
         }
         return null;
+    }
+
+    /** File lưu UTF-8 có BOM (vd từ Notepad) bắt đầu bằng U+FEFF; không bỏ thì khóa đầu tiên bị đọc sai tên. */
+    static String withoutBom(String content) {
+        return content.startsWith("\uFEFF") ? content.substring(1) : content;
     }
 
     private static String prefix(Deque<String[]> stack) {

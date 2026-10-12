@@ -1,0 +1,4 @@
+# File theo profile: tool không biết profile nào chạy nên không dùng giá trị ở đây, chỉ báo "chỉ có trong profile"
+shop:
+  order:
+    profile-path: /dev-only

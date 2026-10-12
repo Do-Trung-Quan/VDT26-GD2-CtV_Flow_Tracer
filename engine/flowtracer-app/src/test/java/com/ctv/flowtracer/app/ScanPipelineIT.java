@@ -114,6 +114,7 @@ class ScanPipelineIT {
     @Order(1)
     void firstScanAnalyzesEveryFile() throws Exception {
         write("fake.project", "");
+        write("app.cfg", "module=Fake");
         write("a.fake", "GET /api/a\nPOST /api/a");
         write("b.fake", "GET /api/b");
         write("c.fake", "GET /api/c");
@@ -175,6 +176,28 @@ class ScanPipelineIT {
 
     @Test
     @Order(4)
+    void changingOnlyAConfigFileRegroupsResultsWithoutReanalyzingSourceFiles() throws Exception {
+        write("app.cfg", "module=Renamed");
+
+        JsonNode run = scanAndWait("RESCAN");
+
+        assertThat(run.get("status").asString()).isEqualTo("SUCCEEDED");
+        JsonNode stats = run.get("stats");
+        assertThat(stats.get("noChanges").asBoolean()).isFalse();
+        assertThat(stats.get("configChanges").asInt()).isEqualTo(1);
+        assertThat(files(stats)).containsEntry("total", 3).containsEntry("added", 0).containsEntry("modified", 0)
+                .containsEntry("unchanged", 3).containsEntry("extracted", 0).containsEntry("fromCache", 3);
+        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "FINALIZE");
+        assertThat(tree().get("modules").get(0).get("name").asString()).isEqualTo("Renamed");
+
+        // lần quét kế tiếp không còn thay đổi nào
+        JsonNode again = scanAndWait("RESCAN");
+        assertThat(again.get("stats").get("noChanges").asBoolean()).isTrue();
+        assertThat(again.get("stats").get("configChanges").asInt()).isZero();
+    }
+
+    @Test
+    @Order(5)
     void brokenFileMakesScanPartialAndIsListed() throws Exception {
         write("e.fake", "GET /api/e\nBROKEN");
 
@@ -194,7 +217,7 @@ class ScanPipelineIT {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     void cancelKeepsPreviousResultAndBlocksConcurrentScan() throws Exception {
         List<String> before = endpointPaths();
         write("slow.fake", "GET /api/slow\nSLOW");
@@ -223,12 +246,12 @@ class ScanPipelineIT {
         assertThat(unchanged.get("stats").get("diagnostics").get(0).get("filePath").asString()).isEqualTo("e.fake");
 
         var history = call("GET", "/api/workspaces/" + workspaceId + "/scans?page=1&limit=2", null);
-        assertThat(history.data().get("total").asInt()).isEqualTo(6);
+        assertThat(history.data().get("total").asInt()).isEqualTo(8);
         assertThat(history.data().get("items").get(1).get("status").asString()).isEqualTo("CANCELLED");
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     void deletingWorkspaceRemovesScanDataButNotSourceFiles() throws Exception {
         assertThat(call("DELETE", "/api/workspaces/" + workspaceId, null).status).isEqualTo(200);
         assertThat(Files.exists(PROJECT.resolve("a.fake"))).isTrue();
@@ -333,6 +356,11 @@ class ScanPipelineIT {
         }
 
         @Override
+        public boolean affectsAnalysis(String relativePath) {
+            return relativePath.endsWith(".cfg");
+        }
+
+        @Override
         public Class<? extends FileFacts> factsType() {
             return FakeFacts.class;
         }
@@ -369,6 +397,7 @@ class ScanPipelineIT {
         public IrFragment resolve(ResolveContext ctx, List<FileFacts> facts) {
             var nodes = new ArrayList<IrNode>();
             var diagnostics = new ArrayList<Diagnostic>();
+            String module = ctx.loader().load("app.cfg").map(c -> c.replace("module=", "").strip()).orElse("Fake");
             for (FileFacts f : facts) {
                 FakeFacts fake = (FakeFacts) f;
                 if (fake.brokenLine() != null) {
@@ -384,7 +413,7 @@ class ScanPipelineIT {
                             e,
                             null,
                             SourceLocation.of(fake.relativePath(), 1),
-                            Map.of("httpMethod", parts[0], "path", parts[1], "module", "Fake", "moduleSource", "CONTROLLER")));
+                            Map.of("httpMethod", parts[0], "path", parts[1], "module", module, "moduleSource", "CONTROLLER")));
                 }
             }
             return new IrFragment(id(), nodes, List.of(), List.of(), diagnostics);

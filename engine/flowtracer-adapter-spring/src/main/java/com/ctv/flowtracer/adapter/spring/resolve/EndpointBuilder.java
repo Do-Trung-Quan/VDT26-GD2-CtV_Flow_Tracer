@@ -1,6 +1,7 @@
 package com.ctv.flowtracer.adapter.spring.resolve;
 
 import com.ctv.flowtracer.adapter.spring.config.ApplicationConfigReader;
+import com.ctv.flowtracer.adapter.spring.config.PropertyLookup;
 import com.ctv.flowtracer.adapter.spring.extract.MappingExtractor;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts.MappingFact;
@@ -40,7 +41,7 @@ public final class EndpointBuilder {
     /** Kết quả dựng endpoint của một Source. */
     public record Result(List<IrNode> endpoints, List<Diagnostic> diagnostics) {}
 
-    public Result build(List<JavaFileFacts> facts, ApplicationConfigReader.Result config) {
+    public Result build(List<JavaFileFacts> facts, ApplicationConfigReader.Result config, PropertyLookup properties) {
         var constants = constants(facts);
         var controllers = new TreeMap<String, JavaFileFacts>();
         var classMappings = new TreeMap<String, MappingFact>();
@@ -65,7 +66,7 @@ public final class EndpointBuilder {
                 String contextPath = config.forFile(file.relativePath())
                         .map(ApplicationConfigReader.AppConfig::contextPath)
                         .orElse("");
-                for (IrNode node : endpointsOf(file, mapping, classMapping, handler, contextPath, constants, diagnostics)) {
+                for (IrNode node : endpointsOf(file, mapping, classMapping, handler, contextPath, constants, properties, diagnostics)) {
                     IrNode existing = nodes.putIfAbsent(node.key(), node);
                     if (existing != null) {
                         diagnostics.add(new Diagnostic(
@@ -88,6 +89,7 @@ public final class EndpointBuilder {
             MethodFact handler,
             String contextPath,
             Map<String, String> constants,
+            PropertyLookup properties,
             List<Diagnostic> diagnostics) {
         List<String> classPaths = classMapping == null || classMapping.paths().isEmpty() ? List.of("") : classMapping.paths();
         List<String> httpMethods = !mapping.httpMethods().isEmpty()
@@ -100,20 +102,21 @@ public final class EndpointBuilder {
         var result = new ArrayList<IrNode>();
         for (String classPath : classPaths) {
             for (String methodPath : mapping.paths()) {
-                PathText classPart = resolvePath(classPath, file, mapping.declaringType(), constants);
-                PathText methodPart = resolvePath(methodPath, file, mapping.declaringType(), constants);
+                PathText classPart = resolvePath(classPath, file, mapping.declaringType(), constants, properties);
+                PathText methodPart = resolvePath(methodPath, file, mapping.declaringType(), constants, properties);
+                PathText pathPart = classPart.then(methodPart);
                 String path = normalizePath(contextPath + "/" + classPart.text() + "/" + methodPart.text());
-                boolean resolved = classPart.resolved() && methodPart.resolved();
-                if (!resolved) {
+                if (pathPart.issue() != null) {
+                    String where = simpleName(mapping.declaringType()) + "#" + mapping.method();
                     diagnostics.add(new Diagnostic(
                             Diagnostic.Severity.WARNING,
                             file.relativePath(),
                             mapping.line(),
-                            "Không giải được hằng số trong đường dẫn của " + simpleName(mapping.declaringType()) + "#"
-                                    + mapping.method() + "; đường dẫn hiển thị giữ nguyên tên hằng số"));
+                            "Đường dẫn của " + where + " chưa giải được: " + pathPart.reason()
+                                    + "; đường dẫn hiển thị giữ nguyên phần chưa giải được"));
                 }
                 for (String httpMethod : httpMethods) {
-                    result.add(endpoint(file, mapping, handler, httpMethod, path, contextPath, resolved, module));
+                    result.add(endpoint(file, mapping, handler, httpMethod, path, contextPath, pathPart, module));
                 }
             }
         }
@@ -127,7 +130,7 @@ public final class EndpointBuilder {
             String httpMethod,
             String path,
             String contextPath,
-            boolean pathResolved,
+            PathText pathPart,
             ModuleNameResolver.Module module) {
         Map<String, Object> attrs = new TreeMap<>();
         attrs.put("httpMethod", httpMethod);
@@ -135,7 +138,14 @@ public final class EndpointBuilder {
         if (!contextPath.isEmpty()) {
             attrs.put("contextPath", contextPath);
         }
-        attrs.put("pathResolved", pathResolved);
+        attrs.put("pathResolved", pathPart.issue() == null);
+        if (pathPart.issue() != null) {
+            attrs.put("pathIssue", pathPart.issue().name());
+            attrs.put("pathIssueReason", pathPart.reason());
+        }
+        if (!pathPart.sources().isEmpty()) {
+            attrs.put("pathSources", pathPart.sources());
+        }
         attrs.put("module", module.name());
         attrs.put("moduleSource", module.source().name());
         attrs.put("controller", mapping.declaringType());
@@ -200,13 +210,47 @@ public final class EndpointBuilder {
         return Optional.of(m.matches() ? m.group(1) : handler.returnType());
     }
 
-    /** Một đoạn đường dẫn đã giải hằng số (nếu có). */
-    private record PathText(String text, boolean resolved) {}
+    /** Lý do một đoạn đường dẫn chưa giải được. */
+    enum PathIssue {
+        /** Tham chiếu hằng số Java không tìm thấy giá trị. */
+        CONSTANT,
+        /** Thuộc tính cấu hình {@code ${khóa}} chưa giải được (lý do trong {@code reason}). */
+        PROPERTY
+    }
+
+    /**
+     * Một đoạn đường dẫn đã giải hằng số / thuộc tính.
+     *
+     * @param issue null nếu giải trọn vẹn
+     * @param reason lý do bằng tiếng Việt khi chưa giải được
+     * @param sources căn cứ các thuộc tính đã giải được
+     */
+    record PathText(String text, PathIssue issue, String reason, List<String> sources) {
+
+        static PathText plain(String text) {
+            return new PathText(text, null, null, List.of());
+        }
+
+        /** Gộp hai đoạn: lỗi đầu tiên thắng, căn cứ cộng dồn. */
+        PathText then(PathText other) {
+            var all = new ArrayList<>(sources);
+            all.addAll(other.sources);
+            return new PathText(
+                    text + "/" + other.text,
+                    issue != null ? issue : other.issue,
+                    issue != null ? reason : other.reason,
+                    List.copyOf(all));
+        }
+    }
 
     private static PathText resolvePath(
-            String raw, JavaFileFacts file, String declaringType, Map<String, String> constants) {
+            String raw,
+            JavaFileFacts file,
+            String declaringType,
+            Map<String, String> constants,
+            PropertyLookup properties) {
         if (!raw.startsWith(JavaFileFacts.CONSTANT_REF_PREFIX)) {
-            return new PathText(raw, true);
+            return withProperties(raw, file, properties);
         }
         String ref = raw.substring(JavaFileFacts.CONSTANT_REF_PREFIX.length());
         String value = constants.get(declaringType + "." + ref);
@@ -218,7 +262,25 @@ public final class EndpointBuilder {
             String owner = dot < 0 ? "" : ref.substring(0, dot);
             value = importedConstant(file, owner, ref.substring(dot + 1), constants);
         }
-        return value == null ? new PathText("${" + ref + "}", false) : new PathText(value, true);
+        return value == null
+                ? new PathText("${" + ref + "}", PathIssue.CONSTANT, "không tìm thấy giá trị của hằng số " + ref, List.of())
+                : withProperties(value, file, properties);
+    }
+
+    /**
+     * Thay thuộc tính cấu hình Spring ({@code ${khóa}}, {@code ${khóa:mặc định}}) trong đường dẫn theo thứ tự của Spring:
+     * giá trị trong file cấu hình, rồi mặc định trong code. Không đoán: không giải được thì giữ nguyên {@code ${khóa}} kèm
+     * lý do.
+     */
+    static PathText withProperties(String text, JavaFileFacts file, PropertyLookup properties) {
+        if (!text.contains("${")) {
+            return PathText.plain(text);
+        }
+        PropertyLookup.Resolution r = properties.resolve(text, file.relativePath());
+        return r.resolved()
+                ? new PathText(r.text(), null, null, r.sources())
+                : new PathText(
+                        r.text(), PathIssue.PROPERTY, PropertyLookup.describe(r.failure(), r.failedKey()), r.sources());
     }
 
     /** Tham chiếu {@code Lớp.HẰNG} với lớp được import hoặc cùng package. */

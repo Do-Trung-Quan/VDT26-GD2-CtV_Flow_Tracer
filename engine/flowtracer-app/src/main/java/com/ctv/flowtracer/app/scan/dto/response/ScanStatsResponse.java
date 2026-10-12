@@ -13,6 +13,7 @@ import java.util.List;
  * @param diagnosticErrors số chẩn đoán mức lỗi
  * @param diagnosticWarnings số chẩn đoán mức cảnh báo
  * @param noChanges quét lại nhưng không có file nào đổi
+ * @param configChanges số file cấu hình (vd application.yml) thêm / sửa / xóa; không tính vào số file
  * @param stageDurations thời gian từng giai đoạn đã chạy, theo thứ tự chạy
  * @param diagnostics chẩn đoán của bộ phân tích (lỗi trước, tối đa 100 mục)
  * @param sources kết quả từng Source
@@ -25,6 +26,7 @@ public record ScanStatsResponse(
         int diagnosticErrors,
         int diagnosticWarnings,
         boolean noChanges,
+        int configChanges,
         List<StageDurationResponse> stageDurations,
         List<ScanDiagnosticResponse> diagnostics,
         List<SourceScanStatsResponse> sources) {
@@ -38,6 +40,7 @@ public record ScanStatsResponse(
                 s.diagnosticErrors(),
                 s.diagnosticWarnings(),
                 s.noChanges(),
+                s.configChanges(),
                 s.stageDurations().stream().map(StageDurationResponse::from).toList(),
                 s.diagnostics().stream().map(ScanDiagnosticResponse::from).toList(),
                 s.sources().stream().map(SourceScanStatsResponse::from).toList());

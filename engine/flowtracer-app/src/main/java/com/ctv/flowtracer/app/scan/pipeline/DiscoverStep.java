@@ -63,12 +63,28 @@ class DiscoverStep {
                 work.files.put(relative, read(entry.relativePath(), relative, entry.sizeBytes()));
             }
         }
+        for (String path : work.allPaths) {
+            if (work.adapter.affectsAnalysis(path)) {
+                ctx.checkCancelled();
+                readConfig(work, path);
+            }
+        }
         log.debug("DISCOVER {}: duyệt {} file trong {} ms, đọc {} file trong {} ms", work.target.name(), entries.size(),
                 (walked - start) / 1_000_000, work.files.size(), (System.nanoTime() - walked) / 1_000_000);
         if (work.files.isEmpty()) {
             work.note = work.allPaths.isEmpty()
                     ? "Thư mục không có file nào sau khi áp luật lọc"
                     : "Bộ phân tích '" + work.adapter.id() + "' không xử lý file nào của nguồn này";
+        }
+    }
+
+    /** File cấu hình chỉ cần mã băm; không đọc được thì bỏ qua (không ảnh hưởng gì tới kết quả). */
+    private void readConfig(SourceWork work, String relative) {
+        try {
+            byte[] bytes = reader.readBytes(work.fullPath(relative));
+            work.configFiles.put(relative, new DiscoveredFile(relative, bytes.length, ContentHash.sha256(bytes), null, null));
+        } catch (UncheckedIOException e) {
+            log.debug("Bỏ qua file cấu hình không đọc được: {}", relative);
         }
     }
 

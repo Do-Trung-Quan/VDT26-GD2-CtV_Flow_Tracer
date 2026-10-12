@@ -62,6 +62,13 @@ class SpringGoldenTest {
                 "GET /shop-api/api/v1/categories/{id}",
                 "GET /shop-api/api/v1/orders",
                 "GET /shop-api/api/v1/orders/${ExternalPaths.REPORT}",
+                "GET /shop-api/api/v1/orders/${shop.order.api-token}",
+                "GET /shop-api/api/v1/orders/${shop.order.env-path}",
+                "GET /shop-api/api/v1/orders/${shop.order.missing-path}",
+                "GET /shop-api/api/v1/orders/${shop.order.profile-path}",
+                "GET /shop-api/api/v1/orders/archive",
+                "GET /shop-api/api/v1/orders/exports",
+                "GET /shop-api/api/v1/orders/tokens",
                 "POST /shop-api/api/v1/categories",
                 "POST /shop-api/api/v1/categories/export",
                 "PUT /shop-api/api/v1/orders/{id}/status");
@@ -84,7 +91,21 @@ class SpringGoldenTest {
         assertThat(orders.attrs()).containsEntry("module", "Order").containsEntry("moduleSource", "CONTROLLER");
 
         assertThat(node(fragment, "GET /shop-api/api/v1/orders/${ExternalPaths.REPORT}").attrs())
-                .containsEntry("pathResolved", false);
+                .containsEntry("pathResolved", false)
+                .containsEntry("pathIssue", "CONSTANT");
+        // Thuộc tính cấu hình: cấu hình thắng mặc định trong code; biến môi trường có mặc định; còn lại KHÔNG đoán
+        IrNode exports = node(fragment, "GET /shop-api/api/v1/orders/exports");
+        assertThat(exports.attrs()).containsEntry("pathResolved", true);
+        assertThat(exports.attrs().get("pathSources"))
+                .isEqualTo(List.of("shop.order.export-path = /exports (src/main/resources/application.yml)"));
+        assertThat(node(fragment, "GET /shop-api/api/v1/orders/archive").attrs())
+                .containsEntry("pathResolved", true);
+        assertUnresolved(fragment, "env-path", "biến môi trường");
+        assertUnresolved(fragment, "missing-path", "không có trong file cấu hình mặc định");
+        assertUnresolved(fragment, "profile-path", "file theo profile");
+        assertUnresolved(fragment, "api-token", "nhạy cảm");
+        assertThat(node(fragment, "GET /shop-api/api/v1/orders/tokens").attrs()).containsEntry("pathResolved", true);
+        assertThat(json.writeValueAsString(fragment)).doesNotContain("khong-duoc-doc").doesNotContain("dev-only");
 
         assertThat(fragment.diagnostics()).extracting(Diagnostic::severity, Diagnostic::filePath)
                 .contains(
@@ -138,6 +159,12 @@ class SpringGoldenTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private static void assertUnresolved(IrFragment fragment, String key, String reasonPart) {
+        IrNode node = node(fragment, "GET /shop-api/api/v1/orders/${shop.order." + key + "}");
+        assertThat(node.attrs()).containsEntry("pathResolved", false).containsEntry("pathIssue", "PROPERTY");
+        assertThat((String) node.attrs().get("pathIssueReason")).contains(reasonPart);
     }
 
     private static IrNode node(IrFragment fragment, String name) {

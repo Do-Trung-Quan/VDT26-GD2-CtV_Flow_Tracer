@@ -1,8 +1,16 @@
-# Cấu hình mẫu — chỉ context-path được tool đọc
+# Cấu hình mẫu — tool chỉ đọc: context-path, và các khóa mà đường dẫn @GetMapping tham chiếu (tra theo yêu cầu)
 server:
   port: 8080
   servlet:
     context-path: /shop-api   # tiền tố của mọi API
+
+shop:
+  order:
+    export-path: /exports                  # thắng mặc định /export viết trong code
+    archive-path: ${ARCHIVE_PATH:/archive} # biến môi trường có mặc định → dùng /archive
+    env-path: ${ORDER_ENV_PATH}            # biến môi trường không mặc định → chưa giải được
+    token-path: /tokens                    # khóa có đoạn "token" nhưng đoạn cuối là "path" và giá trị bắt đầu bằng "/" → đọc
+    api-token: /khong-duoc-doc             # khóa nhạy cảm → không đọc dù có giá trị
 
 spring:
   datasource:

@@ -45,6 +45,7 @@
 </div>
 
 <app-toast-host />
+<app-scan-toast />
 
 @if (ctx.importOpen()) {
   <app-import-wizard (closed)="ctx.importOpen.set(false)" />

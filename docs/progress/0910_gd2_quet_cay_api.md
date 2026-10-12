@@ -1,13 +1,15 @@
 # Báo cáo Giai đoạn 2 — Quét & cây API Backend (09/10/2026)
 
 > **Mục tiêu giai đoạn:** bấm Quét trên giao diện, thấy tiến độ, rồi thấy cây API của dự án demo.
-> **Phần đã làm:** **BE** (Task 2.1 pipeline quét + lưu IR, Task 2.2 bộ phân tích Spring: endpoint và module, API C1).
+> **Phần đã làm:**
+> - **BE** (09/10): Task 2.1 pipeline quét + lưu IR; Task 2.2 bộ phân tích Spring (endpoint, module), API C1.
+> - **FE** (10/10, sau khi người dùng duyệt BE): Task 2.3, xem mục 6.
 > **Kết quả:**
 > - Engine `clean verify` xanh (74 test). Sidecar test xanh, web build được (chưa đổi FE).
 > - `check-forbidden-terms --all` sạch.
 > - Quét được dự án demo qua API thật.
 >
-> **Chưa commit**, chờ người dùng duyệt phần BE rồi mới làm FE (Task 2.3).
+> **Chưa commit**, chờ người dùng review.
 > Phần trước đó: [0910_gd1_workspace_import.md](0910_gd1_workspace_import.md).
 
 ---
@@ -141,3 +143,156 @@
 - **Ký tự NUL lọt vào mã nguồn** khi vá bằng script (escape `\u0000` bị dịch) → đã quét toàn bộ, thay bằng escape văn bản và bỏ hẳn cách so sánh dùng ký tự này.
 - **Hủy quét phải chờ tới 60 giây** khi đang đợi một file chạy lâu → đổi sang chờ theo nhịp 200 ms.
 - **Race "quét lại ngay sau khi xong bị `409`"** → mở khóa Workspace trước khi gửi sự kiện `done`.
+
+---
+
+## 6. Task 2.3 — Giao diện quét và cột trái Backend (FE, 10/10/2026)
+
+> Người dùng chưa trả lời câu hỏi về key endpoint trùng (mục 4), nên giữ nguyên cách hiện tại: chỉ giữ một bản và cảnh báo.
+
+### 6.1. Việc đã làm
+
+- **Kiểu API:**
+  - sinh lại bằng `gen:api` (nhóm B, C1, `lastScan`);
+  - sự kiện SSE `progress` không có trong OpenAPI, nên kiểu TypeScript `ScanProgressDto` được khai báo tay, khớp record Java.
+- **`ScanTracker` (dịch vụ dùng chung):**
+  - bắt đầu quét (B1), nhận tiến độ qua SSE (B2), hủy (B4);
+  - rớt SSE thì hỏi trạng thái qua B3 mỗi giây tới khi xong;
+  - mở lại trang khi quét chưa xong thì tự theo dõi tiếp.
+- **Khung tiến độ góc phải dưới:**
+  - 6 giai đoạn;
+  - thanh tiến độ tính từ **giai đoạn + số mục thật đã xử lý** (không ước lượng theo thời gian);
+  - thu nhỏ, hủy;
+  - khi xong: mỗi giai đoạn hiện **thời gian Engine đo**; giai đoạn không chạy hiện "bỏ qua";
+  - tóm tắt số file (+ / ~ / −) và số endpoint;
+  - liên kết "Xem N file lỗi" mở danh sách (B6) kèm lý do.
+- **Màn hình chính 3 cột:**
+  - **Cột trái:**
+    - tab Backend; tab Frontend tắt, chờ Giai đoạn 4;
+    - lọc nhanh theo đường dẫn / phương thức / mô tả / module, có tô sáng và số "khớp / tổng";
+    - module thu / mở, đếm số endpoint;
+    - nhãn phương thức có màu;
+    - icon cảnh báo khi đường dẫn chưa giải được;
+    - kéo đổi độ rộng (nhớ trong trình duyệt), thu gọn.
+  - **Canvas:**
+    - cụm nút nổi góc trái trên: chấm màu và trạng thái lần quét gần nhất kèm thời điểm, nút Quét / Quét lại;
+    - trạng thái rỗng.
+  - **Cột phải:** thông tin thật của endpoint đang chọn.
+    - Mô tả kèm nguồn (`@Operation` / Javadoc). Không có thì ghi rõ "mã nguồn không có @Operation hay Javadoc".
+    - Vị trí file:dòng, cảnh báo, `@Deprecated`.
+- **Cài đặt › tab Lịch sử quét:**
+  - cột Bắt đầu, Kiểu, Trạng thái, Tổng file, Mới, Thay đổi, Bị xóa, Lỗi (bấm để xem), Endpoint, Thời gian;
+  - phân trang;
+  - ghi chú cách đếm.
+- **Wizard Import** đổi thành "Tạo & quét": tạo xong chuyển sang màn hình chính và quét toàn bộ.
+- **Thẻ Workspace** hiện trạng thái và thời điểm lần quét gần nhất thật.
+
+### 6.2. Sửa phát sinh ở BE khi kiểm chứng trên demo
+
+- **Đường dẫn khai bằng thuộc tính cấu hình Spring trong chuỗi** (`"${khóa}"`) trước đó được coi như đã giải, không có cảnh báo, tức một kết quả thiếu căn cứ. Đã sửa:
+  - `${khóa:mặc định}` → dùng giá trị mặc định;
+  - `${khóa}` → `pathResolved = false`, `pathIssue = PROPERTY`, kèm cảnh báo;
+  - cây hiện thông báo riêng cho trường hợp này.
+- Thêm 2 ca vào `spring-mini` và sinh lại golden.
+- Trên demo: **4 endpoint** dùng thuộc tính không có giá trị mặc định nay được báo. Tổng cảnh báo là 7, gồm 3 trùng endpoint và 4 thuộc tính.
+
+### 6.3. Kết quả kiểm thử
+
+| Lệnh / kiểm thử | Kết quả |
+| :--- | :--- |
+| `mvnw -f engine/pom.xml clean verify` | ✅ 74 test (golden `spring-mini` nay 12 endpoint) |
+| `npm --prefix web run test` / `lint` / `build` | ✅ 23 test (thêm: lọc cây, tô sáng, định dạng, tiến độ, khung tiến độ) / sạch / build được |
+| `npm --prefix analyzer-node run test` | ✅ 8 test |
+| `check-forbidden-terms --all` | ✅ sạch |
+
+**Kiểm chứng trên giao diện** (Chrome headless, Engine dev + `ng serve`): 15/15 mục đạt.
+
+| # (roadmap) | Thao tác | Kết quả |
+| :--- | :--- | :--- |
+| 1 | Import demo → Tạo & quét | Toast hiện; quan sát được ≥ 3 giai đoạn đang chạy; xong thì cả 6 giai đoạn có thời gian đo |
+| 2 | Mở tab Backend | Cây hiện đúng số module / endpoint của API C1 (36 / 244) |
+| 3 | Sửa 1 file Java rồi Quét lại | Làm trên **bản sao của fixture tự viết `spring-mini`**, không sửa mã demo. Lịch sử ghi Mới 0 / Thay đổi 1 / Bị xóa 0 |
+| 4 | Hủy giữa chừng (lúc đang "Đọc & trích xuất") | Trạng thái Đã hủy, cây cũ còn nguyên 244 endpoint |
+
+Đã kiểm thêm:
+- lọc nhanh có tô sáng;
+- chọn endpoint → cột phải;
+- quét lại không đổi → 3 giai đoạn "bỏ qua";
+- tải lại trang khi đang quét → theo dõi tiếp;
+- danh sách file lỗi có lý do;
+- lịch sử 3 lần quét.
+
+**Lưu ý:** roadmap so số endpoint với `/v3/api-docs` của demo. Việc này cần chạy chính dự án demo, mà quy định cấm tool chạy dự án được phân tích, nên **người dùng tự đối chiếu**. Mình chỉ kiểm được cây khớp với API C1 của Engine.
+
+### 6.4. Việc còn dở
+
+- Tab Frontend, sequence diagram, Diễn giải: các giai đoạn sau.
+- Key endpoint trùng giữa các ứng dụng trong cùng Source: chờ người dùng quyết định (mục 4).
+
+---
+
+## 7. Bổ sung sau review (12/10/2026): giải thuộc tính cấu hình trong đường dẫn, tiêu đề API
+
+### 7.1. Giải `${khóa}` trong đường dẫn (`PropertyLookup`)
+
+Theo đề xuất của người dùng, có chỉnh sửa; xem căn cứ ở mục 7.3.
+
+- **Tra theo yêu cầu:** chỉ khi đường dẫn của `@GetMapping`… chứa `${…}` mới đọc `application.yml` / `.yaml` / `.properties` **mặc định** của module chứa file Java đó (module sâu nhất; `.properties` trước `.yml` như Spring).
+- **Thứ tự ưu tiên như Spring:**
+  1. giá trị trong file cấu hình;
+  2. mặc định viết trong code `${khóa:/mặc định}`;
+  3. không có gì thì giữ `${khóa}`, `pathResolved = false`.
+- Giá trị trong file cấu hình có thể lại là `${ENV:/x}`: lấy phần mặc định `/x`. Nếu là `${ENV}` không mặc định thì chưa giải được, lý do "lấy từ biến môi trường lúc chạy". Hỗ trợ tham chiếu sang khóa khác và có chặn vòng (tối đa 5 cấp).
+- **Lý do chưa giải được luôn cụ thể:** khóa vắng mặt, biến môi trường, chỉ có ở file profile (không biết profile nào chạy nên không dùng), khóa nhạy cảm, giá trị không phải đường dẫn, tham chiếu vòng.
+- **Căn cứ của giá trị đã giải** lưu trong `attrs.pathSources`, vd `khóa = /giá-trị (application.yml)` hoặc `(mặc định trong code)`.
+- **An toàn:**
+  - khóa có đoạn `password / secret / token / credential` bị chặn;
+  - giá trị đọc từ file cấu hình phải có dạng đường dẫn (không khoảng trắng, ≤ 200 ký tự);
+  - không lưu giá trị nào ngoài kết quả cuối là đường dẫn.
+  - `CLAUDE.md` §3.4 đã cập nhật cho khớp.
+
+### 7.2. Sửa `application.yml` thì Quét lại phải nhận ra
+
+- Trước đây chỉ file `.java` được so mã băm, nên sửa `application.yml` sẽ báo "không có thay đổi" và giữ đường dẫn cũ.
+- SPI `StackAdapter` thêm `affectsAnalysis(path)`. Spring khai báo `application*.yml / .yaml / .properties` trong `src/main/resources`.
+- Các file này được băm và lưu ở `source_files` với `language = 'config'` (không cần migration). Chúng **không** tính vào số file.
+- Có file cấu hình đổi thì Quét lại ghép kết quả lại: file `.java` lấy từ cache, chỉ chạy lại bước ghép và lưu.
+- Thống kê có thêm `configChanges`. Khung tiến độ ghi "Có N file cấu hình thay đổi… nên kết quả được ghép lại".
+
+### 7.3. Điều chỉnh so với đề xuất
+
+| Đề xuất ban đầu | Làm | Lý do |
+| :--- | :--- | :--- |
+| Mặc định trong code đứng trước cấu hình | Cấu hình thắng, mặc định trong code đứng sau | Spring dùng mặc định chỉ khi khóa vắng mặt. Bản trước của mình cũng sai chỗ này |
+| Chặn khóa chứa `key`, `auth`, `cert` | Chỉ chặn `password / passwd / secret / token / credential(s)` theo từng đoạn | `key`, `auth`, `cert` quá chung, chặn nhầm khóa đường dẫn hợp lệ |
+| Chặn mọi khóa có đoạn nhạy cảm | Cho phép khi **đoạn cuối** là `path / paths / endpoint / uri / route` **và** giá trị bắt đầu bằng `/` | Trên demo, khóa dạng `…token-path` là đường dẫn tới chức năng cấp token, bị chặn nhầm. Cần người dùng xác nhận quy tắc này |
+| Thêm kiểm tra | Giá trị phải có dạng đường dẫn | An toàn hơn danh sách tên |
+
+### 7.4. Lỗi tìm thấy khi chạy trên demo
+
+- **Mọi file `application.yml` lưu UTF-8 có BOM** (vd tạo bằng Notepad) bị đọc sai tên khóa đầu tiên, nên không tìm thấy khóa gốc.
+  - Lỗi này cũng làm bộ đọc `context-path` bỏ sót với các file loại đó.
+  - Đã sửa và thêm test.
+- Kết quả trên demo:
+
+| | Trước | Sau |
+| :--- | :--- | :--- |
+| Endpoint có `${…}` trong đường dẫn | 4 (chỉ cảnh báo, không giải được) | **0** (đều giải được từ `application.yml`) |
+| Cảnh báo của lần quét | 7 | 3 (đều là trùng endpoint) |
+| Quét lần đầu / quét lại không đổi | khoảng 8–11 giây / 3–6 giây | khoảng 7–10 giây / 3–4 giây |
+
+### 7.5. Tiêu đề API: giữ đường dẫn (người dùng quyết định, 12/10/2026)
+
+- Bản vẽ UI mẫu dùng **tên ngắn** làm nhãn trên cây và làm tiêu đề cột phải; Task 2.3 hiển thị **đường dẫn**. Đây là khác biệt so với bản vẽ, không phải quyết định thiết kế.
+- Mình đã thử đổi sang tên ngắn, nhưng trên demo chỉ 106/244 endpoint có mô tả (`@Operation` hoặc Javadoc), danh sách sẽ lẫn hai kiểu nhãn.
+- **Người dùng quyết định giữ đường dẫn** ở cây và tiêu đề cột phải; mô tả ngắn hiện ở tooltip và mục "Mô tả" (kèm nguồn). Đã hoàn lại.
+- **Yêu cầu cho các giai đoạn sau:** đầu ra phải theo UI mẫu; chỗ nào không làm được thì báo lại người dùng, không tự lệch.
+
+### 7.6. Kiểm thử
+
+| Lệnh | Kết quả |
+| :--- | :--- |
+| `mvnw -f engine/pom.xml clean verify` | ✅ 88 test (adapter-spring 27, app 20 + 18 IT; golden `spring-mini` nay 17 endpoint) |
+| `npm --prefix web run test` / `lint` / `build` | ✅ 24 test / sạch / build được |
+| `check-forbidden-terms --all` | ✅ sạch |
+

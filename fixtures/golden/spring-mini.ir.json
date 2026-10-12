@@ -166,8 +166,8 @@
     "name" : "GET /shop-api/api/v1/orders/${ExternalPaths.REPORT}",
     "location" : {
       "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
-      "startLine" : 29,
-      "endLine" : 32
+      "startLine" : 64,
+      "endLine" : 67
     },
     "attrs" : {
       "contextPath" : "/shop-api",
@@ -178,7 +178,167 @@
       "moduleSource" : "CONTROLLER",
       "params" : [ ],
       "path" : "/shop-api/api/v1/orders/${ExternalPaths.REPORT}",
+      "pathIssue" : "CONSTANT",
+      "pathIssueReason" : "không tìm thấy giá trị của hằng số ExternalPaths.REPORT",
       "pathResolved" : false,
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.api-token}",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/${shop.order.api-token}",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 49,
+      "endLine" : 52
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#secret()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/${shop.order.api-token}",
+      "pathIssue" : "PROPERTY",
+      "pathIssueReason" : "khóa shop.order.api-token thuộc nhóm nhạy cảm nên tool không đọc",
+      "pathResolved" : false,
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.env-path}",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/${shop.order.env-path}",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 44,
+      "endLine" : 47
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#env()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/${shop.order.env-path}",
+      "pathIssue" : "PROPERTY",
+      "pathIssueReason" : "khóa ORDER_ENV_PATH lấy từ biến môi trường lúc chạy, tool không biết giá trị",
+      "pathResolved" : false,
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.missing-path}",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/${shop.order.missing-path}",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 39,
+      "endLine" : 42
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#missing()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/${shop.order.missing-path}",
+      "pathIssue" : "PROPERTY",
+      "pathIssueReason" : "khóa shop.order.missing-path không có trong file cấu hình mặc định và code không có giá trị mặc định",
+      "pathResolved" : false,
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.profile-path}",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/${shop.order.profile-path}",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 59,
+      "endLine" : 62
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#profile()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/${shop.order.profile-path}",
+      "pathIssue" : "PROPERTY",
+      "pathIssueReason" : "khóa shop.order.profile-path chỉ có trong file theo profile, tool không biết profile nào được dùng",
+      "pathResolved" : false,
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/archive",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/archive",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 34,
+      "endLine" : 37
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#archive()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/archive",
+      "pathResolved" : true,
+      "pathSources" : [ "shop.order.archive-path = /archive (src/main/resources/application.yml)" ],
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/exports",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/exports",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 29,
+      "endLine" : 32
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#export()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/exports",
+      "pathResolved" : true,
+      "pathSources" : [ "shop.order.export-path = /exports (src/main/resources/application.yml)" ],
+      "responseType" : "String"
+    }
+  }, {
+    "key" : "java:endpoint:GET /shop-api/api/v1/orders/tokens",
+    "kind" : "API_ENDPOINT",
+    "name" : "GET /shop-api/api/v1/orders/tokens",
+    "location" : {
+      "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+      "startLine" : 54,
+      "endLine" : 57
+    },
+    "attrs" : {
+      "contextPath" : "/shop-api",
+      "controller" : "com.example.shop.order.OrderController",
+      "handler" : "OrderController#tokenPath()",
+      "httpMethod" : "GET",
+      "module" : "Order",
+      "moduleSource" : "CONTROLLER",
+      "params" : [ ],
+      "path" : "/shop-api/api/v1/orders/tokens",
+      "pathResolved" : true,
+      "pathSources" : [ "shop.order.token-path = /tokens (src/main/resources/application.yml)" ],
       "responseType" : "String"
     }
   }, {
@@ -274,8 +434,28 @@
   "diagnostics" : [ {
     "severity" : "WARNING",
     "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
-    "line" : 29,
-    "message" : "Không giải được hằng số trong đường dẫn của OrderController#report(); đường dẫn hiển thị giữ nguyên tên hằng số"
+    "line" : 39,
+    "message" : "Đường dẫn của OrderController#missing() chưa giải được: khóa shop.order.missing-path không có trong file cấu hình mặc định và code không có giá trị mặc định; đường dẫn hiển thị giữ nguyên phần chưa giải được"
+  }, {
+    "severity" : "WARNING",
+    "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+    "line" : 44,
+    "message" : "Đường dẫn của OrderController#env() chưa giải được: khóa ORDER_ENV_PATH lấy từ biến môi trường lúc chạy, tool không biết giá trị; đường dẫn hiển thị giữ nguyên phần chưa giải được"
+  }, {
+    "severity" : "WARNING",
+    "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+    "line" : 49,
+    "message" : "Đường dẫn của OrderController#secret() chưa giải được: khóa shop.order.api-token thuộc nhóm nhạy cảm nên tool không đọc; đường dẫn hiển thị giữ nguyên phần chưa giải được"
+  }, {
+    "severity" : "WARNING",
+    "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+    "line" : 59,
+    "message" : "Đường dẫn của OrderController#profile() chưa giải được: khóa shop.order.profile-path chỉ có trong file theo profile, tool không biết profile nào được dùng; đường dẫn hiển thị giữ nguyên phần chưa giải được"
+  }, {
+    "severity" : "WARNING",
+    "filePath" : "src/main/java/com/example/shop/order/OrderController.java",
+    "line" : 64,
+    "message" : "Đường dẫn của OrderController#report() chưa giải được: không tìm thấy giá trị của hằng số ExternalPaths.REPORT; đường dẫn hiển thị giữ nguyên phần chưa giải được"
   }, {
     "severity" : "ERROR",
     "filePath" : "src/main/java/com/example/shop/product/ProductController.java",

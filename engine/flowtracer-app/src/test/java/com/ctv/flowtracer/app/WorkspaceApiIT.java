@@ -215,13 +215,13 @@ class WorkspaceApiIT {
         assertThat(run.get("status").asString()).isEqualTo("PARTIAL");
         assertThat(run.get("stats").get("files").get("total").asInt()).isEqualTo(6);
         assertThat(run.get("stats").get("files").get("errors").asInt()).isEqualTo(1);
-        assertThat(run.get("stats").get("endpoints").asInt()).isEqualTo(10);
+        assertThat(run.get("stats").get("endpoints").asInt()).isEqualTo(17);
 
         var errors = call("GET", "/api/scans/" + runId + "/errors", null).data().get("items");
         assertThat(names(errors, "filePath")).containsExactly("src/main/java/com/example/shop/product/ProductController.java");
 
         var tree = call("GET", "/api/workspaces/" + id + "/trees/backend", null).data();
-        assertThat(tree.get("endpointCount").asInt()).isEqualTo(10);
+        assertThat(tree.get("endpointCount").asInt()).isEqualTo(17);
         assertThat(names(tree.get("modules"), "name")).containsExactly("Danh mục", "Order");
         assertThat(names(tree.get("modules"), "nameSource")).containsExactly("TAG", "CONTROLLER");
         assertThat(call("DELETE", "/api/workspaces/" + id, null).status).isEqualTo(200);

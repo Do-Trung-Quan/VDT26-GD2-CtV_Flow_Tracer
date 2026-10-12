@@ -18,6 +18,9 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "source_files", uniqueConstraints = @UniqueConstraint(columnNames = {"source_id", "rel_path"}))
 public class SourceFile {
 
+    /** Giá trị cột {@code language} của file cấu hình ảnh hưởng tới kết quả — không phải file được phân tích. */
+    public static final String LANGUAGE_CONFIG = "config";
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
