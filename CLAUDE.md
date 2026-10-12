@@ -29,7 +29,7 @@ Nếu tài liệu mâu thuẫn nhau, hoặc yêu cầu của người dùng mâu
 | **Vai trò** | Công cụ web chạy cục bộ: phân tích **tĩnh** mã nguồn dự án, dựng cây API Backend + cây thành phần Frontend, vẽ **sequence diagram End-to-End**, diễn giải bằng lời kèm dữ liệu mẫu |
 | **Kiến trúc** | **Monolith** Spring Boot, **package-by-feature** (`Controller → Service → Repository`); lõi phân tích là **module Maven Java thuần**; **sidecar Node.js** (CLI) phân tích Angular |
 | **Stack Engine** | Java 21 · Spring Boot 4.x · Maven multi-module · JavaParser (giải kiểu bằng `ClassIndex`, không dùng SymbolSolver) · Spring Data JPA + JdbcClient (batch) · Flyway · PostgreSQL 16 · Spring AI · springdoc-openapi · JUnit 5 + AssertJ + Testcontainers + ArchUnit |
-| **Stack sidecar** | Node.js 22 · TypeScript · TypeScript Compiler API · `@angular/compiler` · Vitest |
+| **Stack sidecar** | Node.js 22 · TypeScript · TypeScript Compiler API (đọc cây cú pháp; giải kiểu bằng `SymbolTable` + `DiResolver`, không dùng type checker) · `@angular/compiler` · Vitest |
 | **Stack Web** | Angular 21 (standalone, signals, OnPush) · Angular Material/CDK · kiểu API sinh từ OpenAPI |
 | **AI** | Gemini (mặc định) / Claude / OpenAI-compatible / none — qua Spring AI, sau interface `LlmProvider` |
 | **Triển khai** | Docker Compose (`flowtracer-app` = JRE 21 + Node 22, và `postgres`), chỉ lắng nghe `127.0.0.1:8600`; mã nguồn cần phân tích gắn vào ở chế độ **read-only** |
@@ -188,7 +188,7 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 - **Liên kết chốt tay luôn thắng:** `PIN` thay đích, `REJECT` bỏ cạnh. Áp dụng trước khi dò vết và giữ qua mọi lần quét lại.
 - **Mức tin cậy:** `CERTAIN` chỉ khi tham chiếu rõ ràng và duy nhất. So khớp có ký tự đại diện hoặc phải áp luật heuristic → `INFERRED`. Không có ứng viên hoặc nhiều ứng viên ngang điểm → `UNRESOLVED`, lưu `candidates`, chưa kết luận. Mức khớp ứng viên hiển thị Cao / Trung bình / Thấp, không hiển thị %.
 - **Mục đích (tab Diễn giải):** cache → AI viết 80–100 từ (kèm câu ràng buộc gọn, mỗi câu phải trỏ về một ràng buộc thô có thật) → AI lỗi/tắt thì `@Operation` → Javadoc → tài liệu đặc tả → câu khung. Thành phần chứa chỉ có tên, loại, mô tả ngắn.
-- **Diagram:** một mức hiển thị. Cột theo §2.2.4 của overview (Frontend gộp 1 cột; mỗi Controller/Service/Repository 1 cột; mỗi bảng dữ liệu 1 cột "Bảng <tên>", truy vấn không rõ bảng dùng cột "Database" chung). Nhãn mũi tên ngắn, kỹ thuật, tất định (tên API, tên hàm, thao tác dữ liệu).
+- **Diagram:** một mức hiển thị. Cột theo §2.2.4 của overview (Frontend gộp 1 cột; mỗi Controller/Service/Repository 1 cột; mỗi bảng dữ liệu 1 cột "Bảng <tên>", truy vấn không rõ bảng dùng cột "Database" chung). Nhãn mũi tên ngắn, kỹ thuật, tất định (tên API, tên hàm, thao tác dữ liệu). Luồng xuất phát từ phần tử giao diện không gọi máy chủ chỉ có 2 cột User ↔ Frontend (`uiOnly`).
 - **Dữ liệu mẫu:**
   - AI sinh **một lần** từ JSON Schema của DTO (không có dữ liệu thật).
   - Kết quả phải **khớp schema** rồi mới lưu cache; lần sau dùng lại cho tới khi DTO đổi.

@@ -16,6 +16,7 @@ RUN cd analyzer-node && npm run build && npm prune --omit=dev
 
 FROM eclipse-temurin:21-jdk AS engine
 WORKDIR /src/engine
+COPY contracts/ /src/contracts/
 COPY engine/ ./
 COPY --from=web /src/web/dist/flowtracer-web/browser/ flowtracer-app/src/main/resources/static/
 RUN ./mvnw -B -q -DskipTests package

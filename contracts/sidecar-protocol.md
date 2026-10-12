@@ -43,7 +43,8 @@ File lỗi cú pháp **không** làm sidecar thoát với mã khác 0: sidecar g
 ## Ràng buộc an toàn
 
 - Chỉ **đọc** đúng các file trong `files[]`, bên trong `sourceRoot`; từ chối đường dẫn chứa `..` hoặc symlink trỏ ra ngoài.
-- Chỉ **ghi** vào `cacheDir` (cache dữ kiện pha 1, tên file = `<hash>.json`).
+- Chỉ **ghi** vào `cacheDir` (cache dữ kiện pha 1, tên file = `<hash>.json`, nội dung `{ "v": <phiên bản cách trích dữ kiện>, "facts": … }`; phiên bản khác thì bỏ cache cũ). Engine đặt `cacheDir` trong cây cache của Workspace (`<data-dir>/facts/<workspaceId>/sidecar-<adapter>-v<phiên bản>/<sourceId>`) nên cache bị xóa cùng Workspace.
+- `files[]` gồm cả file cấu hình sidecar cần đọc (`angular.json`, tsconfig, proxy, `package.json`, `federation.config.js`, từ điển tiếng Việt `vi.json`), không chỉ mã nguồn; Engine chọn bằng `SidecarStackAdapter.analyzes`.
 - Không gọi mạng, không chạy mã của dự án được phân tích.
 - Kết quả phải **tất định**: node sắp theo `key`, edge sắp theo `fromKey → kind → callOrder → toKey`.
 

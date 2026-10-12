@@ -1,13 +1,15 @@
 package com.ctv.flowtracer.core.tracer;
 
 import com.ctv.flowtracer.core.graph.Subgraph;
+import com.ctv.flowtracer.ir.NodeKind;
 import com.ctv.flowtracer.ir.trace.Trace;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * CỐT LÕI: dò vết End-to-End theo {@code callOrder} từ node xuất phát. Giai đoạn 3 hỗ trợ xuất phát từ một API Backend
- * (cột Client → Controller → Service → Repository → Database); xuất phát từ phần tử giao diện làm ở Giai đoạn 4–5.
+ * CỐT LÕI: dò vết End-to-End theo {@code callOrder} từ node xuất phát. Hỗ trợ xuất phát từ một API Backend (cột Client →
+ * Controller → Service → Repository → Database) và từ một phần tử giao diện KHÔNG gọi máy chủ ({@link UiOnlyTracer}: cột User
+ * ↔ Frontend). Phần tử gọi API cần nối FE với BE nên làm ở Giai đoạn 5.
  *
  * <p>Tất định: cùng đồ thị và cùng yêu cầu cho cùng {@link Trace}. Không bao giờ chọn hộ đích của lời gọi chưa xác định —
  * chỉ liên kết chốt tay ({@link OverrideApplier}) mới đổi được.
@@ -35,6 +37,9 @@ public final class Tracer {
 
     /** Như {@link #trace(Subgraph, TraceRequest)} với giới hạn số bước khác (dùng để đo mức rút gọn). */
     public Trace trace(Subgraph graph, TraceRequest request, int maxSteps) {
+        if (graph.nodes().stream().anyMatch(n -> n.key().equals(request.startKey()) && n.kind() == NodeKind.UI_ELEMENT)) {
+            return new UiOnlyTracer().trace(graph, request);
+        }
         Subgraph applied = overrides.apply(graph, request.overrides());
         int depth = request.maxDepth();
         Trace full = new TraceRun(applied, request, new TraceRun.Options(true, true, false, depth)).run();
@@ -60,6 +65,7 @@ public final class Tracer {
         List<String> warnings = new ArrayList<>();
         warnings.add(note);
         warnings.addAll(trace.warnings());
-        return new Trace(trace.traceId(), trace.startKey(), trace.participants(), trace.steps(), trace.blocks(), warnings);
+        return new Trace(
+                trace.traceId(), trace.startKey(), trace.participants(), trace.steps(), trace.blocks(), warnings, trace.uiOnly());
     }
 }

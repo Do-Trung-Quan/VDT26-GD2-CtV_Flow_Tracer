@@ -49,6 +49,8 @@ export interface SequenceTrace {
   steps: Step[];
   blocks: Block[];
   warnings: string[];
+  /** Luồng chỉ gồm User và Frontend, không gọi máy chủ. */
+  uiOnly: boolean;
 }
 
 /** Đổi kiểu sinh từ OpenAPI (mọi trường tùy chọn) sang kiểu chặt dùng để vẽ. */
@@ -93,7 +95,8 @@ export function normalizeTrace(dto: TraceDto): SequenceTrace {
       toStep: b.toStep ?? 0,
       elseBranches: (b.elseBranches ?? []).map((e) => ({ label: e.label ?? '', fromStep: e.fromStep ?? 0 }))
     })),
-    warnings: dto.warnings ?? []
+    warnings: dto.warnings ?? [],
+    uiOnly: dto.uiOnly ?? false
   };
 }
 

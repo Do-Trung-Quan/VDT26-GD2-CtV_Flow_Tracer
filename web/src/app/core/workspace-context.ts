@@ -14,6 +14,8 @@ export class WorkspaceContext {
   /** Workspace đang mở (lấy từ URL /w/:id). */
   readonly currentId = signal<string | null>(null);
   readonly importOpen = signal(false);
+  /** Bảng tìm nhanh Ctrl+K đang mở. */
+  readonly paletteOpen = signal(false);
 
   async reload(): Promise<void> {
     this.loading.set(true);

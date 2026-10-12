@@ -148,6 +148,22 @@ export interface paths {
         patch: operations["update_2"];
         trace?: never;
     };
+    "/api/workspaces/{id}/trees/frontend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["frontend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{id}/trees/backend": {
         parameters: {
             query?: never;
@@ -172,6 +188,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{id}/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["search"];
         put?: never;
         post?: never;
         delete?: never;
@@ -388,6 +420,7 @@ export interface components {
             steps?: components["schemas"]["TraceStepResponse"][];
             blocks?: components["schemas"]["TraceBlockResponse"][];
             warnings?: string[];
+            uiOnly?: boolean;
         };
         TraceStepResponse: {
             /** Format: int32 */
@@ -582,6 +615,44 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        ApiResponseFrontendTreeResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["FrontendTreeResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        FrontendTreeResponse: {
+            /** Format: int32 */
+            appCount?: number;
+            /** Format: int32 */
+            screenCount?: number;
+            /** Format: int32 */
+            elementCount?: number;
+            apps?: components["schemas"]["UiTreeNodeResponse"][];
+        };
+        UiTreeNodeResponse: {
+            nodeKey?: string;
+            /** @enum {string} */
+            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
+            name?: string;
+            displayName?: string;
+            fallbackName?: string;
+            elementType?: string;
+            callsApi?: boolean;
+            leadsToApi?: boolean;
+            routePath?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceName?: string;
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+            children?: components["schemas"]["UiTreeNodeResponse"][];
+        };
         ApiModuleResponse: {
             name?: string;
             nameSource?: string;
@@ -637,6 +708,41 @@ export interface components {
             fileName?: string;
             mediaType?: string;
             content?: string;
+        };
+        ApiResponseSearchResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["SearchResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        SearchGroupResponse: {
+            /** @enum {string} */
+            category?: "API" | "SCREEN" | "ELEMENT" | "TABLE" | "CODE";
+            label?: string;
+            /** Format: int32 */
+            total?: number;
+            hits?: components["schemas"]["SearchHitResponse"][];
+        };
+        SearchHitResponse: {
+            nodeKey?: string;
+            /** @enum {string} */
+            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
+            name?: string;
+            displayName?: string;
+            context?: string;
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+        };
+        SearchResponse: {
+            query?: string;
+            /** Format: int32 */
+            total?: number;
+            groups?: components["schemas"]["SearchGroupResponse"][];
         };
         ApiResponsePageResponseScanRunResponse: {
             /** Format: int32 */
@@ -1088,6 +1194,28 @@ export interface operations {
             };
         };
     };
+    frontend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseFrontendTreeResponse"];
+                };
+            };
+        };
+    };
     backend: {
         parameters: {
             query?: never;
@@ -1131,6 +1259,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseTraceExportResponse"];
+                };
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query: {
+                q: string;
+                kinds?: ("API" | "SCREEN" | "ELEMENT" | "TABLE" | "CODE")[];
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSearchResponse"];
                 };
             };
         };

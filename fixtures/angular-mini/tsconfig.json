@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shop/shared": ["projects/shared-lib/src/public-api.ts"]
+    }
+  }
+}

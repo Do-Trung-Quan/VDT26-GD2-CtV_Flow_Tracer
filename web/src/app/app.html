@@ -8,11 +8,12 @@
     }
   </select>
   <div class="sp1 center">
-    <div class="hsearch" title="Tìm kiếm nhanh có từ Giai đoạn 4">
+    <button class="hsearch" type="button" (click)="openPalette()"
+      [title]="ctx.currentId() ? 'Tìm kiếm nhanh trong Workspace đang mở' : 'Chọn một Workspace để tìm kiếm'">
       <app-icon name="search" [small]="true" />
-      <span>Tìm API, màn hình, phần tử… (sắp có)</span>
+      <span class="ht">{{ searchHint() }}</span>
       <kbd>Ctrl K</kbd>
-    </div>
+    </button>
   </div>
   <a class="hai" routerLink="/settings/ai" title="Cấu hình AI làm ở Giai đoạn 7 — hiện chạy với AI tắt">
     <span class="dot"></span>AI tắt
@@ -49,4 +50,8 @@
 
 @if (ctx.importOpen()) {
   <app-import-wizard (closed)="ctx.importOpen.set(false)" />
+}
+
+@if (ctx.paletteOpen() && ctx.currentId(); as id) {
+  <app-search-palette [workspaceId]="id" (picked)="openHit(id, $event)" (closed)="ctx.paletteOpen.set(false)" />
 }

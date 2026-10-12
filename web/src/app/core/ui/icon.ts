@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git' | 'minus' | 'fit' | 'download' | 'code' | 'copy' | 'chevd' | 'image';
+export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git' | 'minus' | 'fit' | 'download' | 'code' | 'copy' | 'chevd' | 'image' | 'layers' | 'window' | 'file' | 'cursor' | 'input' | 'table' | 'bolt' | 'db';
 
 /** Icon SVG nét mảnh (stroke 1.8) theo bản vẽ giao diện; không tải gì từ mạng. */
 @Component({
@@ -82,6 +82,30 @@ export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'sear
       }
       @case ('image') {
         <svg:rect x="3" y="4" width="18" height="16" rx="2"/><svg:circle cx="9" cy="10" r="1.6"/><svg:path d="m21 16-5-5-9 9"/>
+      }
+      @case ('layers') {
+        <svg:path d="m12 3 9 5-9 5-9-5z"/><svg:path d="m3 13 9 5 9-5"/>
+      }
+      @case ('window') {
+        <svg:rect x="3" y="4" width="18" height="16" rx="2"/><svg:path d="M3 9h18M7 6.5h.01M10 6.5h.01"/>
+      }
+      @case ('file') {
+        <svg:path d="M6 3h8l4 4v14H6z"/><svg:path d="M14 3v4h4M9 12h6M9 16h6"/>
+      }
+      @case ('cursor') {
+        <svg:path d="m5 3 14 7-6 2-2 6z"/>
+      }
+      @case ('input') {
+        <svg:rect x="3" y="8" width="18" height="8" rx="2"/><svg:path d="M7 12h.01M11 12h5"/>
+      }
+      @case ('table') {
+        <svg:rect x="3" y="5" width="18" height="14" rx="2"/><svg:path d="M3 10h18M3 15h18M9 5v14"/>
+      }
+      @case ('bolt') {
+        <svg:path d="M13 2 4 14h7l-1 8 9-12h-7z"/>
+      }
+      @case ('db') {
+        <svg:ellipse cx="12" cy="6" rx="8" ry="3"/><svg:path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>
       }
       @case ('git') {
         <svg:circle cx="6" cy="6" r="2"/><svg:circle cx="6" cy="18" r="2"/><svg:circle cx="18" cy="9" r="2"/><svg:path d="M6 8v8M18 11c0 4-6 3-11 6"/>

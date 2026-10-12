@@ -3,6 +3,12 @@ package com.ctv.flowtracer.app.graph.service;
 import com.ctv.flowtracer.app.common.error.AppException;
 import com.ctv.flowtracer.app.common.error.ErrorCode;
 import com.ctv.flowtracer.app.graph.dto.response.BackendTreeResponse;
+import com.ctv.flowtracer.app.graph.dto.response.FrontendTreeResponse;
+import com.ctv.flowtracer.app.graph.dto.response.SearchGroupResponse;
+import com.ctv.flowtracer.app.graph.dto.response.SearchHitResponse;
+import com.ctv.flowtracer.app.graph.dto.response.SearchResponse;
+import com.ctv.flowtracer.app.graph.model.SearchCategory;
+import com.ctv.flowtracer.app.graph.model.SearchHitRow;
 import com.ctv.flowtracer.app.graph.model.IrEdgeRow;
 import com.ctv.flowtracer.app.graph.model.IrNodeRow;
 import com.ctv.flowtracer.app.graph.repository.IrEdgeRepository;
@@ -14,6 +20,9 @@ import com.ctv.flowtracer.ir.IrEdge;
 import com.ctv.flowtracer.ir.IrNode;
 import com.ctv.flowtracer.ir.NodeKind;
 import com.ctv.flowtracer.ir.SourceRole;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +62,85 @@ public class GraphQueryService {
             }
         }
         return TreeBuilder.backend(nodes.findByKind(workspaceId, NodeKind.API_ENDPOINT, backendSources.keySet()), backendSources);
+    }
+
+    /**
+     * API C2: cây {@code Ứng dụng → Màn hình → Tab / Hộp thoại / Form → Phần tử} của các Source Frontend, kèm cờ phần tử
+     * "gọi API" hay "chỉ giao diện" (suy ra từ đồ thị: sự kiện → hàm xử lý → lời gọi HTTP).
+     *
+     * @throws com.ctv.flowtracer.app.common.error.AppException {@code WORKSPACE_NOT_FOUND}
+     */
+    @Transactional(readOnly = true)
+    public FrontendTreeResponse frontendTree(UUID workspaceId) {
+        Map<UUID, String> frontendSources = new LinkedHashMap<>();
+        for (SourceScanTarget s : workspaceService.scanTargets(workspaceId)) {
+            if (s.role() == SourceRole.FRONTEND) {
+                frontendSources.put(s.sourceId(), s.name());
+            }
+        }
+        var kinds = new ArrayList<>(SearchCategory.SCREEN.kinds());
+        kinds.add(NodeKind.UI_ELEMENT);
+        return TreeBuilder.frontend(
+                nodes.findByKinds(workspaceId, kinds, frontendSources.keySet()),
+                edges.findContains(workspaceId, frontendSources.keySet()),
+                edges.findUiKeysCallingApi(workspaceId),
+                edges.findUiLinks(workspaceId),
+                frontendSources);
+    }
+
+    /**
+     * API C3: tìm kiếm nhanh theo đường dẫn API, nhãn nút, tên màn hình, tên class / hàm, tên bảng; kết quả nhóm theo loại.
+     *
+     * @param query từ khóa; nhiều từ cách nhau bằng khoảng trắng thì thành phần phải khớp TẤT CẢ các từ
+     * @param categories chỉ tìm trong các nhóm này; rỗng hoặc null là mọi nhóm
+     * @param limitPerGroup số kết quả tối đa mỗi nhóm
+     * @throws com.ctv.flowtracer.app.common.error.AppException {@code WORKSPACE_NOT_FOUND}
+     */
+    @Transactional(readOnly = true)
+    public SearchResponse search(UUID workspaceId, String query, List<SearchCategory> categories, int limitPerGroup) {
+        workspaceService.requireExists(workspaceId);
+        List<String> tokens = Arrays.stream(query.trim().split("\\s+")).filter(t -> !t.isEmpty()).toList();
+        List<SearchCategory> wanted = categories == null || categories.isEmpty() ? List.of(SearchCategory.values()) : categories;
+        Map<SearchCategory, List<SearchHitRow>> grouped = nodes.search(workspaceId, tokens, wanted, limitPerGroup).stream()
+                .collect(Collectors.groupingBy(
+                        h -> SearchCategory.of(h.row().node().kind()), () -> new EnumMap<>(SearchCategory.class), Collectors.toList()));
+        var groups = new ArrayList<SearchGroupResponse>();
+        long total = 0;
+        for (var entry : grouped.entrySet()) {
+            List<SearchHitRow> rows = entry.getValue();
+            long groupTotal = rows.get(0).categoryTotal();
+            total += groupTotal;
+            groups.add(new SearchGroupResponse(
+                    entry.getKey(),
+                    entry.getKey().label(),
+                    (int) groupTotal,
+                    rows.stream().map(h -> hit(h.row().node())).toList()));
+        }
+        return new SearchResponse(String.join(" ", tokens), (int) total, List.copyOf(groups));
+    }
+
+    private static SearchHitResponse hit(IrNode node) {
+        Map<String, Object> attrs = node.attrs();
+        String context = switch (node.kind()) {
+            case API_ENDPOINT -> text(attrs.get("module"));
+            case UI_SCREEN -> text(attrs.get("routePath"));
+            case UI_ELEMENT, UI_DIALOG, UI_FORM, UI_TAB -> text(attrs.get("component"));
+            case BE_METHOD, FE_METHOD -> text(attrs.get("layer"));
+            case DB_TABLE -> text(attrs.get("entity"));
+            default -> null;
+        };
+        return new SearchHitResponse(
+                node.key(),
+                node.kind(),
+                node.name(),
+                node.displayName(),
+                context,
+                node.location() == null ? null : node.location().filePath(),
+                node.location() == null ? null : node.location().startLine());
+    }
+
+    private static String text(Object value) {
+        return value == null ? null : value.toString();
     }
 
     /**

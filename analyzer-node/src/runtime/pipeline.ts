@@ -12,7 +12,7 @@ const CONCURRENCY = 8;
 export async function runPipeline(adapter: NodeAdapter, request: AnalyzeRequest): Promise<IrFragment> {
   const files = [...request.files].sort((a, b) => a.path.localeCompare(b.path));
   const access = new FileAccess(request.sourceRoot, files.map((f) => f.path));
-  const cache = new FactsCache(request.cacheDir);
+  const cache = new FactsCache(request.cacheDir, adapter.factsVersion);
 
   const facts: unknown[] = new Array(files.length);
   let processed = 0;
@@ -25,7 +25,8 @@ export async function runPipeline(adapter: NodeAdapter, request: AnalyzeRequest)
           result = await adapter.extract({ path: file.path, hash: file.hash, content: await access.read(file.path) });
           await cache.put(file.hash, result);
         }
-        facts[i + j] = result;
+        // cùng nội dung ở hai đường dẫn dùng chung một mục cache: gán lại đường dẫn của file đang xét
+        facts[i + j] = withPath(result, file.path);
       })
     );
     processed += batch.length;
@@ -49,4 +50,8 @@ function sortFragment(fragment: IrFragment): IrFragment {
         (a.toKey ?? '').localeCompare(b.toKey ?? '')
     )
   };
+}
+
+function withPath(facts: unknown, path: string): unknown {
+  return typeof facts === 'object' && facts !== null && 'path' in facts ? { ...facts, path } : facts;
 }

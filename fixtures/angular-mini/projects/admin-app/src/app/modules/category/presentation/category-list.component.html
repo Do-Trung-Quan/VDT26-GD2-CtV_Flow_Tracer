@@ -1,0 +1,21 @@
+<section class="category-list">
+  <div class="toolbar">
+    <input type="search" [placeholder]="t('search_placeholder')" (change)="onSearch($any($event.target).value)" />
+    <button type="button" id="btn-create" (click)="openCreate()">{{ t('create') }}</button>
+    <button type="button" (click)="onExport()">{{ t('export_excel') }}</button>
+    <button type="button" (click)="onRefresh()"><mat-icon>refresh</mat-icon></button>
+    <button type="button" (click)="onDownload()">Tải về</button>
+  </div>
+  <table>
+    @for (item of facade.items; track item.id) {
+      <tr>
+        <td>{{ item.code }}</td>
+        <td>{{ item.name }}</td>
+        <td>
+          <button type="button" (click)="onEdit(item.id)">Sửa</button>
+          <button type="button" (click)="onDelete(item.id)">{{ t('remove') }}</button>
+        </td>
+      </tr>
+    }
+  </table>
+</section>

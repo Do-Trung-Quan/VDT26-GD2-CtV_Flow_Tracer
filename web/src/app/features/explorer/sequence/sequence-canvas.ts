@@ -78,6 +78,11 @@ export interface StepTip {
     </div>
 
     @if (layout() && !loading() && !error() && layout()!.steps.length) {
+      @if (trace()?.uiOnly) {
+        <div class="alertbar info">
+          <app-icon name="info" [small]="true" />Không gọi máy chủ — thao tác chỉ diễn ra trên giao diện
+        </div>
+      }
       @if (unresolved().length) {
         <div class="alertbar">
           <app-icon name="alert" [small]="true" />{{ unresolved().length }} bước chưa xác định
@@ -170,6 +175,7 @@ export interface StepTip {
       position: absolute; top: 18px; right: 14px; z-index: 7; background: var(--amber-l); color: var(--amber); border-radius: 999px;
       padding: 6px 14px; font-size: 13px; box-shadow: var(--sh-md), inset 0 0 0 1px #fde68a; display: flex; gap: 10px; align-items: center; white-space: nowrap;
     }
+    .alertbar.info { background: #f3f4f6; color: var(--t2); box-shadow: var(--sh-md), var(--ring); }
     .tip {
       position: fixed; z-index: 400; background: #111827; color: #fff; font-size: 12.5px; padding: 8px 10px; border-radius: 8px;
       max-width: 320px; pointer-events: none; box-shadow: var(--sh-lg); overflow-wrap: anywhere;

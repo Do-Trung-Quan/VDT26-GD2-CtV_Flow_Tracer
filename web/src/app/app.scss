@@ -11,8 +11,10 @@
 .center { display: flex; justify-content: center; }
 .hsearch {
   height: 36px; width: min(620px, 100%); padding: 0 10px 0 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.95);
-  color: var(--t4); font-size: 13.5px; display: flex; align-items: center; gap: 8px; cursor: not-allowed;
+  color: var(--t3); font: 13.5px var(--font); border: 0; text-align: left; display: flex; align-items: center; gap: 8px; cursor: pointer;
 }
+.hsearch:hover { background: #fff; }
+.hsearch .ht { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hsearch kbd { margin-left: auto; font: 11px var(--mono); border-radius: 4px; padding: 1px 5px; box-shadow: var(--ring); }
 .hai, .hbtn {
   height: 34px; padding: 0 12px; border: 0; background: rgba(255, 255, 255, 0.14); color: #fff;

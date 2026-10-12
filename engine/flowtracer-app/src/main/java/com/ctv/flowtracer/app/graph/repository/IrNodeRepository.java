@@ -1,6 +1,8 @@
 package com.ctv.flowtracer.app.graph.repository;
 
 import com.ctv.flowtracer.app.graph.model.IrNodeRow;
+import com.ctv.flowtracer.app.graph.model.SearchCategory;
+import com.ctv.flowtracer.app.graph.model.SearchHitRow;
 import com.ctv.flowtracer.ir.IrNode;
 import com.ctv.flowtracer.ir.NodeKind;
 import com.ctv.flowtracer.ir.SourceLocation;
@@ -9,11 +11,14 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -138,6 +143,99 @@ public class IrNodeRepository {
                 .param("sources", sourceIds)
                 .query(this::mapRow)
                 .list();
+    }
+
+    /** Node thuộc một trong các loại, chỉ trong các Source cho trước, sắp theo key. */
+    public List<IrNodeRow> findByKinds(UUID workspaceId, Collection<NodeKind> kinds, Collection<UUID> sourceIds) {
+        if (sourceIds.isEmpty() || kinds.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.sql(SELECT + " WHERE n.workspace_id = :ws AND n.kind IN (:kinds) AND n.source_id IN (:sources) ORDER BY n.key")
+                .param("ws", workspaceId)
+                .param("kinds", kinds.stream().map(NodeKind::name).toList())
+                .param("sources", sourceIds)
+                .query(this::mapRow)
+                .list();
+    }
+
+    /**
+     * Tìm kiếm nhanh: mỗi từ khóa phải khớp tên, nhãn hiển thị hoặc key (chuỗi con, không phân biệt hoa thường) hoặc khớp
+     * tiền tố một từ trong chỉ mục toàn văn {@code search_text}. Kết quả xếp theo độ khớp (khớp đúng, bắt đầu bằng, chứa),
+     * giữ tối đa {@code limitPerCategory} kết quả mỗi nhóm kèm tổng số khớp của nhóm.
+     */
+    public List<SearchHitRow> search(
+            UUID workspaceId, List<String> tokens, Collection<SearchCategory> categories, int limitPerCategory) {
+        if (tokens.isEmpty() || categories.isEmpty()) {
+            return List.of();
+        }
+        String phrase = String.join(" ", tokens).toLowerCase(Locale.ROOT);
+        var where = new StringBuilder();
+        var params = new LinkedHashMap<String, Object>();
+        for (int i = 0; i < tokens.size(); i++) {
+            where.append(" AND (n.name ILIKE :t").append(i).append(" OR n.display_name ILIKE :t").append(i)
+                    .append(" OR n.key ILIKE :t").append(i);
+            params.put("t" + i, "%" + escapeLike(tokens.get(i)) + "%");
+            String prefixQuery = tsPrefix(tokens.get(i));
+            if (prefixQuery != null) {
+                where.append(" OR n.search_text @@ to_tsquery('simple', :q").append(i).append(")");
+                params.put("q" + i, prefixQuery);
+            }
+            where.append(")");
+        }
+        String sql = """
+                SELECT id, workspace_id, source_id, file_id, key, kind, name, display_name, start_line, end_line, attrs, file_path, total
+                FROM (
+                    SELECT s.*, COUNT(*) OVER (PARTITION BY s.cat) AS total,
+                           ROW_NUMBER() OVER (PARTITION BY s.cat ORDER BY s.rank, s.key) AS rn
+                    FROM (
+                        SELECT n.id, n.workspace_id, n.source_id, n.file_id, n.key, n.kind, n.name, n.display_name,
+                               n.start_line, n.end_line, n.attrs,
+                               (SELECT rel_path FROM source_files f WHERE f.id = n.file_id) AS file_path,
+                               %s AS cat,
+                               CASE
+                                   WHEN lower(coalesce(n.display_name, n.name)) = :phrase OR lower(n.name) = :phrase THEN 0
+                                   WHEN lower(coalesce(n.display_name, n.name)) LIKE :phrasePrefix
+                                        OR lower(n.name) LIKE :phrasePrefix THEN 1
+                                   ELSE 2
+                               END AS rank
+                        FROM ir_nodes n
+                        WHERE n.workspace_id = :ws AND n.kind IN (:kinds) %s
+                    ) s
+                ) t
+                WHERE rn <= :limit
+                ORDER BY cat, rn
+                """.formatted(categoryExpression(), where);
+        var spec = jdbc.sql(sql)
+                .param("ws", workspaceId)
+                .param("kinds", categories.stream().flatMap(c -> c.kinds().stream()).map(NodeKind::name).toList())
+                .param("phrase", phrase)
+                .param("phrasePrefix", escapeLike(phrase) + "%")
+                .param("limit", limitPerCategory);
+        for (var e : params.entrySet()) {
+            spec = spec.param(e.getKey(), e.getValue());
+        }
+        return spec.query((rs, i) -> new SearchHitRow(mapRow(rs, i), rs.getLong("total"))).list();
+    }
+
+    /** {@code CASE} gán mỗi loại node vào nhóm tìm kiếm của nó (chỉ gồm hằng số của enum, không có dữ liệu người dùng). */
+    private static String categoryExpression() {
+        var sb = new StringBuilder("CASE");
+        for (SearchCategory c : SearchCategory.values()) {
+            String kinds = c.kinds().stream().map(k -> "'" + k.name() + "'").collect(Collectors.joining(", "));
+            sb.append(" WHEN n.kind IN (").append(kinds).append(") THEN '").append(c.name()).append("'");
+        }
+        return sb.append(" END").toString();
+    }
+
+    /** Thoát ký tự đặc biệt của LIKE (mặc định dấu thoát của PostgreSQL là {@code \}). */
+    private static String escapeLike(String text) {
+        return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    /** Từ khóa → truy vấn tiền tố {@code từ:*} cho tsvector kiểu 'simple'; null nếu không còn ký tự chữ/số nào. */
+    private static String tsPrefix(String token) {
+        String cleaned = token.replaceAll("[^\\p{L}\\p{N}]", "");
+        return cleaned.isEmpty() ? null : cleaned + ":*";
     }
 
     /** Node theo danh sách id (cùng Workspace), sắp theo key. */

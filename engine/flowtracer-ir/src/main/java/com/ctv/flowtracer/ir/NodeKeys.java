@@ -53,6 +53,36 @@ public final class NodeKeys {
         return join(ANGULAR, "element", app + "/" + component + "#" + elementId);
     }
 
+    /** {@code ng:app:<app>} */
+    public static String ngApp(String app) {
+        return join(ANGULAR, "app", app);
+    }
+
+    /** {@code ng:screen:<app>/<đường dẫn route>} — đường dẫn bắt đầu bằng '/'. */
+    public static String ngScreen(String app, String routePath) {
+        return join(ANGULAR, "screen", app + (routePath.startsWith("/") ? "" : "/") + routePath);
+    }
+
+    /** {@code ng:dialog:<app>/<class>} */
+    public static String ngDialog(String app, String className) {
+        return join(ANGULAR, "dialog", app + "/" + className);
+    }
+
+    /** {@code ng:form:<app>/<component>#<mã form>} */
+    public static String ngForm(String app, String component, String formId) {
+        return join(ANGULAR, "form", app + "/" + component + "#" + formId);
+    }
+
+    /** {@code ng:tab:<app>/<component>#<mã tab>} */
+    public static String ngTab(String app, String component, String tabId) {
+        return join(ANGULAR, "tab", app + "/" + component + "#" + tabId);
+    }
+
+    /** {@code ng:method:<app>/<class>#<method>} */
+    public static String ngMethod(String app, String className, String methodName) {
+        return join(ANGULAR, "method", app + "/" + className + "#" + methodName);
+    }
+
     /** {@code ng:http:<app>/<class>#<method>:<thứ tự>} */
     public static String ngHttpCall(String app, String className, String methodName, int index) {
         return join(ANGULAR, "http", app + "/" + className + "#" + methodName + ":" + index);

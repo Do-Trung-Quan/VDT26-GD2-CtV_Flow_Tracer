@@ -60,7 +60,8 @@ npm --prefix web start                                                          
 | 1 | Workspace & Import dự án — nhật ký: `docs/progress/0910_gd1_workspace_import.md` | ✅ Xong, chờ người dùng review |
 | 2 | Quét & cây API Backend — nhật ký: `docs/progress/0910_gd2_quet_cay_api.md` | ✅ Xong, chờ người dùng review |
 | 3 | Luồng Backend & sequence diagram (Task 3.1–3.3) — nhật ký: `docs/progress/1210_gd3_be_luong_xu_ly.md` | ✅ Xong, chờ người dùng review |
-| 4 → 11 | Xem bên dưới | ⏳ Chưa làm |
+| 4 | Frontend Angular & tìm kiếm nhanh — phần BE (Task 4.1, BE của 4.2) — nhật ký: `docs/progress/1210_gd4_be_frontend_angular.md` | ✅ Xong (BE + FE), chờ người dùng review |
+| 5 → 11 | Xem bên dưới | ⏳ Chưa làm |
 
 ---
 
@@ -278,7 +279,7 @@ Tôi sẽ làm (`analyzer-node/src/adapters/angular/`):
 - Đọc `angular.json`, cấu hình federation, route.
 - `parseTemplate`: lấy sự kiện `(click)`, `(ngSubmit)`, `(change)` và output của component con.
 - Nhãn từ i18n `vi`; hộp thoại mở bằng `dialog.open(...)`.
-- TypeScript type checker lần handler → facade → repository (`InjectionToken`) → `HttpClient`.
+- Lần handler → facade → repository (`InjectionToken`) → `HttpClient` bằng bảng ký hiệu tự dựng (`SymbolTable`: import tương đối, alias `paths` của tsconfig, file barrel; `DiResolver`: token + provider, interface + lớp hiện thực). **Không dùng TypeScript type checker** vì kết quả không được phụ thuộc `node_modules` (có thể vắng hoặc khác phiên bản giữa các máy → cùng mã nguồn ra IR khác). Dự án có sẵn `node_modules` vẫn quét bình thường; thư mục này chỉ không được đọc.
 - `urlExpr` / `urlPattern` ghép từ hằng số và `environment*.ts`; luật proxy tự phát hiện.
 - Chỉ đọc file Engine liệt kê. Cache dữ kiện.
 - Engine: `SidecarStackAdapter` (stdin / stdout / stderr, mã thoát 2/3/4, timeout), **kiểm tra đầu ra bằng JSON Schema**.
@@ -309,8 +310,8 @@ Tôi sẽ làm:
 
 | # | Thao tác | Kết quả mong đợi |
 | :--- | :--- | :--- |
-| 1 | Mở tab Frontend | Đủ các ứng dụng microfrontend và màn hình; nhãn nút tiếng Việt |
-| 2 | Bấm nút "Thêm mới" của một màn hình | Diagram 2 cột User ↔ Frontend, ghi "Không gọi máy chủ" |
+| 1 | Mở tab Frontend | Đủ các ứng dụng microfrontend và màn hình; chỉ phần tử gọi API (mặc định); nhãn nút tiếng Việt |
+| 2 | Bật công tắc "Hiện cả phần tử chỉ thao tác giao diện" (hoặc Ctrl+K gõ "Thêm mới"), bấm nút "Thêm mới" của một màn hình | Diagram 2 cột User ↔ Frontend, ghi "Không gọi máy chủ" |
 | 3 | Ctrl+K gõ tên một màn hình | Enter mở đúng thành phần, cây tự mở tới đó |
 
 ---

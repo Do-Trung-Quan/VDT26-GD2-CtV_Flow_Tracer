@@ -1,0 +1,7 @@
+<h2>{{ t('form_title') }}</h2>
+<form [formGroup]="form" (ngSubmit)="save()">
+  <label>{{ t('code') }} <input formControlName="code" /></label>
+  <label>{{ t('name') }} <input formControlName="name" /></label>
+  <app-button type="submit">{{ t('save') }}</app-button>
+  <button type="button" (click)="cancel()">{{ t('cancel') }}</button>
+</form>

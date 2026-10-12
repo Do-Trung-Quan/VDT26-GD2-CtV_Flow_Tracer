@@ -18,6 +18,8 @@ export interface ResolveContext {
 /** Hợp đồng adapter phía sidecar — tương ứng StackAdapter (Java) nhưng chạy trọn 2 pha trong sidecar. */
 export interface NodeAdapter {
   readonly id: string;
+  /** Phiên bản cách trích dữ kiện pha 1 — đổi thì cache dữ kiện cũ không được dùng lại. */
+  readonly factsVersion: string;
   /**
    * Nhận diện công nghệ từ NỘI DUNG các file đặc trưng của một thư mục ứng viên (Engine gửi kèm, xem lệnh `detect`
    * trong contracts/sidecar-protocol.md). Không đọc file, không ném lỗi vì file sai cú pháp.

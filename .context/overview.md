@@ -346,14 +346,14 @@ IR là "bản đồ" chung cho mọi công nghệ. Mỗi Adapter sinh IR; Linker
 
 | `kind` | Ý nghĩa | Thuộc tính chính (`attrs`) |
 | :--- | :--- | :--- |
-| `UI_APP` | Một ứng dụng FE (một app trong microfrontend) | `name`, `port`, `isShell` |
-| `UI_SCREEN` | Màn hình (component được định tuyến) | `routePath`, `title`, `component` |
-| `UI_TAB` | Tab trong màn hình | `label` |
-| `UI_DIALOG` | Dialog/modal | `component`, `label` |
-| `UI_FORM` | Form | `fields[]` (tên, loại control, validators) |
-| `UI_ELEMENT` | Phần tử tương tác | `elementType` (button, input, select, table, pagination…), `event`, `label`, `i18nKey` |
-| `FE_METHOD` | Method phía FE | `layer` (COMPONENT / FACADE / USECASE / SERVICE / REPOSITORY), `className`, `signature` |
-| `HTTP_CALL` | Điểm gọi HTTP: phía FE (`HttpClient`) hoặc phía BE gọi service khác / API bên ngoài (`RestTemplate`, `WebClient`, `@FeignClient`) | `httpMethod`, `urlExpr` (biểu thức gốc), `urlPattern` (đã chuẩn hóa), `bodyType`, `origin` (FE / BE) |
+| `UI_APP` | Một ứng dụng FE (một app trong microfrontend, lấy từ `angular.json`) | `name`, `root` (thư mục gốc của project) |
+| `UI_SCREEN` | Màn hình (component được gắn vào một route; đường dẫn đầy đủ qua `loadChildren` / `children`) | `routePath`, `title` (chỉ khi route có `title` là chuỗi), `component`; `displayName` = `title`, không có thì tiêu đề (`h1`–`h4`) trong template |
+| `UI_TAB` | Tab trong màn hình (`mat-tab`, `nz-tab`, `p-tabPanel`…) | `label`, `component` |
+| `UI_DIALOG` | Dialog/modal / drawer: mở bằng `dialog.open(Component)`, hoặc component có tên / selector là dialog, modal, drawer, popup, overlay… đặt thẳng trong template (`<author-drawer [open]="…">`, `<sw-dialog>nội dung</sw-dialog>`; khi đó nội dung chiếu vào cũng nằm trong hộp thoại). Luôn là MỘT nút chứa các phần tử bên trong, không gộp phẳng vào màn hình | `component`, `label` (tiêu đề trong template nếu có), `hosted` (đặt thẳng trong template) |
+| `UI_FORM` | Form (`<form>` hoặc `[formGroup]`) | `component`, `fields[]` (`name`, `controlType`); validators chưa được trích |
+| `UI_ELEMENT` | Phần tử tương tác: có sự kiện, ô nhập của form, liên kết `routerLink`, nút gửi form | `elementType` (button, link, input, select, textarea, checkbox, radio, toggle, date, table, pagination, component, element), `tag`, `component` (class định nghĩa template chứa nó), `event` + `events[]`, `handlers[]` (tên hàm được gọi; nút gửi form gồm cả component bọc có `type="submit"` như `<shared-button type="submit">`), `control` (`formControlName` / `name`), `i18nKey`, `routerLink`; `displayName` = chữ trên phần tử (chữ tĩnh, hoặc tra từ điển tiếng Việt theo `t('khóa')` / `'khóa' \| translate`) |
+| `FE_METHOD` | Method phía FE (chỉ dựng cho phần đi tới được từ một phần tử giao diện) | `layer` (COMPONENT / FACADE / USECASE / SERVICE / REPOSITORY / OTHER) + `layerBasis` (DECORATOR / NAME), `className`, `signature`, `paramNames[]`, `returnType` |
+| `HTTP_CALL` | Điểm gọi HTTP: phía FE (`HttpClient`) hoặc phía BE gọi service khác / API bên ngoài (`RestTemplate`, `WebClient`, `@FeignClient`) | `httpMethod`, `urlExpr` (biểu thức gốc), `urlPattern` (đã chuẩn hóa, biến đường dẫn ghi `{tên}`; vắng khi không tính được gì), `urlResolved` + `urlIssue` (lý do cụ thể khi chưa tính được hết), `urlHost` (URL tuyệt đối), `bodyType`, `origin` (FE / BE) |
 | `API_ENDPOINT` | Endpoint BE | `httpMethod` (`ANY` khi `@RequestMapping` không khai phương thức), `path` (đã cộng context-path), `pathResolved` + `pathIssue` (`CONSTANT` / `PROPERTY`) + `pathIssueReason` (lý do tiếng Việt) khi chưa giải được, `pathSources[]` (căn cứ từng thuộc tính đã giải: khóa = giá trị, lấy từ file nào hoặc "mặc định trong code"), `contextPath`, `params[]`, `requestType`, `responseType`, `summary` + `summarySource` (`OPERATION` / `JAVADOC`), `tag`, `module` + `moduleSource` (`TAG` / `CONTROLLER` / `PACKAGE`), `controller`, `handler`, `deprecated`, `security` |
 | `BE_METHOD` | Method phía BE (chỉ dựng cho phần đi tới được từ một endpoint) | `layer` (CONTROLLER / SERVICE / REPOSITORY / OTHER) + `layerBasis` (căn cứ xếp tầng: ANNOTATION / INHERITANCE / IMPLEMENTATION / NAME), `className` (FQN lớp khai báo), `signature` (`tên(kiểu,…)`), `paramNames[]`, `returnType`, `businessName` + `businessNameSource` (`TAG` / `CLASS`: tên nghiệp vụ dùng đặt nhãn cột), `transactional`, `private`, `static`, `abstract` (khai báo trong interface), `synthetic` + `inheritedFrom` (method kế thừa từ Spring Data như `save`, `findById`), `throws[]` (mỗi lệnh `throw`: `order`, `exception`, `messageKey`, `guardType`/`guardText`/`guardBranch`, `line`) |
 | `DATA_QUERY` | Một truy vấn dữ liệu | `queryKind` (DERIVED / JPQL / NATIVE / DYNAMIC / LIB_CALL), `verb` (`SELECT`, `SELECT COUNT(*)`, `INSERT/UPDATE`, `UPDATE`, `DELETE`…), `text` (rút gọn ≤ 300 ký tự), `operation` (READ / WRITE / DELETE), `tables[]` |
@@ -367,10 +367,10 @@ Mọi node đều có: `key` (ổn định), `sourceId`, `filePath`, `startLine`
 
 | `kind` | Từ → Tới | Ý nghĩa |
 | :--- | :--- | :--- |
-| `CONTAINS` | App → Screen → Tab/Dialog/Form → Element | Quan hệ phân cấp (dùng dựng cây FE) |
-| `TRIGGERS` | `UI_ELEMENT` → `FE_METHOD` | Sự kiện gọi handler |
+| `CONTAINS` | App → Screen → Tab/Dialog/Form → Element | Quan hệ phân cấp (dùng dựng cây FE). `callOrder` là thứ tự của phần tử con trong nút cha theo đúng thứ tự trong template. Thành phần con (thẻ trùng `selector` của một component trong dự án) được gộp phẳng vào nút chứa nó; hộp thoại được nối từ màn hình có hàm xử lý mở nó |
+| `TRIGGERS` | `UI_ELEMENT` → `FE_METHOD` | Sự kiện gọi handler. Nút gửi form (không có `(click)`) trỏ tới handler `ngSubmit` của form, ghi rõ trong `reason`. Ngoài ra `UI_SCREEN` / `UI_DIALOG` / `UI_APP` → `FE_METHOD` vòng đời (`constructor` kể cả khởi tạo field, `ngOnInit`, `ngAfterViewInit` — chỉ khi hàm đó gọi một hàm của dự án, gọi HTTP, mở hộp thoại hoặc chuyển trang): đây là chỗ màn hình tải dữ liệu khi mở, `reason` ghi "Chạy khi <component> được tạo" |
 | `CALLS` | Method → Method | Lời gọi hàm (FE hoặc BE) |
-| `OPENS` / `NAVIGATES` | `FE_METHOD` → `UI_DIALOG` / `UI_SCREEN` | Mở dialog / chuyển màn hình |
+| `OPENS` / `NAVIGATES` | `FE_METHOD` → `UI_DIALOG` / `UI_SCREEN` (`NAVIGATES` còn từ `UI_ELEMENT` có `routerLink`) | Mở dialog / chuyển màn hình; đích chỉ nhận khi đường dẫn khớp đúng một route của ứng dụng |
 | `SENDS` | `FE_METHOD` / `BE_METHOD` → `HTTP_CALL` | Method phát ra lời gọi HTTP |
 | `HTTP_REQUEST` | `HTTP_CALL` → `API_ENDPOINT` hoặc `EXTERNAL` | Do Linker tạo. Đích là endpoint trong Workspace (FE→BE, hoặc BE→BE khi nhiều microservice), hoặc `EXTERNAL` khi gọi hệ thống ngoài Workspace |
 | `HANDLED_BY` | `API_ENDPOINT` → `BE_METHOD` | Endpoint được xử lý bởi method controller |
@@ -379,6 +379,12 @@ Mọi node đều có: `key` (ổn định), `sourceId`, `filePath`, `startLine`
 | `USES_TYPE` | Method/Endpoint → `DATA_TYPE` | Kiểu dữ liệu vào/ra |
 
 Mọi edge đều có: `confidence`, `reason` (vì sao có mức tin cậy này), `callOrder` (thứ tự lời gọi trong method nguồn, dùng xếp bước trên sequence), `guard` (điều kiện bao quanh nếu có), `candidates[]` (khi có nhiều ứng viên), `filePath`/`line` của điểm gọi.
+
+Quy ước cho Frontend:
+
+- Lời gọi nằm trong callback chạy khi hộp thoại đóng (`ref.afterClosed().subscribe(…)`, `afterClosed$`, `closed`…, kể cả khi trong callback còn `if` lồng nhau — điều kiện bên trong được nối vào `text`) mang `guard = { type: IF, text: "sau khi hộp thoại đóng", branch: "afterClosed" }`: lời gọi đó không xảy ra ngay khi bấm nên không tính vào luồng của lần bấm (cờ "gọi API" của phần tử, dò vết luồng chỉ giao diện).
+- Receiver là **biến cục bộ gán từ lời gọi** (`const repo = this.facade.getRepo(); repo.save()`), **lời gọi nối chuỗi** (`this.facade.getRepo().save()`), biến có kiểu khai báo (`item: Item`, `new Helper()`) cũng được giải: kiểu của kết quả lấy từ **kiểu trả về đã khai báo** của hàm được gọi (`Promise<T>` + `await` cho ra `T`); không có kiểu khai báo thì bỏ qua, không đoán. Cạnh ghi `reason` "Kiểu trả về đã khai báo của … là …", mức `INFERRED` khi qua interface chỉ có một lớp hiện thực.
+- Hàm đích của lời gọi qua token (`InjectionToken` + `{ provide, useExisting | useClass }`) là `CERTAIN` khi chỉ có một provider; chỉ có một lớp hiện thực của interface thì `INFERRED`; nhiều provider hoặc nhiều lớp hiện thực thì `UNRESOLVED` kèm `candidates`. Kiểu của receiver được giải bằng khai báo (field, `inject(...)`, tham số constructor) và import (kể cả alias `paths` của tsconfig và file barrel) — không dùng type checker vì kết quả không được phụ thuộc `node_modules`: thư mục này có thể vắng (nguồn mới clone, gắn read-only vào Docker) hoặc khác phiên bản giữa các máy, trong khi cùng mã nguồn phải cho cùng IR; `node_modules` cũng bị loại khi quét.
 
 ### 2.2.3 Ví dụ IR (rút gọn)
 
@@ -432,6 +438,7 @@ Diagram chỉ có **một mức hiển thị**. Cột (participant) được d�
     { "id": "s1", "label": "Service Danh mục", "role": "SERVICE", "nodeKey": "…" },
     { "id": "t1", "label": "Bảng category", "role": "DATABASE", "nodeKey": "java:table:category" }
   ],
+  "uiOnly": false,
   "steps": [
     { "index": 1, "from": "user", "to": "fe", "kind": "TRIGGERS", "label": "Bấm \"Lưu\"", "confidence": "CERTAIN" },
     { "index": 2, "from": "fe", "to": "c1", "kind": "HTTP_REQUEST", "label": "POST /api/v1/categories", "confidence": "INFERRED", "reason": "…", "edgeRef": "…" },
@@ -446,7 +453,9 @@ Diagram chỉ có **một mức hiển thị**. Cột (participant) được d�
 }
 ```
 
-Bước có `from` = `to` là bước tự xử lý. Bước đi qua liên kết người dùng đã chốt tay có thêm `"pinned": true`. Chiều trả về có `"returning": true`; chiều trả về do lỗi lan lên (nhánh lỗi của khối `alt`) có thêm `"error": true`.
+Bước có `from` = `to` là bước tự xử lý. `uiOnly = true` khi luồng chỉ gồm User và Frontend (không gọi máy chủ); giao diện ghi "Không gọi máy chủ". Bước đi qua liên kết người dùng đã chốt tay có thêm `"pinned": true`. Chiều trả về có `"returning": true`; chiều trả về do lỗi lan lên (nhánh lỗi của khối `alt`) có thêm `"error": true`.
+
+**Luồng chỉ có giao diện (Giai đoạn 4, `UiOnlyTracer`):** xuất phát từ một `UI_ELEMENT`; đi theo `TRIGGERS` → `CALLS` (theo `callOrder`, bỏ lời gọi `afterClosed`) và gom các hiệu ứng trên giao diện (`OPENS` hộp thoại, `NAVIGATES` màn hình). Cho đúng hai cột User ↔ Frontend và hai bước: bước 1 người dùng thao tác (`Bấm "Thêm mới"`; không có chữ trên phần tử thì `Bấm button <hàm xử lý>`), bước 2 giao diện phản hồi (`hộp thoại Thêm danh mục`, `màn hình Đơn hàng`, nhiều hiệu ứng thì nối bằng dấu phẩy; không có hiệu ứng nào thì `giao diện đã cập nhật`). Không đi vào bên trong hộp thoại được mở — thao tác trong hộp thoại là luồng riêng, xuất phát từ phần tử của hộp thoại. Nếu các hàm xử lý dẫn tới một lời gọi HTTP thì đó không còn là luồng chỉ giao diện: trả `422 TRACE_START_UNSUPPORTED` (luồng End-to-End nối FE với BE làm ở Giai đoạn 5).
 
 **Quy tắc dựng bước từ API Backend (Giai đoạn 3, `TraceRun`):**
 

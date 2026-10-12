@@ -25,6 +25,13 @@ export type ScanTrigger = NonNullable<ScanRunDto['trigger']>;
 export type BackendTreeDto = Schemas['BackendTreeResponse'];
 export type ApiModuleDto = Schemas['ApiModuleResponse'];
 export type EndpointNodeDto = Schemas['EndpointNodeResponse'];
+export type FrontendTreeDto = Schemas['FrontendTreeResponse'];
+export type UiTreeNodeDto = Schemas['UiTreeNodeResponse'];
+export type SearchDto = Schemas['SearchResponse'];
+export type SearchGroupDto = Schemas['SearchGroupResponse'];
+export type SearchHitDto = Schemas['SearchHitResponse'];
+/** Nhóm tìm kiếm (API C3) — khớp enum SearchCategory của Engine. */
+export type SearchCategory = 'API' | 'SCREEN' | 'ELEMENT' | 'TABLE' | 'CODE';
 
 export type TraceDto = Schemas['TraceResponse'];
 export type TraceStepDto = Schemas['TraceStepResponse'];

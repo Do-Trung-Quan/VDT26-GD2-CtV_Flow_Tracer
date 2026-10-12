@@ -162,7 +162,9 @@ flowtracer-core/src/main/java/com/ctv/flowtracer/core/
 │   │                                #   (đường dẫn cụ thể được ưu tiên hơn đường dẫn có biến)
 │   └── Linker.java                  # Điều phối việc nối: với mỗi lời gọi API, kết luận nối tới đâu và chắc chắn đến mức nào, kèm lý do
 ├── tracer/                          # CỐT LÕI: dò luồng từ đầu tới cuối
-│   ├── Tracer.java                  # Bộ dò luồng chính: áp liên kết chốt tay rồi giao cho TraceRun (Giai đoạn 3: xuất phát từ API Backend)
+│   ├── Tracer.java                  # Bộ dò luồng chính: xuất phát từ API Backend thì áp liên kết chốt tay rồi giao cho TraceRun; từ phần tử giao diện thì giao cho UiOnlyTracer
+│   ├── UiOnlyTracer.java            # Dò luồng CHỈ có giao diện (User ↔ Frontend): bấm nút → mở hộp thoại / chuyển màn hình / cập nhật giao diện, không gọi máy chủ
+│   ├── UnsupportedTraceStartException.java # Điểm xuất phát chưa dò được (vd phần tử gọi API khi chưa có phần nối FE–BE) — thông điệp hiển thị cho người dùng
 │   ├── TraceRun.java                # Một lần dò: đi qua các lời gọi theo thứ tự thực thi tới tận bảng dữ liệu; phát bước, khối alt/opt/loop, chiều trả về
 │   ├── TraceItem.java               # Phần tử của dòng sự kiện TraceRun phát ra: một bước, hoặc dấu mở / chuyển nhánh / đóng khối
 │   ├── OverrideApplier.java         # Áp các quyết định chốt tay của người dùng trước khi dò (ghim liên kết đúng, bỏ liên kết sai)
@@ -423,6 +425,7 @@ scan/
 │   └── ProgressReporter.java        # Gửi thông báo tiến độ của từng bước lên giao diện
 ├── adapter/                         # Quản lý các bộ phân tích theo công nghệ
 │   ├── AdapterRegistry.java         # Danh sách các bộ phân tích tool đang có (Spring, Angular…) — nơi DUY NHẤT đăng ký thêm bộ phân tích mới
+│   ├── SidecarFileFacts.java        # Dữ kiện pha 1 của một file thuộc bộ phân tích chạy trong sidecar: chỉ đường dẫn + mã băm (sidecar tự cache dữ kiện thật)
 │   ├── SidecarStackAdapter.java     # Bộ phân tích "đại diện" cho các công nghệ chạy trong sidecar (Angular…) — bề ngoài giống bộ Spring,
 │   │                                #   bên trong chuyển việc cho sidecar làm
 │   └── SidecarRunner.java           # Chạy chương trình sidecar: gửi danh sách file cần phân tích, nhận kết quả về, đọc tiến độ,
@@ -456,11 +459,12 @@ scan/
 graph/
 ├── controller/
 │   ├── TreeController.java          # Nhận yêu cầu lấy cây API Backend và cây thành phần Frontend để hiện ở cột trái (API C1–C2)
+│   ├── SearchController.java        # Nhận yêu cầu tìm kiếm nhanh Ctrl+K (API C3)
 │   ├── SearchController.java        # Nhận yêu cầu tìm kiếm nhanh (theo đường dẫn API, nhãn nút, tên màn hình, tên bảng…) (API C3)
 │   ├── NodeController.java          # Nhận yêu cầu xem chi tiết một thành phần và xem đoạn code của nó (API C4–C5)
 │   └── OpenApiCheckController.java  # Nhận yêu cầu đối chiếu kết quả phân tích với tài liệu Swagger của dự án (API C6)
 ├── service/
-│   ├── GraphQueryService.java       # Cung cấp cách ĐỌC bản đồ cho các chức năng khác (lấy một thành phần, lấy vùng xung quanh để dò luồng, tìm kiếm…)
+│   ├── GraphQueryService.java       # Cung cấp cách ĐỌC bản đồ cho các chức năng khác (cây API Backend, cây Frontend, tìm kiếm nhanh, vùng xung quanh để dò luồng…)
 │   ├── GraphWriteService.java       # Cung cấp cách GHI bản đồ cho các chức năng khác (thay toàn bộ kết quả của một thư mục sau khi quét…)
 │   ├── TreeBuilder.java             # Dựng cây hiển thị: Backend theo Module → API; Frontend theo Ứng dụng → Màn hình → … → Nút bấm
 │   ├── SourceSnippetService.java    # Lấy các đoạn code theo từng lớp trong luồng (Controller/Service/Repository/Entity hoặc template/component/…)
@@ -468,7 +472,7 @@ graph/
 │   └── OpenApiCheckService.java     # Tìm file đặc tả Swagger có sẵn trong repo (hoặc đọc URL nếu được cung cấp), kiểm tra đúng định dạng OpenAPI,
 │                                    #   so với danh sách API tool tìm được và báo chỗ lệch
 ├── repository/
-│   ├── IrNodeRepository.java        # Nơi đọc/ghi bảng ir_nodes (các thành phần) — ghi theo lô lớn vì mỗi lần quét có rất nhiều dòng
+│   ├── IrNodeRepository.java        # Nơi đọc/ghi bảng ir_nodes (các thành phần) — ghi theo lô lớn vì mỗi lần quét có rất nhiều dòng; có cả tìm kiếm nhanh (ILIKE + tsvector)
 │   └── IrEdgeRepository.java       # Nơi đọc/ghi bảng ir_edges (các quan hệ giữa thành phần)
 ├── model/
 │   ├── IrNodeRow.java, IrEdgeRow.java   # Một dòng của bảng ir_nodes / ir_edges: thành phần (hoặc quan hệ) kèm các mã định danh trong CSDL
@@ -693,10 +697,12 @@ analyzer-node/
 │       │   ├── facts.ts             # Kiểu dữ liệu chứa "những gì đọc được từ MỘT file Angular" (class, route, lời gọi API, nút bấm, nhãn…)
 │       │   ├── workspace/           # Đọc cấu hình tổng của dự án Angular
 │       │   │   ├── angular-json.reader.ts      # Đọc angular.json để biết dự án có những ứng dụng/thư viện nào và nằm ở đâu
+│       │   │   ├── paths.ts                    # Ghép / chuẩn hóa đường dẫn kiểu POSIX trong Source
 │       │   │   ├── tsconfig-paths.reader.ts    # Đọc các đường dẫn tắt khi import (vd 'shared-lib') để biết chúng trỏ tới thư mục nào
 │       │   │   └── federation.reader.ts        # Với dự án microfrontend: biết ứng dụng con nào chia sẻ màn hình nào, ứng dụng chính nạp chúng ở đâu
 │       │   ├── extract/             # BƯỚC 1 — đọc từng file riêng lẻ
 │       │   │   ├── extract-file.ts             # Điều phối: xem file thuộc loại nào (code .ts, giao diện .html, file ngôn ngữ…) rồi gọi bộ đọc tương ứng
+│       │   │   ├── ts-utils.ts                 # Hàm dùng chung đọc cây cú pháp TypeScript: vị trí dòng, tên kiểu, ghép chuỗi / URL từ biểu thức
 │       │   │   ├── class-decl.extractor.ts     # Lấy thông tin component/service: tên, giao diện đi kèm, các thành phần nó dùng
 │       │   │   ├── route.extractor.ts          # Lấy bảng điều hướng: đường dẫn nào mở màn hình nào
 │       │   │   ├── provider.extractor.ts       # Lấy khai báo "khi cần X thì dùng class Y" — để biết lời gọi thực sự chạy vào đâu
@@ -708,23 +714,25 @@ analyzer-node/
 │       │   │   └── i18n.extractor.ts           # Đọc file ngôn ngữ tiếng Việt: mã nhãn → chữ hiển thị
 │       │   ├── resolve/             # BƯỚC 2 — ghép kết quả mọi file
 │       │   │   ├── resolve-workspace.ts        # Điều phối bước 2 và tạo kết quả phân tích cuối cùng của thư mục Frontend
-│       │   │   ├── symbol-table.ts             # Danh bạ: mỗi tên được import thực sự được khai báo ở file nào
+│       │   │   ├── symbol-table.ts             # Danh bạ: mỗi tên được import thực sự được khai báo ở file nào (đường dẫn tương đối, alias tsconfig, file barrel)
+│       │   │   ├── route-tree.builder.ts       # Từ khai báo route (children, loadChildren, loadComponent, NgModule, microfrontend) ra danh sách màn hình + đường dẫn đầy đủ
 │       │   │   ├── di.resolver.ts              # Xác định mỗi component/service thực sự dùng class nào (có nhiều khả năng thì ghi lại làm ứng viên)
 │       │   │   ├── call.resolver.ts            # Nối chuỗi lời gọi: component → các lớp xử lý trung gian → chỗ gọi API
 │       │   │   ├── url-evaluator.ts            # Tính ra đường dẫn API đầy đủ từ hằng số và chuỗi ghép; phần không biết trước thì đánh dấu là biến
 │       │   │   ├── screen-tree.builder.ts      # Dựng cây giao diện: Ứng dụng → Màn hình → Tab / Hộp thoại / Form → Nút bấm
 │       │   │   ├── element.builder.ts          # Tạo từng nút bấm/ô nhập trên cây, nối với hàm nó gọi, gắn nhãn tiếng Việt
 │       │   │   └── label.resolver.ts           # Đổi mã nhãn thành chữ tiếng Việt hiển thị trên giao diện
-│       │   ├── config/
-│       │   │   ├── proxy-config.reader.ts      # Đọc proxy.conf.json để biết đường dẫn API bị đổi thế nào trước khi tới Backend (vd bỏ tiền tố /gateway)
-│       │   │   └── environment.reader.ts       # Đọc file môi trường (environment*.ts) để lấy địa chỉ gốc của API
-│       │   └── noise-filters.ts                # Danh sách mặc định các thành phần cần ẩn khỏi diagram ở dự án Angular (ghi log, xử lý hiển thị…)
+│       │   └── config/
+│       │       └── proxy-config.reader.ts      # Đọc proxy.conf.json để biết đường dẫn API bị đổi thế nào trước khi tới Backend (vd bỏ tiền tố /gateway)
+│       │   # Địa chỉ gốc của API (environment*.ts) được đọc như mọi hằng số khác: constant.extractor.ts + url-evaluator.ts
 │       └── php-legacy/              # (MỞ RỘNG) Bộ phân tích mã PHP của hệ thống cũ
 └── test/
-    ├── angular/*.spec.ts            # Kiểm thử từng bộ đọc/ghép Angular bằng các đoạn code TỰ VIẾT
+    ├── angular/                     # Kiểm thử Angular: extract.spec (từng bộ đọc bằng đoạn code TỰ VIẾT), resolve.spec (ghép IR trên fixtures/angular-mini),
+    │                                #   golden.spec (so với fixtures/golden/angular-mini.ir.json; UPDATE_GOLDEN=1 để sinh lại)
+    ├── support/fixture.ts           # Chạy toàn bộ pipeline sidecar trên một thư mục fixture
     ├── contract.spec.ts             # Kiểm thử: dữ liệu ví dụ trong contracts/ đúng định dạng quy định
     ├── proxy-config.spec.ts         # Kiểm thử bộ đọc proxy.conf.json
-    └── golden.spec.ts               # Kiểm thử tổng: phân tích dự án mẫu fixtures/angular-shop-web rồi so với kết quả chuẩn đã lưu
+    └── angular-detect.spec.ts       # Kiểm thử lệnh detect (Angular)
 ```
 
 ---
@@ -751,7 +759,8 @@ web/
         │   │   ├── api-error.ts     # Đọc lỗi từ vỏ bọc (code, message, errors) thành thông báo tiếng Việt
         │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts, trace.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C / D, lấy data trong vỏ bọc
         │   ├── ui/                  # Mảnh giao diện dùng chung: icon SVG, modal (Esc đóng modal trên cùng), hộp xác nhận, toast
-        │   └── workspace-context.ts # Danh sách Workspace, Workspace đang mở, trạng thái mở wizard Import
+        │   ├── explorer-navigation.ts   # Cầu nối bảng Ctrl+K (ở khung ứng dụng) → màn hình chính: "hãy mở thành phần này"
+        │   └── workspace-context.ts # Danh sách Workspace, Workspace đang mở, trạng thái mở wizard Import và bảng Ctrl+K
         └── features/                # Mỗi thư mục là một nhóm màn hình
             ├── workspaces/          # Danh sách Workspace (thẻ có trạng thái lần quét gần nhất), wizard Import 3 bước + trình duyệt thư mục,
             │                        #   trang Cài đặt (tab Nguồn mã, tab Lịch sử quét)
@@ -761,6 +770,8 @@ web/
             │   ├── explorer.page.ts            # Bố cục: cột trái (kéo đổi độ rộng, thu gọn), canvas (cụm nút nổi trạng thái quét + Quét lại),
             │   │                               #   cột phải (thông tin endpoint đang chọn, tóm tắt luồng, cảnh báo của luồng); chọn API → dò vết (D1)
             │   ├── backend-tree.ts, tree-filter.ts   # Cây API Backend Module → Endpoint, lọc nhanh có tô sáng
+            │   ├── frontend-tree.ts, frontend-tree-model.ts   # Cây Frontend Ứng dụng → Màn hình → Tab / Hộp thoại / Form → Phần tử (Giai đoạn 4): nhãn
+            │   │                               #   "Nút Thêm mới" theo bản vẽ, thẻ API / UI, tên kỹ thuật in nghiêng khi không có nhãn, lọc, mở tới một nút (Ctrl+K)
             │   ├── sequence/                   # Sequence diagram (Giai đoạn 3)
             │   │   ├── sequence-model.ts       # Đổi kiểu sinh từ OpenAPI sang kiểu chặt; nhận ra cột "chưa xác định"
             │   │   ├── sequence-layout.ts      # Dàn cột, mũi tên, khung alt/opt/loop lồng nhau, vạch else, thanh kích hoạt (thuần, test được)
@@ -768,6 +779,7 @@ web/
             │   │   ├── sequence-export.ts      # Đo chữ, tải file, đổi SVG → PNG trên trình duyệt
             │   │   └── sequence-canvas.ts      # Canvas: zoom / kéo / vừa khung, chú giải, thẻ "n bước chưa xác định", mô tả khi di chuột, tô sáng, xuất
             │   └── right-panel/                # (Giai đoạn 5–6) Tab Diễn giải, tab Kịch bản, chi tiết liên kết, popup xem code
+            ├── search/              # Bảng tìm nhanh Ctrl+K (API C3): gõ → kết quả nhóm theo loại, ↑ ↓ Enter Esc; chọn thì mở đúng thành phần trên cây
             ├── compare/             # (MỞ RỘNG) Màn hình so sánh 2 diagram cạnh nhau và danh sách khác biệt cũ – mới
             └── ai-settings/         # Màn hình cấu hình AI: xem đang dùng AI nào, bật/tắt từng việc, kiểm tra kết nối, hạn mức token, thống kê (lượt gọi, token, trúng cache, lỗi)
 ```
@@ -785,8 +797,9 @@ fixtures/                            # Các dự án mẫu nhỏ TỰ VIẾT 100
 │                                    #   @Query, câu truy vấn ghép bằng StringBuilder, entity không khai @Table, hằng số tên bảng, `if … throw`
 ├── spring-shop-api/                 # (Kế hoạch) Dự án Backend Spring Boot mẫu lớn hơn: dữ liệu trả về được bọc chung, thông báo lỗi tiếng Việt,
 │                                    #   bảng dùng chung có cột phân loại
-├── angular-shop-web/                # Dự án Frontend Angular mẫu, chứa các tình huống khó: nhiều ứng dụng con, màn hình nạp sau, hộp thoại,
-│                                    #   đường dẫn API ghép từ hằng số ở thư viện khác, proxy đổi đường dẫn, nhãn tiếng Việt, nút bấm tự viết
+├── angular-mini/                    # Dự án Frontend Angular nhỏ (Giai đoạn 4): ứng dụng + thư viện dùng chung, route standalone và NgModule, template tách file / viết
+│                                    #   trong .ts, @if/@for, form, tab, hộp thoại, facade → InjectionToken → repository HTTP, URL ghép từ hằng số ở thư viện khác,
+│                                    #   proxy đổi đường dẫn, nhãn từ điển t('khóa') và | translate (README.md liệt kê từng ca)
 ├── php-legacy-mini/                 # (MỞ RỘNG) Dự án PHP mẫu mô phỏng hệ thống cũ
 └── golden/                          # Các "kết quả chuẩn" đã lưu khi phân tích dự án mẫu — test so kết quả mới với đây để phát hiện thay đổi ngoài ý muốn
 

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "projects": {
+    "admin-app": {
+      "projectType": "application",
+      "root": "projects/admin-app",
+      "sourceRoot": "projects/admin-app/src",
+      "architect": {
+        "serve": { "options": { "proxyConfig": "projects/admin-app/proxy.conf.json" } }
+      }
+    },
+    "shared-lib": {
+      "projectType": "library",
+      "root": "projects/shared-lib",
+      "sourceRoot": "projects/shared-lib/src"
+    }
+  }
+}

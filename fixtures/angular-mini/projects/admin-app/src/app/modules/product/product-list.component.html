@@ -1,0 +1,12 @@
+<mat-tab-group>
+  <mat-tab label="Danh sách">
+    <button type="button" (click)="toggleFilter()">Bộ lọc</button>
+    <div *ngIf="showFilter" class="filter-panel">
+      <button type="button" (click)="showFilter = false">Đóng bộ lọc</button>
+    </div>
+    <app-pager [page]="page" (pageChange)="onPage($event)" />
+  </mat-tab>
+  <mat-tab label="Tồn kho">
+    <button type="button" (click)="goToOrders()">Xem đơn hàng</button>
+  </mat-tab>
+</mat-tab-group>

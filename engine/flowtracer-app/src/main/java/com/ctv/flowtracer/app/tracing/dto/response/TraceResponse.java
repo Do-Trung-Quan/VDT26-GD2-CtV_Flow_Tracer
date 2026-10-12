@@ -15,6 +15,7 @@ import java.util.List;
  * @param steps các bước theo thứ tự thực thi, gồm cả chiều trả về
  * @param blocks khối điều kiện/lặp
  * @param warnings cảnh báo có căn cứ (vd "1 lời gọi chưa xác định được đích (xem bước 7)"); rỗng nếu không có
+ * @param uiOnly true nếu luồng chỉ gồm User và Frontend, không gọi máy chủ (giao diện ghi "Không gọi máy chủ")
  */
 public record TraceResponse(
         String traceId,
@@ -25,7 +26,8 @@ public record TraceResponse(
         List<TraceParticipantResponse> participants,
         List<TraceStepResponse> steps,
         List<TraceBlockResponse> blocks,
-        List<String> warnings) {
+        List<String> warnings,
+        boolean uiOnly) {
 
     public static TraceResponse from(Trace t, String startName, String startDisplayName, int maxDepth) {
         return new TraceResponse(
@@ -37,6 +39,7 @@ public record TraceResponse(
                 t.participants().stream().map(TraceParticipantResponse::from).toList(),
                 t.steps().stream().map(TraceStepResponse::from).toList(),
                 t.blocks().stream().map(TraceBlockResponse::from).toList(),
-                t.warnings());
+                t.warnings(),
+                t.uiOnly());
     }
 }

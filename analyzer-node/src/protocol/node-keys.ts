@@ -8,5 +8,8 @@ export const NodeKeys = {
     `ng:http:${app}/${className}#${method}:${index}`,
   ngScreen: (app: string, routePath: string): string => `ng:screen:${app}${routePath.startsWith('/') ? '' : '/'}${routePath}`,
   ngMethod: (app: string, className: string, method: string): string => `ng:method:${app}/${className}#${method}`,
-  ngApp: (app: string): string => `ng:app:${app}`
+  ngApp: (app: string): string => `ng:app:${app}`,
+  ngDialog: (app: string, className: string): string => `ng:dialog:${app}/${className}`,
+  ngForm: (app: string, component: string, formId: string): string => `ng:form:${app}/${component}#${formId}`,
+  ngTab: (app: string, component: string, tabId: string): string => `ng:tab:${app}/${component}#${tabId}`
 };

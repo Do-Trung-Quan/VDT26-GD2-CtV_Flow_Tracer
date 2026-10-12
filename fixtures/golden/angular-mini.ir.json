@@ -1,0 +1,2474 @@
+{
+  "adapterId": "angular",
+  "nodes": [
+    {
+      "key": "ng:app:admin-app",
+      "kind": "UI_APP",
+      "name": "admin-app",
+      "location": {
+        "filePath": "angular.json"
+      },
+      "attrs": {
+        "name": "admin-app",
+        "root": "projects/admin-app"
+      }
+    },
+    {
+      "key": "ng:dialog:admin-app/CategoryFormDialogComponent",
+      "kind": "UI_DIALOG",
+      "name": "CategoryFormDialogComponent",
+      "displayName": "Thêm danh mục",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.ts",
+        "startLine": 7,
+        "endLine": 35
+      },
+      "attrs": {
+        "component": "CategoryFormDialogComponent",
+        "label": "Thêm danh mục"
+      }
+    },
+    {
+      "key": "ng:dialog:admin-app/OrderNoteDialogComponent",
+      "kind": "UI_DIALOG",
+      "name": "OrderNoteDialogComponent",
+      "displayName": "Ghi chú đơn hàng",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 12
+      },
+      "attrs": {
+        "component": "OrderNoteDialogComponent",
+        "hosted": true,
+        "label": "Ghi chú đơn hàng"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/AppComponent#a.routerLink._categories",
+      "kind": "UI_ELEMENT",
+      "name": "a",
+      "displayName": "Danh mục",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 2
+      },
+      "attrs": {
+        "elementType": "link",
+        "tag": "a",
+        "component": "AppComponent",
+        "routerLink": "/categories"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/AppComponent#a.routerLink._orders",
+      "kind": "UI_ELEMENT",
+      "name": "a",
+      "displayName": "Đơn hàng",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 4
+      },
+      "attrs": {
+        "elementType": "link",
+        "tag": "a",
+        "component": "AppComponent",
+        "routerLink": "/orders"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/AppComponent#a.routerLink._products",
+      "kind": "UI_ELEMENT",
+      "name": "a",
+      "displayName": "Sản phẩm",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 3
+      },
+      "attrs": {
+        "elementType": "link",
+        "tag": "a",
+        "component": "AppComponent",
+        "routerLink": "/products"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/AppComponent#button.click.signOut",
+      "kind": "UI_ELEMENT",
+      "name": "signOut",
+      "displayName": "Đăng xuất",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 5
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "AppComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "signOut"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryFormDialogComponent#app-button.submit",
+      "kind": "UI_ELEMENT",
+      "name": "save",
+      "displayName": "Lưu",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 5
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "app-button",
+        "component": "CategoryFormDialogComponent",
+        "event": "ngSubmit",
+        "events": [
+          "ngSubmit"
+        ],
+        "handlers": [
+          "save"
+        ],
+        "i18nKey": "save"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryFormDialogComponent#button.click.cancel",
+      "kind": "UI_ELEMENT",
+      "name": "cancel",
+      "displayName": "Hủy",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 6
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "CategoryFormDialogComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "cancel"
+        ],
+        "i18nKey": "cancel"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryFormDialogComponent#input.code",
+      "kind": "UI_ELEMENT",
+      "name": "input",
+      "displayName": "Mã danh mục",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 3
+      },
+      "attrs": {
+        "elementType": "input",
+        "tag": "input",
+        "component": "CategoryFormDialogComponent",
+        "i18nKey": "code",
+        "control": "code"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryFormDialogComponent#input.name",
+      "kind": "UI_ELEMENT",
+      "name": "input",
+      "displayName": "Tên danh mục",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 4
+      },
+      "attrs": {
+        "elementType": "input",
+        "tag": "input",
+        "component": "CategoryFormDialogComponent",
+        "i18nKey": "name",
+        "control": "name"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryListComponent#button.click.onDelete",
+      "kind": "UI_ELEMENT",
+      "name": "onDelete",
+      "displayName": "Xóa",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 16
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "CategoryListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "onDelete"
+        ],
+        "i18nKey": "remove"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryListComponent#button.click.onDownload",
+      "kind": "UI_ELEMENT",
+      "name": "onDownload",
+      "displayName": "Tải về",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 7
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "CategoryListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "onDownload"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryListComponent#button.click.onEdit",
+      "kind": "UI_ELEMENT",
+      "name": "onEdit",
+      "displayName": "Sửa",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 15
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "CategoryListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "onEdit"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryListComponent#button.click.onExport",
+      "kind": "UI_ELEMENT",
+      "name": "onExport",
+      "displayName": "Xuất Excel",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 5
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "CategoryListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "onExport"
+        ],
+        "i18nKey": "export_excel"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryListComponent#button.click.onRefresh",
+      "kind": "UI_ELEMENT",
+      "name": "onRefresh",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 6
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "CategoryListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "onRefresh"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryListComponent#id.btn-create",
+      "kind": "UI_ELEMENT",
+      "name": "openCreate",
+      "displayName": "Thêm mới",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 4
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "CategoryListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "openCreate"
+        ],
+        "i18nKey": "create"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/CategoryListComponent#input.change.onSearch",
+      "kind": "UI_ELEMENT",
+      "name": "onSearch",
+      "displayName": "Tìm theo mã hoặc tên",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 3
+      },
+      "attrs": {
+        "elementType": "input",
+        "tag": "input",
+        "component": "CategoryListComponent",
+        "event": "change",
+        "events": [
+          "change"
+        ],
+        "handlers": [
+          "onSearch"
+        ],
+        "i18nKey": "search_placeholder"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/OrderListComponent#button.click.onCancel",
+      "kind": "UI_ELEMENT",
+      "name": "onCancel",
+      "displayName": "Hủy đơn",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 21
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "OrderListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "onCancel"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/OrderListComponent#button.click.onConfirm",
+      "kind": "UI_ELEMENT",
+      "name": "onConfirm",
+      "displayName": "Xác nhận đơn",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 20
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "OrderListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "onConfirm"
+        ],
+        "i18nKey": "order.confirm"
+      }
+    },
+    {
+      "key": "ng:element:admin-app/OrderListComponent#button.click.write.showNote",
+      "kind": "UI_ELEMENT",
+      "name": "button",
+      "displayName": "Ghi chú",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 10
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "OrderListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/OrderNoteDialogComponent#button.click.emit",
+      "kind": "UI_ELEMENT",
+      "name": "emit",
+      "displayName": "Đóng",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
+        "startLine": 12
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "OrderNoteDialogComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "emit"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/OrderNoteDialogComponent#button.click.save",
+      "kind": "UI_ELEMENT",
+      "name": "save",
+      "displayName": "Lưu ghi chú",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
+        "startLine": 11
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "OrderNoteDialogComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "save"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/PagerComponent#button.click.next",
+      "kind": "UI_ELEMENT",
+      "name": "next",
+      "displayName": "Trang sau",
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 9
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "PagerComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "next"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/PagerComponent#button.click.previous",
+      "kind": "UI_ELEMENT",
+      "name": "previous",
+      "displayName": "Trang trước",
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 8
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "PagerComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "previous"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/ProductListComponent#app-pager.pageChange.onPage",
+      "kind": "UI_ELEMENT",
+      "name": "onPage",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 7
+      },
+      "attrs": {
+        "elementType": "pagination",
+        "tag": "app-pager",
+        "component": "ProductListComponent",
+        "event": "pageChange",
+        "events": [
+          "pageChange"
+        ],
+        "handlers": [
+          "onPage"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/ProductListComponent#button.click.goToOrders",
+      "kind": "UI_ELEMENT",
+      "name": "goToOrders",
+      "displayName": "Xem đơn hàng",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 10
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "ProductListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "goToOrders"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/ProductListComponent#button.click.toggleFilter",
+      "kind": "UI_ELEMENT",
+      "name": "toggleFilter",
+      "displayName": "Bộ lọc",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 3
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "ProductListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ],
+        "handlers": [
+          "toggleFilter"
+        ]
+      }
+    },
+    {
+      "key": "ng:element:admin-app/ProductListComponent#button.click.write.showFilter",
+      "kind": "UI_ELEMENT",
+      "name": "button",
+      "displayName": "Đóng bộ lọc",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 5
+      },
+      "attrs": {
+        "elementType": "button",
+        "tag": "button",
+        "component": "ProductListComponent",
+        "event": "click",
+        "events": [
+          "click"
+        ]
+      }
+    },
+    {
+      "key": "ng:form:admin-app/CategoryFormDialogComponent#form.ngSubmit.save",
+      "kind": "UI_FORM",
+      "name": "form.ngSubmit.save",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 2
+      },
+      "attrs": {
+        "component": "CategoryFormDialogComponent",
+        "fields": [
+          {
+            "name": "code",
+            "controlType": "input"
+          },
+          {
+            "name": "name",
+            "controlType": "input"
+          }
+        ]
+      }
+    },
+    {
+      "key": "ng:http:admin-app/HttpCategoryRepository#create:0",
+      "kind": "HTTP_CALL",
+      "name": "POST /gateway/api/v1/categories",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 19
+      },
+      "attrs": {
+        "httpMethod": "POST",
+        "urlExpr": "CATEGORY_BASE",
+        "urlPattern": "/gateway/api/v1/categories",
+        "urlResolved": true,
+        "bodyType": "CategoryInput",
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:http:admin-app/HttpCategoryRepository#exportExcel:0",
+      "kind": "HTTP_CALL",
+      "name": "GET /gateway/api/v1/categories/export",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 27
+      },
+      "attrs": {
+        "httpMethod": "GET",
+        "urlExpr": "CATEGORY_BASE + '/export'",
+        "urlPattern": "/gateway/api/v1/categories/export",
+        "urlResolved": true,
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:http:admin-app/HttpCategoryRepository#list:0",
+      "kind": "HTTP_CALL",
+      "name": "GET /gateway/api/v1/categories",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 15
+      },
+      "attrs": {
+        "httpMethod": "GET",
+        "urlExpr": "CATEGORY_BASE",
+        "urlPattern": "/gateway/api/v1/categories",
+        "urlResolved": true,
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:http:admin-app/HttpCategoryRepository#remove:0",
+      "kind": "HTTP_CALL",
+      "name": "DELETE /gateway/api/v1/categories/{id}",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 23
+      },
+      "attrs": {
+        "httpMethod": "DELETE",
+        "urlExpr": "`${CATEGORY_BASE}/${id}`",
+        "urlPattern": "/gateway/api/v1/categories/{id}",
+        "urlResolved": true,
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:http:admin-app/OrderService#cancel:0",
+      "kind": "HTTP_CALL",
+      "name": "DELETE /gateway/api/v1/orders/{id}",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 23
+      },
+      "attrs": {
+        "httpMethod": "DELETE",
+        "urlExpr": "this.resource + '/' + id",
+        "urlPattern": "/gateway/api/v1/orders/{id}",
+        "urlResolved": true,
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:http:admin-app/OrderService#confirm:0",
+      "kind": "HTTP_CALL",
+      "name": "PUT /gateway/api/v1/orders/{id}/confirm",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 19
+      },
+      "attrs": {
+        "httpMethod": "PUT",
+        "urlExpr": "`${this.resource}/${id}/confirm`",
+        "urlPattern": "/gateway/api/v1/orders/{id}/confirm",
+        "urlResolved": true,
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:http:admin-app/OrderService#list:0",
+      "kind": "HTTP_CALL",
+      "name": "GET /gateway/api/v1/orders",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 11
+      },
+      "attrs": {
+        "httpMethod": "GET",
+        "urlExpr": "this.resource",
+        "urlPattern": "/gateway/api/v1/orders",
+        "urlResolved": true,
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:http:admin-app/OrderService#saveNote:0",
+      "kind": "HTTP_CALL",
+      "name": "POST /gateway/api/v1/orders/note",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 15
+      },
+      "attrs": {
+        "httpMethod": "POST",
+        "urlExpr": "`${this.resource}/note`",
+        "urlPattern": "/gateway/api/v1/orders/note",
+        "urlResolved": true,
+        "origin": "FE"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/AppComponent#signOut",
+      "kind": "FE_METHOD",
+      "name": "AppComponent.signOut",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.ts",
+        "startLine": 14,
+        "endLine": 16
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "AppComponent",
+        "signature": "signOut()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryFacade#exportExcel",
+      "kind": "FE_METHOD",
+      "name": "CategoryFacade.exportExcel",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 30,
+        "endLine": 32
+      },
+      "attrs": {
+        "layer": "FACADE",
+        "layerBasis": "NAME",
+        "className": "CategoryFacade",
+        "signature": "exportExcel()",
+        "paramNames": [],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryFacade#getRepository",
+      "kind": "FE_METHOD",
+      "name": "CategoryFacade.getRepository",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 12,
+        "endLine": 14
+      },
+      "attrs": {
+        "layer": "FACADE",
+        "layerBasis": "NAME",
+        "className": "CategoryFacade",
+        "signature": "getRepository()",
+        "paramNames": [],
+        "returnType": "CategoryRepository"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryFacade#load",
+      "kind": "FE_METHOD",
+      "name": "CategoryFacade.load",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 16,
+        "endLine": 18
+      },
+      "attrs": {
+        "layer": "FACADE",
+        "layerBasis": "NAME",
+        "className": "CategoryFacade",
+        "signature": "load(keyword)",
+        "paramNames": [
+          "keyword"
+        ],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryFacade#remove",
+      "kind": "FE_METHOD",
+      "name": "CategoryFacade.remove",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 25,
+        "endLine": 28
+      },
+      "attrs": {
+        "layer": "FACADE",
+        "layerBasis": "NAME",
+        "className": "CategoryFacade",
+        "signature": "remove(id)",
+        "paramNames": [
+          "id"
+        ],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryFacade#save",
+      "kind": "FE_METHOD",
+      "name": "CategoryFacade.save",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 20,
+        "endLine": 23
+      },
+      "attrs": {
+        "layer": "FACADE",
+        "layerBasis": "NAME",
+        "className": "CategoryFacade",
+        "signature": "save(input)",
+        "paramNames": [
+          "input"
+        ],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryFormDialogComponent#cancel",
+      "kind": "FE_METHOD",
+      "name": "CategoryFormDialogComponent.cancel",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.ts",
+        "startLine": 32,
+        "endLine": 34
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryFormDialogComponent",
+        "signature": "cancel()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryFormDialogComponent#save",
+      "kind": "FE_METHOD",
+      "name": "CategoryFormDialogComponent.save",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.ts",
+        "startLine": 27,
+        "endLine": 30
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryFormDialogComponent",
+        "signature": "save()",
+        "paramNames": [],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#ngOnInit",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.ngOnInit",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 21,
+        "endLine": 23
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "ngOnInit()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#onDelete",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.onDelete",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 48,
+        "endLine": 50
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "onDelete(id)",
+        "paramNames": [
+          "id"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#onDownload",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.onDownload",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 63,
+        "endLine": 65
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "onDownload()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#onEdit",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.onEdit",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 35,
+        "endLine": 37
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "onEdit(id)",
+        "paramNames": [
+          "id"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#onExport",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.onExport",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 52,
+        "endLine": 54
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "onExport()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#onRefresh",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.onRefresh",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 57,
+        "endLine": 60
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "onRefresh()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#onSearch",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.onSearch",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 25,
+        "endLine": 27
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "onSearch(keyword)",
+        "paramNames": [
+          "keyword"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#openCreate",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.openCreate",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 29,
+        "endLine": 32
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "openCreate()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/CategoryListComponent#openForm",
+      "kind": "FE_METHOD",
+      "name": "CategoryListComponent.openForm",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 39,
+        "endLine": 46
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "CategoryListComponent",
+        "signature": "openForm(id)",
+        "paramNames": [
+          "id"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/HttpCategoryRepository#create",
+      "kind": "FE_METHOD",
+      "name": "HttpCategoryRepository.create",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 18,
+        "endLine": 20
+      },
+      "attrs": {
+        "layer": "REPOSITORY",
+        "layerBasis": "NAME",
+        "className": "HttpCategoryRepository",
+        "signature": "create(input)",
+        "paramNames": [
+          "input"
+        ],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/HttpCategoryRepository#exportExcel",
+      "kind": "FE_METHOD",
+      "name": "HttpCategoryRepository.exportExcel",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 26,
+        "endLine": 28
+      },
+      "attrs": {
+        "layer": "REPOSITORY",
+        "layerBasis": "NAME",
+        "className": "HttpCategoryRepository",
+        "signature": "exportExcel()",
+        "paramNames": [],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/HttpCategoryRepository#list",
+      "kind": "FE_METHOD",
+      "name": "HttpCategoryRepository.list",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 14,
+        "endLine": 16
+      },
+      "attrs": {
+        "layer": "REPOSITORY",
+        "layerBasis": "NAME",
+        "className": "HttpCategoryRepository",
+        "signature": "list(keyword)",
+        "paramNames": [
+          "keyword"
+        ],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/HttpCategoryRepository#remove",
+      "kind": "FE_METHOD",
+      "name": "HttpCategoryRepository.remove",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 22,
+        "endLine": 24
+      },
+      "attrs": {
+        "layer": "REPOSITORY",
+        "layerBasis": "NAME",
+        "className": "HttpCategoryRepository",
+        "signature": "remove(id)",
+        "paramNames": [
+          "id"
+        ],
+        "returnType": "Promise"
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderListComponent#constructor",
+      "kind": "FE_METHOD",
+      "name": "OrderListComponent.constructor",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 5,
+        "endLine": 5
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "OrderListComponent",
+        "signature": "constructor()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderListComponent#onCancel",
+      "kind": "FE_METHOD",
+      "name": "OrderListComponent.onCancel",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 38,
+        "endLine": 40
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "OrderListComponent",
+        "signature": "onCancel(id)",
+        "paramNames": [
+          "id"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderListComponent#onConfirm",
+      "kind": "FE_METHOD",
+      "name": "OrderListComponent.onConfirm",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 34,
+        "endLine": 36
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "OrderListComponent",
+        "signature": "onConfirm(id)",
+        "paramNames": [
+          "id"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderNoteDialogComponent#save",
+      "kind": "FE_METHOD",
+      "name": "OrderNoteDialogComponent.save",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
+        "startLine": 19,
+        "endLine": 21
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "OrderNoteDialogComponent",
+        "signature": "save()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderService#cancel",
+      "kind": "FE_METHOD",
+      "name": "OrderService.cancel",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 22,
+        "endLine": 24
+      },
+      "attrs": {
+        "layer": "SERVICE",
+        "layerBasis": "NAME",
+        "className": "OrderService",
+        "signature": "cancel(id)",
+        "paramNames": [
+          "id"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderService#confirm",
+      "kind": "FE_METHOD",
+      "name": "OrderService.confirm",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 18,
+        "endLine": 20
+      },
+      "attrs": {
+        "layer": "SERVICE",
+        "layerBasis": "NAME",
+        "className": "OrderService",
+        "signature": "confirm(id)",
+        "paramNames": [
+          "id"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderService#list",
+      "kind": "FE_METHOD",
+      "name": "OrderService.list",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 10,
+        "endLine": 12
+      },
+      "attrs": {
+        "layer": "SERVICE",
+        "layerBasis": "NAME",
+        "className": "OrderService",
+        "signature": "list()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/OrderService#saveNote",
+      "kind": "FE_METHOD",
+      "name": "OrderService.saveNote",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 14,
+        "endLine": 16
+      },
+      "attrs": {
+        "layer": "SERVICE",
+        "layerBasis": "NAME",
+        "className": "OrderService",
+        "signature": "saveNote(text)",
+        "paramNames": [
+          "text"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/PagerComponent#next",
+      "kind": "FE_METHOD",
+      "name": "PagerComponent.next",
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 21,
+        "endLine": 23
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "PagerComponent",
+        "signature": "next()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/PagerComponent#previous",
+      "kind": "FE_METHOD",
+      "name": "PagerComponent.previous",
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 17,
+        "endLine": 19
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "PagerComponent",
+        "signature": "previous()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/ProductListComponent#goToOrders",
+      "kind": "FE_METHOD",
+      "name": "ProductListComponent.goToOrders",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.ts",
+        "startLine": 23,
+        "endLine": 25
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "ProductListComponent",
+        "signature": "goToOrders()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:method:admin-app/ProductListComponent#onPage",
+      "kind": "FE_METHOD",
+      "name": "ProductListComponent.onPage",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.ts",
+        "startLine": 19,
+        "endLine": 21
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "ProductListComponent",
+        "signature": "onPage(page)",
+        "paramNames": [
+          "page"
+        ]
+      }
+    },
+    {
+      "key": "ng:method:admin-app/ProductListComponent#toggleFilter",
+      "kind": "FE_METHOD",
+      "name": "ProductListComponent.toggleFilter",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.ts",
+        "startLine": 15,
+        "endLine": 17
+      },
+      "attrs": {
+        "layer": "COMPONENT",
+        "layerBasis": "DECORATOR",
+        "className": "ProductListComponent",
+        "signature": "toggleFilter()",
+        "paramNames": []
+      }
+    },
+    {
+      "key": "ng:screen:admin-app/categories",
+      "kind": "UI_SCREEN",
+      "name": "CategoryListComponent",
+      "displayName": "Danh mục",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 7,
+        "endLine": 66
+      },
+      "attrs": {
+        "routePath": "/categories",
+        "component": "CategoryListComponent",
+        "title": "Danh mục"
+      }
+    },
+    {
+      "key": "ng:screen:admin-app/orders",
+      "kind": "UI_SCREEN",
+      "name": "OrderListComponent",
+      "displayName": "Đơn hàng",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 5,
+        "endLine": 41
+      },
+      "attrs": {
+        "routePath": "/orders",
+        "component": "OrderListComponent",
+        "title": "Đơn hàng"
+      }
+    },
+    {
+      "key": "ng:screen:admin-app/products",
+      "kind": "UI_SCREEN",
+      "name": "ProductListComponent",
+      "displayName": "Sản phẩm",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.ts",
+        "startLine": 4,
+        "endLine": 26
+      },
+      "attrs": {
+        "routePath": "/products",
+        "component": "ProductListComponent",
+        "title": "Sản phẩm"
+      }
+    },
+    {
+      "key": "ng:tab:admin-app/ProductListComponent#Danh_sách",
+      "kind": "UI_TAB",
+      "name": "Danh sách",
+      "displayName": "Danh sách",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 2
+      },
+      "attrs": {
+        "component": "ProductListComponent",
+        "label": "Danh sách"
+      }
+    },
+    {
+      "key": "ng:tab:admin-app/ProductListComponent#Tồn_kho",
+      "kind": "UI_TAB",
+      "name": "Tồn kho",
+      "displayName": "Tồn kho",
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 9
+      },
+      "attrs": {
+        "component": "ProductListComponent",
+        "label": "Tồn kho"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "fromKey": "ng:app:admin-app",
+      "toKey": "ng:screen:admin-app/categories",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/category.routes.ts",
+        "startLine": 4
+      }
+    },
+    {
+      "fromKey": "ng:app:admin-app",
+      "toKey": "ng:screen:admin-app/orders",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.routes.ts",
+        "startLine": 13
+      }
+    },
+    {
+      "fromKey": "ng:app:admin-app",
+      "toKey": "ng:screen:admin-app/products",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 2,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-routing.module.ts",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:app:admin-app",
+      "toKey": "ng:element:admin-app/AppComponent#a.routerLink._categories",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 3,
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 2
+      }
+    },
+    {
+      "fromKey": "ng:app:admin-app",
+      "toKey": "ng:element:admin-app/AppComponent#a.routerLink._products",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 4,
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 3
+      }
+    },
+    {
+      "fromKey": "ng:app:admin-app",
+      "toKey": "ng:element:admin-app/AppComponent#a.routerLink._orders",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 5,
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 4
+      }
+    },
+    {
+      "fromKey": "ng:app:admin-app",
+      "toKey": "ng:element:admin-app/AppComponent#button.click.signOut",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 6,
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:dialog:admin-app/CategoryFormDialogComponent",
+      "toKey": "ng:form:admin-app/CategoryFormDialogComponent#form.ngSubmit.save",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 2
+      }
+    },
+    {
+      "fromKey": "ng:dialog:admin-app/OrderNoteDialogComponent",
+      "toKey": "ng:element:admin-app/OrderNoteDialogComponent#button.click.save",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
+        "startLine": 11
+      }
+    },
+    {
+      "fromKey": "ng:dialog:admin-app/OrderNoteDialogComponent",
+      "toKey": "ng:element:admin-app/OrderNoteDialogComponent#button.click.emit",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
+        "startLine": 12
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/AppComponent#a.routerLink._categories",
+      "toKey": "ng:screen:admin-app/categories",
+      "kind": "NAVIGATES",
+      "confidence": "CERTAIN",
+      "reason": "routerLink khớp đường dẫn của màn hình",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 2
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/AppComponent#a.routerLink._orders",
+      "toKey": "ng:screen:admin-app/orders",
+      "kind": "NAVIGATES",
+      "confidence": "CERTAIN",
+      "reason": "routerLink khớp đường dẫn của màn hình",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 4
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/AppComponent#a.routerLink._products",
+      "toKey": "ng:screen:admin-app/products",
+      "kind": "NAVIGATES",
+      "confidence": "CERTAIN",
+      "reason": "routerLink khớp đường dẫn của màn hình",
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 3
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/AppComponent#button.click.signOut",
+      "toKey": "ng:method:admin-app/AppComponent#signOut",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.html",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryFormDialogComponent#app-button.submit",
+      "toKey": "ng:method:admin-app/CategoryFormDialogComponent#save",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "reason": "Nút gửi của form: sự kiện ngSubmit chạy khi bấm nút này",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 2
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryFormDialogComponent#button.click.cancel",
+      "toKey": "ng:method:admin-app/CategoryFormDialogComponent#cancel",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 6
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryListComponent#button.click.onDelete",
+      "toKey": "ng:method:admin-app/CategoryListComponent#onDelete",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 16
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryListComponent#button.click.onDownload",
+      "toKey": "ng:method:admin-app/CategoryListComponent#onDownload",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 7
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryListComponent#button.click.onEdit",
+      "toKey": "ng:method:admin-app/CategoryListComponent#onEdit",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 15
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryListComponent#button.click.onExport",
+      "toKey": "ng:method:admin-app/CategoryListComponent#onExport",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryListComponent#button.click.onRefresh",
+      "toKey": "ng:method:admin-app/CategoryListComponent#onRefresh",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 6
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryListComponent#id.btn-create",
+      "toKey": "ng:method:admin-app/CategoryListComponent#openCreate",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 4
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/CategoryListComponent#input.change.onSearch",
+      "toKey": "ng:method:admin-app/CategoryListComponent#onSearch",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 3
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/OrderListComponent#button.click.onCancel",
+      "toKey": "ng:method:admin-app/OrderListComponent#onCancel",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 21
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/OrderListComponent#button.click.onConfirm",
+      "toKey": "ng:method:admin-app/OrderListComponent#onConfirm",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 20
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/OrderNoteDialogComponent#button.click.save",
+      "toKey": "ng:method:admin-app/OrderNoteDialogComponent#save",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
+        "startLine": 11
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/PagerComponent#button.click.next",
+      "toKey": "ng:method:admin-app/PagerComponent#next",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 9
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/PagerComponent#button.click.previous",
+      "toKey": "ng:method:admin-app/PagerComponent#previous",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 8
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/ProductListComponent#app-pager.pageChange.onPage",
+      "toKey": "ng:method:admin-app/ProductListComponent#onPage",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 7
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/ProductListComponent#button.click.goToOrders",
+      "toKey": "ng:method:admin-app/ProductListComponent#goToOrders",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 10
+      }
+    },
+    {
+      "fromKey": "ng:element:admin-app/ProductListComponent#button.click.toggleFilter",
+      "toKey": "ng:method:admin-app/ProductListComponent#toggleFilter",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 3
+      }
+    },
+    {
+      "fromKey": "ng:form:admin-app/CategoryFormDialogComponent#form.ngSubmit.save",
+      "toKey": "ng:element:admin-app/CategoryFormDialogComponent#input.code",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 3
+      }
+    },
+    {
+      "fromKey": "ng:form:admin-app/CategoryFormDialogComponent#form.ngSubmit.save",
+      "toKey": "ng:element:admin-app/CategoryFormDialogComponent#input.name",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 4
+      }
+    },
+    {
+      "fromKey": "ng:form:admin-app/CategoryFormDialogComponent#form.ngSubmit.save",
+      "toKey": "ng:element:admin-app/CategoryFormDialogComponent#app-button.submit",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 2,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:form:admin-app/CategoryFormDialogComponent#form.ngSubmit.save",
+      "toKey": "ng:element:admin-app/CategoryFormDialogComponent#button.click.cancel",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 3,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
+        "startLine": 6
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/AppComponent#signOut",
+      "toKey": "ng:screen:admin-app/categories",
+      "kind": "NAVIGATES",
+      "confidence": "CERTAIN",
+      "reason": "Đường dẫn chuyển trang khớp route của màn hình",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/app.component.ts",
+        "startLine": 15
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryFacade#exportExcel",
+      "toKey": "ng:method:admin-app/HttpCategoryRepository#exportExcel",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "reason": "Provider CATEGORY_REPOSITORY → HttpCategoryRepository (projects/admin-app/src/app/modules/category/data/category.providers.ts:5)",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 31
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryFacade#load",
+      "toKey": "ng:method:admin-app/HttpCategoryRepository#list",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "reason": "Provider CATEGORY_REPOSITORY → HttpCategoryRepository (projects/admin-app/src/app/modules/category/data/category.providers.ts:5)",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 17
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryFacade#remove",
+      "toKey": "ng:method:admin-app/HttpCategoryRepository#remove",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "reason": "Provider CATEGORY_REPOSITORY → HttpCategoryRepository (projects/admin-app/src/app/modules/category/data/category.providers.ts:5)",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 26
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryFacade#remove",
+      "toKey": "ng:method:admin-app/CategoryFacade#load",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 27
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryFacade#save",
+      "toKey": "ng:method:admin-app/HttpCategoryRepository#create",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "reason": "Provider CATEGORY_REPOSITORY → HttpCategoryRepository (projects/admin-app/src/app/modules/category/data/category.providers.ts:5)",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 21
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryFacade#save",
+      "toKey": "ng:method:admin-app/CategoryFacade#load",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/application/category.facade.ts",
+        "startLine": 22
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryFormDialogComponent#save",
+      "toKey": "ng:method:admin-app/CategoryFacade#save",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.ts",
+        "startLine": 28
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#ngOnInit",
+      "toKey": "ng:method:admin-app/CategoryFacade#load",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 22
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onDelete",
+      "toKey": "ng:method:admin-app/CategoryFacade#remove",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 49
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onDownload",
+      "toKey": "ng:method:admin-app/CategoryFacade#getRepository",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 64
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onDownload",
+      "toKey": "ng:method:admin-app/HttpCategoryRepository#exportExcel",
+      "kind": "CALLS",
+      "confidence": "INFERRED",
+      "reason": "Kiểu trả về đã khai báo của getRepository() là CategoryRepository",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 64
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onEdit",
+      "toKey": "ng:method:admin-app/CategoryListComponent#openForm",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 36
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onExport",
+      "toKey": "ng:method:admin-app/CategoryFacade#exportExcel",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 53
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onRefresh",
+      "toKey": "ng:method:admin-app/CategoryFacade#getRepository",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 58
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onRefresh",
+      "toKey": "ng:method:admin-app/HttpCategoryRepository#list",
+      "kind": "CALLS",
+      "confidence": "INFERRED",
+      "reason": "Kiểu trả về đã khai báo của getRepository() là CategoryRepository",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 59
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#onSearch",
+      "toKey": "ng:method:admin-app/CategoryFacade#load",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 26
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#openCreate",
+      "toKey": "ng:method:admin-app/CategoryFacade#load",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 2,
+      "guard": {
+        "type": "IF",
+        "text": "sau khi hộp thoại đóng",
+        "branch": "afterClosed"
+      },
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 31
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#openCreate",
+      "toKey": "ng:dialog:admin-app/CategoryFormDialogComponent",
+      "kind": "OPENS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 30
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#openForm",
+      "toKey": "ng:method:admin-app/CategoryFacade#load",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "guard": {
+        "type": "IF",
+        "text": "sau khi hộp thoại đóng — ok",
+        "branch": "afterClosed"
+      },
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 43
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/CategoryListComponent#openForm",
+      "toKey": "ng:dialog:admin-app/CategoryFormDialogComponent",
+      "kind": "OPENS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 40
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/HttpCategoryRepository#create",
+      "toKey": "ng:http:admin-app/HttpCategoryRepository#create:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 19
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/HttpCategoryRepository#exportExcel",
+      "toKey": "ng:http:admin-app/HttpCategoryRepository#exportExcel:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 27
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/HttpCategoryRepository#list",
+      "toKey": "ng:http:admin-app/HttpCategoryRepository#list:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 15
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/HttpCategoryRepository#remove",
+      "toKey": "ng:http:admin-app/HttpCategoryRepository#remove:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
+        "startLine": 23
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderListComponent#constructor",
+      "toKey": "ng:method:admin-app/OrderService#list",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 32
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderListComponent#onCancel",
+      "toKey": "ng:method:admin-app/OrderService#cancel",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 39
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderListComponent#onConfirm",
+      "toKey": "ng:method:admin-app/OrderService#confirm",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 35
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderNoteDialogComponent#save",
+      "toKey": "ng:method:admin-app/OrderService#saveNote",
+      "kind": "CALLS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
+        "startLine": 20
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderService#cancel",
+      "toKey": "ng:http:admin-app/OrderService#cancel:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 23
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderService#confirm",
+      "toKey": "ng:http:admin-app/OrderService#confirm:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 19
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderService#list",
+      "toKey": "ng:http:admin-app/OrderService#list:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 11
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/OrderService#saveNote",
+      "toKey": "ng:http:admin-app/OrderService#saveNote:0",
+      "kind": "SENDS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
+        "startLine": 15
+      }
+    },
+    {
+      "fromKey": "ng:method:admin-app/ProductListComponent#goToOrders",
+      "toKey": "ng:screen:admin-app/orders",
+      "kind": "NAVIGATES",
+      "confidence": "CERTAIN",
+      "reason": "Đường dẫn chuyển trang khớp route của màn hình",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.ts",
+        "startLine": 24
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:element:admin-app/CategoryListComponent#input.change.onSearch",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 3
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:element:admin-app/CategoryListComponent#id.btn-create",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 4
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:element:admin-app/CategoryListComponent#button.click.onExport",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 2,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:element:admin-app/CategoryListComponent#button.click.onRefresh",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 3,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 6
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:element:admin-app/CategoryListComponent#button.click.onDownload",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 4,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 7
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:element:admin-app/CategoryListComponent#button.click.onEdit",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 5,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 15
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:element:admin-app/CategoryListComponent#button.click.onDelete",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 6,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
+        "startLine": 16
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:dialog:admin-app/CategoryFormDialogComponent",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "reason": "Hộp thoại được mở từ một hàm xử lý của thành phần này",
+      "callOrder": 7,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.ts",
+        "startLine": 7,
+        "endLine": 35
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/categories",
+      "toKey": "ng:method:admin-app/CategoryListComponent#ngOnInit",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "reason": "Chạy khi CategoryListComponent được tạo (ngOnInit)",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.ts",
+        "startLine": 21
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/orders",
+      "toKey": "ng:element:admin-app/OrderListComponent#button.click.write.showNote",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 10
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/orders",
+      "toKey": "ng:dialog:admin-app/OrderNoteDialogComponent",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "reason": "Hộp thoại đặt trực tiếp trong template",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 12
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/orders",
+      "toKey": "ng:element:admin-app/OrderListComponent#button.click.onConfirm",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 2,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 20
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/orders",
+      "toKey": "ng:element:admin-app/OrderListComponent#button.click.onCancel",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 3,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 21
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/orders",
+      "toKey": "ng:method:admin-app/OrderListComponent#constructor",
+      "kind": "TRIGGERS",
+      "confidence": "CERTAIN",
+      "reason": "Chạy khi OrderListComponent được tạo (constructor)",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/products",
+      "toKey": "ng:tab:admin-app/ProductListComponent#Danh_sách",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 2
+      }
+    },
+    {
+      "fromKey": "ng:screen:admin-app/products",
+      "toKey": "ng:tab:admin-app/ProductListComponent#Tồn_kho",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 9
+      }
+    },
+    {
+      "fromKey": "ng:tab:admin-app/ProductListComponent#Danh_sách",
+      "toKey": "ng:element:admin-app/ProductListComponent#button.click.toggleFilter",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 3
+      }
+    },
+    {
+      "fromKey": "ng:tab:admin-app/ProductListComponent#Danh_sách",
+      "toKey": "ng:element:admin-app/ProductListComponent#button.click.write.showFilter",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 1,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 5
+      }
+    },
+    {
+      "fromKey": "ng:tab:admin-app/ProductListComponent#Danh_sách",
+      "toKey": "ng:element:admin-app/ProductListComponent#app-pager.pageChange.onPage",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 2,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 7
+      }
+    },
+    {
+      "fromKey": "ng:tab:admin-app/ProductListComponent#Danh_sách",
+      "toKey": "ng:element:admin-app/PagerComponent#button.click.previous",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 3,
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 8
+      }
+    },
+    {
+      "fromKey": "ng:tab:admin-app/ProductListComponent#Danh_sách",
+      "toKey": "ng:element:admin-app/PagerComponent#button.click.next",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 4,
+      "location": {
+        "filePath": "projects/shared-lib/src/lib/pager.component.ts",
+        "startLine": 9
+      }
+    },
+    {
+      "fromKey": "ng:tab:admin-app/ProductListComponent#Tồn_kho",
+      "toKey": "ng:element:admin-app/ProductListComponent#button.click.goToOrders",
+      "kind": "CONTAINS",
+      "confidence": "CERTAIN",
+      "callOrder": 0,
+      "location": {
+        "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
+        "startLine": 10
+      }
+    }
+  ],
+  "detectedLinkRules": [
+    {
+      "type": "REWRITE",
+      "pattern": "^/gateway",
+      "replacement": "",
+      "origin": "AUTO",
+      "description": "projects/admin-app/proxy.conf.json: proxy \"/gateway\" của ứng dụng admin-app"
+    }
+  ],
+  "diagnostics": []
+}

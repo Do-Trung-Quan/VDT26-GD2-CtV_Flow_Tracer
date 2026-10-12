@@ -1,0 +1,6 @@
+{
+  "/gateway": {
+    "target": "http://localhost:8080",
+    "pathRewrite": { "^/gateway": "" }
+  }
+}

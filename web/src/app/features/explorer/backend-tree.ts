@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, input, output, signal, untracked, viewChild } from '@angular/core';
 import type { ApiModuleDto, BackendTreeDto, EndpointNodeDto } from '../../core/api/api-types';
 import { Icon } from '../../core/ui/icon';
+import type { RevealRequest } from './frontend-tree';
 import { filterModules, highlight } from './tree-filter';
 
 /** Cây API Backend Module → Endpoint (API C1): lọc nhanh có tô sáng, thu/mở module, chọn endpoint. */
@@ -21,7 +22,7 @@ import { filterModules, highlight } from './tree-filter';
         }
       </div>
     }
-    <div class="tree" role="tree">
+    <div #list class="tree" role="tree">
       @for (m of modules(); track key(m)) {
         <button class="tn" type="button" role="treeitem" aria-selected="false" [attr.aria-expanded]="isOpen(m)" (click)="toggle(m)">
           <span class="chev" [class.open]="isOpen(m)"><app-icon name="chev" [small]="true" /></span>
@@ -40,7 +41,7 @@ import { filterModules, highlight } from './tree-filter';
         @if (isOpen(m)) {
           @for (e of m.endpoints ?? []; track e.nodeKey) {
             <button class="tn ep" type="button" role="treeitem" [class.sel]="e.nodeKey === selectedKey()"
-              [attr.aria-selected]="e.nodeKey === selectedKey()" [title]="e.summary ?? e.path"
+              [attr.aria-selected]="e.nodeKey === selectedKey()" [attr.data-key]="e.nodeKey" [title]="e.summary ?? e.path"
               (click)="selected.emit(e)">
               <span [class]="'mt ' + e.httpMethod">{{ e.httpMethod }}</span>
               <span class="nm mono">
@@ -95,7 +96,10 @@ export class BackendTree {
   readonly tree = input<BackendTreeDto | null>(null);
   readonly selectedKey = input<string | null>(null);
   readonly emptyText = input('Chưa có endpoint nào.');
+  /** Yêu cầu mở tới một endpoint (từ Ctrl+K): xóa bộ lọc, mở module chứa nó rồi cuộn tới. */
+  readonly reveal = input<RevealRequest | null>(null);
   readonly selected = output<EndpointNodeDto>();
+  private readonly list = viewChild<ElementRef<HTMLElement>>('list');
 
   protected readonly query = signal('');
   /** Module đang mở (key = tên + Source); khi đang lọc thì mở tất cả. */
@@ -103,6 +107,25 @@ export class BackendTree {
 
   protected readonly modules = computed(() => filterModules(this.tree()?.modules ?? [], this.query()));
   protected readonly shownEndpoints = computed(() => this.modules().reduce((n, m) => n + (m.endpoints?.length ?? 0), 0));
+
+  constructor() {
+    effect(() => {
+      const request = this.reveal();
+      const t = this.tree();
+      if (!request || !t) {
+        return;
+      }
+      untracked(() => {
+        const module = (t.modules ?? []).find((m) => (m.endpoints ?? []).some((e) => e.nodeKey === request.key));
+        if (!module) {
+          return;
+        }
+        this.query.set('');
+        this.opened.set(new Set([...this.opened(), this.key(module)]));
+        setTimeout(() => this.list()?.nativeElement.querySelector<HTMLElement>(`[data-key="${CSS.escape(request.key)}"]`)?.scrollIntoView({ block: 'center' }), 0);
+      });
+    });
+  }
 
   protected val(e: Event): string {
     return (e.target as HTMLInputElement).value;

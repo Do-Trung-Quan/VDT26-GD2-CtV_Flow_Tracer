@@ -17,6 +17,7 @@ import com.ctv.flowtracer.core.graph.Subgraph;
 import com.ctv.flowtracer.core.tracer.TraceIds;
 import com.ctv.flowtracer.core.tracer.TraceRequest;
 import com.ctv.flowtracer.core.tracer.Tracer;
+import com.ctv.flowtracer.core.tracer.UnsupportedTraceStartException;
 import com.ctv.flowtracer.ir.IrNode;
 import com.ctv.flowtracer.ir.NodeKind;
 import com.ctv.flowtracer.ir.trace.Trace;
@@ -43,10 +44,11 @@ public class TracingService {
     }
 
     /**
-     * D1 — dò vết từ một API Backend.
+     * D1 — dò vết từ một API Backend hoặc từ một phần tử giao diện không gọi máy chủ.
      *
      * @throws AppException {@code WORKSPACE_NOT_FOUND}; {@code NODE_NOT_FOUND} nếu chưa quét hoặc không có node;
-     *     {@code TRACE_START_UNSUPPORTED} nếu node xuất phát không phải API Backend
+     *     {@code TRACE_START_UNSUPPORTED} nếu node xuất phát không phải API Backend / phần tử giao diện, hoặc phần tử gọi API
+     *     (cần nối Frontend với Backend — giai đoạn sau)
      */
     public TraceResponse trace(UUID workspaceId, CreateTraceRequest request) {
         TraceSettings settings = workspaceService.traceSettings(workspaceId);
@@ -72,12 +74,17 @@ public class TracingService {
                 .filter(n -> n.key().equals(traceRequest.startKey()))
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.NODE_NOT_FOUND, "Không tìm thấy thành phần cần dò vết"));
-        if (start.kind() != NodeKind.API_ENDPOINT) {
+        if (start.kind() != NodeKind.API_ENDPOINT && start.kind() != NodeKind.UI_ELEMENT) {
             throw new AppException(
                     ErrorCode.TRACE_START_UNSUPPORTED,
-                    "Hiện chỉ dò vết được từ một API Backend; thành phần giao diện sẽ được hỗ trợ ở giai đoạn sau");
+                    "Chỉ dò vết được từ một API Backend hoặc một phần tử giao diện (nút, ô nhập…)");
         }
-        Trace trace = tracer.trace(graph, traceRequest);
+        Trace trace;
+        try {
+            trace = tracer.trace(graph, traceRequest);
+        } catch (UnsupportedTraceStartException e) {
+            throw new AppException(ErrorCode.TRACE_START_UNSUPPORTED, e.getMessage());
+        }
         return new CachedTrace(trace, start.name(), start.displayName(), traceRequest.maxDepth());
     }
 
