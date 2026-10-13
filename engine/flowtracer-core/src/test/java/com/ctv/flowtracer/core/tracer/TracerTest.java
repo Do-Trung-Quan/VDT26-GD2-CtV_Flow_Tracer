@@ -318,6 +318,27 @@ class TracerTest {
     }
 
     @Test
+    void unconditionalThrowOnlyEndsItsOwnBranchSoTheElseBranchIsStillDrawn() {
+        IrNode ep = endpoint("POST /a", null);
+        IrNode ctl = controllerFlow(ep, method("AController", "save", "CONTROLLER"));
+        IrNode svc = method("AService", "save", "SERVICE");
+        Map<String, Object> thrown = Map.of("throws", List.of(Map.of("order", 0, "exception", "BusinessException", "messageKey", "DUP", "line", 3)));
+        IrNode update = method("AService", "update", "SERVICE", thrown); // luôn kết thúc bằng lỗi
+        IrNode create = method("AService", "create", "SERVICE");
+        IrNode repo = method("ARepository", "insert", "REPOSITORY");
+        calls(ctl, svc, 0);
+        edge(svc.key(), update.key(), EdgeKind.CALLS, 0, new Guard(Guard.Type.IF, "isEdit", "then"));
+        edge(svc.key(), create.key(), EdgeKind.CALLS, 1, new Guard(Guard.Type.ELSE, "isEdit", "else"));
+        calls(create, repo, 0);
+
+        Trace t = trace(ep);
+
+        assertThat(t.steps()).filteredOn(s -> !s.returning() && !s.isSelf()).extracting(TraceStep::label).contains("insert()"); // nhánh else vẫn được vẽ dù nhánh then kết thúc bằng lỗi
+        assertThat(t.blocks()).hasSize(1);
+        assertThat(t.blocks().get(0).elseBranches()).hasSize(1);
+    }
+
+    @Test
     void optionalLoopAndExplicitElseGuardsBecomeBlocks() {
         IrNode ep = endpoint("POST /a", null);
         IrNode ctl = controllerFlow(ep, method("AController", "run", "CONTROLLER"));

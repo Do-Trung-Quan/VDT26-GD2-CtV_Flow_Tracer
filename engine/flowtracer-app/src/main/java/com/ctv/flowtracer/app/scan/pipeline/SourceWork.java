@@ -25,6 +25,13 @@ final class SourceWork {
     /** File bộ phân tích xử lý, theo đường dẫn. */
     final Map<String, DiscoveredFile> files = new TreeMap<>();
 
+    /**
+     * "Mã nguồn rút gọn" của các lớp thư viện (jar) mà mã dự án dùng, theo đường dẫn giả {@code libs/x.jar!/com/acme/Foo.java}.
+     * Chỉ để phân tích kiểu (vd lớp bọc kết quả trả về): không phải file của dự án nên không vào danh sách file, không tính vào
+     * số liệu quét và không ghi vào CSDL.
+     */
+    final Map<String, com.ctv.flowtracer.ir.spi.SourceFile> libraryFiles = new TreeMap<>();
+
     /** File cấu hình ảnh hưởng tới kết quả (không phân tích), đã băm — {@code content} luôn null. */
     final Map<String, DiscoveredFile> configFiles = new TreeMap<>();
 

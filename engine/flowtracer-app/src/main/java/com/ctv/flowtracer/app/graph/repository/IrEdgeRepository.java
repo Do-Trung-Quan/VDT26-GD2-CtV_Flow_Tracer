@@ -1,12 +1,14 @@
 package com.ctv.flowtracer.app.graph.repository;
 
 import com.ctv.flowtracer.app.graph.model.ContainsRow;
+import com.ctv.flowtracer.app.graph.model.DescendantRow;
 import com.ctv.flowtracer.app.graph.model.IrEdgeRow;
 import com.ctv.flowtracer.app.graph.model.UiLinkRow;
 import com.ctv.flowtracer.ir.Candidate;
 import com.ctv.flowtracer.ir.Confidence;
 import com.ctv.flowtracer.ir.EdgeKind;
 import com.ctv.flowtracer.ir.Guard;
+import com.ctv.flowtracer.ir.NodeKind;
 import com.ctv.flowtracer.ir.IrEdge;
 import com.ctv.flowtracer.ir.SourceLocation;
 import java.sql.ResultSet;
@@ -29,6 +31,8 @@ import tools.jackson.databind.json.JsonMapper;
 public class IrEdgeRepository {
 
     private static final int BATCH_SIZE = 1_000;
+    /** Số cấp tối đa khi đi ngược tìm thành phần giao diện gọi tới một node. */
+    static final int CALLER_DEPTH = 16;
 
     private static final String INSERT = """
             INSERT INTO ir_edges (workspace_id, from_node_id, to_node_id, kind, confidence, reason, call_order, guard,
@@ -232,6 +236,51 @@ public class IrEdgeRepository {
                         """)
                 .param("ws", workspaceId)
                 .query((rs, i) -> new UiLinkRow(rs.getString("element_key"), rs.getString("target_key")))
+                .list();
+    }
+
+    /** Mọi thành phần nằm bên trong một thành phần chứa (theo {@code CONTAINS}, mọi cấp), không gồm chính nó. */
+    public List<DescendantRow> findDescendants(UUID workspaceId, UUID containerId) {
+        return jdbc.sql("""
+                        WITH RECURSIVE down(id) AS (
+                            SELECT CAST(:start AS uuid)
+                            UNION
+                            SELECT e.to_node_id
+                            FROM ir_edges e JOIN down d ON e.from_node_id = d.id
+                            WHERE e.workspace_id = :ws AND e.kind = 'CONTAINS' AND e.to_node_id IS NOT NULL
+                        )
+                        SELECT n.key, n.kind FROM down JOIN ir_nodes n ON n.id = down.id
+                        WHERE n.id <> CAST(:start AS uuid)
+                        ORDER BY n.key
+                        """)
+                .param("ws", workspaceId)
+                .param("start", containerId)
+                .query((rs, i) -> new DescendantRow(rs.getString("key"), NodeKind.valueOf(rs.getString("kind"))))
+                .list();
+    }
+
+    /**
+     * Id của các thành phần giao diện (phần tử, màn hình, hộp thoại, ứng dụng) mà luồng của chúng tới được một node: đi ngược
+     * theo {@code HTTP_REQUEST}, {@code SENDS}, {@code CALLS}, {@code TRIGGERS} (bỏ lời gọi chạy khi hộp thoại đóng), tối đa
+     * {@value #CALLER_DEPTH} cấp.
+     */
+    public List<UUID> findUiCallerIds(UUID workspaceId, UUID nodeId) {
+        return jdbc.sql("""
+                        WITH RECURSIVE up(id, depth) AS (
+                            SELECT CAST(:start AS uuid), 0
+                            UNION
+                            SELECT e.from_node_id, u.depth + 1
+                            FROM ir_edges e JOIN up u ON e.to_node_id = u.id
+                            WHERE e.workspace_id = :ws AND e.kind IN ('HTTP_REQUEST', 'SENDS', 'CALLS', 'TRIGGERS')
+                              AND coalesce(e.guard ->> 'branch', '') <> 'afterClosed' AND u.depth < :depth
+                        )
+                        SELECT DISTINCT n.id FROM up JOIN ir_nodes n ON n.id = up.id
+                        WHERE n.kind IN ('UI_ELEMENT', 'UI_SCREEN', 'UI_DIALOG', 'UI_APP')
+                        """)
+                .param("ws", workspaceId)
+                .param("start", nodeId)
+                .param("depth", CALLER_DEPTH)
+                .query(UUID.class)
                 .list();
     }
 

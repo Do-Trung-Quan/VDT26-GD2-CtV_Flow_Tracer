@@ -201,8 +201,58 @@ public class GraphQueryService {
         return new Subgraph(List.copyOf(byKey.values()), edgeList, refs, Set.of());
     }
 
+    /**
+     * Node theo key.
+     *
+     * @throws AppException {@code NODE_NOT_FOUND}
+     */
+    @Transactional(readOnly = true)
+    public IrNodeRow requireNode(UUID workspaceId, String nodeKey) {
+        workspaceService.requireExists(workspaceId);
+        return nodes.findByKey(workspaceId, nodeKey)
+                .orElseThrow(() -> new AppException(ErrorCode.NODE_NOT_FOUND, "Không tìm thấy thành phần trong kết quả quét"));
+    }
+
+    /**
+     * Mọi node {@code DATA_TYPE} mà các node cho trước dùng (đầu vào / đầu ra của endpoint) kể cả kiểu lồng bên trong, theo key.
+     * Đi theo các biểu thức kiểu ghi trong thuộc tính, tới tối đa {@value #MAX_TYPE_ROUNDS} vòng.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, IrNode> dataTypes(UUID workspaceId, java.util.Collection<IrNode> roots) {
+        Map<String, IrNode> found = new TreeMap<>();
+        Set<String> wanted = new LinkedHashSet<>();
+        for (IrNode n : roots) {
+            collectTypeKeys(n.attrs(), wanted);
+        }
+        for (int round = 0; round < MAX_TYPE_ROUNDS && !wanted.isEmpty(); round++) {
+            Set<String> next = new LinkedHashSet<>();
+            for (IrNodeRow row : nodes.findByKeys(workspaceId, wanted)) {
+                if (found.putIfAbsent(row.node().key(), row.node()) == null) {
+                    collectTypeKeys(row.node().attrs(), next);
+                }
+            }
+            next.removeAll(found.keySet());
+            wanted = next;
+        }
+        return found;
+    }
+
+    /** Mọi key node đã gặp trong các biểu thức kiểu {@code {"t": "ref", "key": …}} nằm lồng trong thuộc tính. */
+    private static void collectTypeKeys(Object value, Set<String> out) {
+        if (value instanceof Map<?, ?> m) {
+            if ("ref".equals(m.get("t")) && m.get("key") instanceof String key) {
+                out.add(key);
+            }
+            m.values().forEach(v -> collectTypeKeys(v, out));
+        } else if (value instanceof List<?> list) {
+            list.forEach(v -> collectTypeKeys(v, out));
+        }
+    }
+
     /** Số cạnh thêm khi dò từ phần tử giao diện (chuỗi hàm phía Frontend). */
     private static final int FRONTEND_EXTRA_DEPTH = 12;
+    /** Số vòng nạp kiểu dữ liệu lồng nhau tối đa. */
+    private static final int MAX_TYPE_ROUNDS = 8;
     /** Số vòng nạp thêm đích chốt tay tối đa. */
     private static final int MAX_PIN_ROUNDS = 5;
 

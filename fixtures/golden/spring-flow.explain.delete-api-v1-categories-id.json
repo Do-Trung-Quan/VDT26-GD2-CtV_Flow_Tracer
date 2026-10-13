@@ -1,0 +1,26 @@
+{
+  "constraints" : [ "Tham số id (đường dẫn) là bắt buộc", "Nếu productQueryService.countByCategoryId(id) lớn hơn 0 thì báo lỗi “Danh mục đang được sản phẩm sử dụng, không thể xóa”", "Cột code của bảng category không được trùng" ],
+  "errors" : [ "danh mục đang được sản phẩm sử dụng, không thể xóa", "thiếu trường bắt buộc hoặc sai định dạng" ],
+  "input" : {
+    "path" : {
+      "id" : "integer — bắt buộc"
+    }
+  },
+  "mock" : {
+    "request" : {
+      "id" : 1
+    },
+    "response" : {
+      "data" : true,
+      "message" : "Thành công"
+    }
+  },
+  "output" : {
+    "data" : "boolean",
+    "message" : "string"
+  },
+  "purpose" : {
+    "source" : "OPERATION",
+    "text" : "Xóa danh mục"
+  }
+}

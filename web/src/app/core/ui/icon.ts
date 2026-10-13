@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git' | 'minus' | 'fit' | 'download' | 'code' | 'copy' | 'chevd' | 'image' | 'layers' | 'window' | 'file' | 'cursor' | 'input' | 'table' | 'bolt' | 'db' | 'pin' | 'link' | 'shield';
+export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git' | 'minus' | 'fit' | 'download' | 'code' | 'copy' | 'chevd' | 'image' | 'layers' | 'window' | 'file' | 'cursor' | 'input' | 'table' | 'bolt' | 'db' | 'pin' | 'link' | 'shield' | 'refresh';
 
 /** Icon SVG nét mảnh (stroke 1.8) theo bản vẽ giao diện; không tải gì từ mạng. */
 @Component({
@@ -115,6 +115,9 @@ export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'sear
       }
       @case ('db') {
         <svg:ellipse cx="12" cy="6" rx="8" ry="3"/><svg:path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>
+      }
+      @case ('refresh') {
+        <svg:path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/>
       }
       @case ('git') {
         <svg:circle cx="6" cy="6" r="2"/><svg:circle cx="6" cy="18" r="2"/><svg:circle cx="18" cy="9" r="2"/><svg:path d="M6 8v8M18 11c0 4-6 3-11 6"/>

@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -110,6 +111,8 @@ final class FlowResolver {
     private final Map<String, IrNode> httpNodes = new TreeMap<>();
     private final Map<String, Integer> httpCounters = new TreeMap<>();
     private final ConstantTable constants;
+    private final Map<String, String> messages;
+    private final Map<String, List<JavaFileFacts.DtoFieldFact>> dtoFieldsByType = new TreeMap<>();
     private final List<IrEdge> edges = new ArrayList<>();
     private final Set<String> seen = new HashSet<>();
     private final Deque<Target> queue = new ArrayDeque<>();
@@ -117,7 +120,9 @@ final class FlowResolver {
     private int skippedCalls;
     private int unresolvedCalls;
 
-    FlowResolver(List<JavaFileFacts> facts, QuerySinkRules sinkRules) {
+    /** @param messages khóa thông báo → câu hiển thị (file messages của dự án), để ghi lời nhắn của lệnh {@code throw} */
+    FlowResolver(List<JavaFileFacts> facts, QuerySinkRules sinkRules, Map<String, String> messages) {
+        this.messages = messages;
         this.index = new ClassIndex(facts);
         this.layers = new LayerClassifier(index);
         this.names = new BusinessNames(index, layers);
@@ -130,6 +135,7 @@ final class FlowResolver {
             f.callSites().forEach(c -> callsByMethod.computeIfAbsent(c.callerMethod(), k -> new ArrayList<>()).add(c));
             f.throwsFacts().forEach(t -> throwsByMethod.computeIfAbsent(t.method(), k -> new ArrayList<>()).add(t));
             f.stringFragments().forEach(s -> fragmentsByMethod.computeIfAbsent(s.method(), k -> new ArrayList<>()).add(s));
+            f.dtoFields().forEach(d -> dtoFieldsByType.computeIfAbsent(d.declaringType(), k -> new ArrayList<>()).add(d));
         }
         callsByMethod.values().forEach(l -> l.sort(Comparator.comparingInt(CallSiteFact::callOrder)));
         throwsByMethod.values().forEach(l -> l.sort(Comparator.comparingInt(ThrowFact::order)));
@@ -197,6 +203,8 @@ final class FlowResolver {
 
     // ---------------- lời gọi ----------------
 
+    /** {@code Enum.CONSTANT}: khóa thông báo của lệnh {@code throw Enum.CONSTANT.exception()} (xem CallSiteExtractor). */
+    private static final java.util.regex.Pattern CONSTANT_REF = java.util.regex.Pattern.compile("[A-Z][A-Za-z0-9_]*\\.[A-Z][A-Z0-9_]+");
     private static final Set<String> OPTIONAL_UNWRAP = Set.of("get", "orElseThrow", "orElse", "orElseGet");
 
     /**
@@ -719,10 +727,38 @@ final class FlowResolver {
         } else {
             attrs.put("reason", "Suy ra từ văn bản truy vấn, không có entity tương ứng trong mã nguồn");
         }
+        List<String> unique = uniqueColumns(table.entity());
+        if (!unique.isEmpty()) {
+            attrs.put("uniqueColumns", unique);
+        }
         IrNode node = new IrNode(key, NodeKind.DB_TABLE, table.name(), null, table.location(), attrs);
         // Cùng một bảng có thể gặp từ nhiều truy vấn: giữ bản có entity (đủ thông tin hơn), độc lập với thứ tự gặp
         tableNodes.merge(key, node, (old, fresh) -> old.attrs().containsKey("entity") ? old : fresh);
         return key;
+    }
+
+    private static final java.util.regex.Pattern COLUMN_NAME = java.util.regex.Pattern.compile("name=([^,)]+)");
+
+    /** Tên cột có {@code @Column(unique = true)} trong entity (tên cột theo {@code name} hoặc tên trường đổi sang snake_case). */
+    private List<String> uniqueColumns(String entitySimpleName) {
+        if (entitySimpleName == null) {
+            return List.of();
+        }
+        var columns = new java.util.TreeSet<String>();
+        for (TypeInfo info : index.allTypes()) {
+            if (!TypeNames.simple(info.fqn()).equals(entitySimpleName) || !EntityTableResolver.isEntity(info)) {
+                continue;
+            }
+            for (JavaFileFacts.DtoFieldFact f : dtoFieldsByType.getOrDefault(info.fqn(), List.of())) {
+                for (String c : f.constraints()) {
+                    if (c.startsWith("Column(") && c.contains("unique=true")) {
+                        var m = COLUMN_NAME.matcher(c);
+                        columns.add(m.find() ? m.group(1).strip() : EntityTableResolver.snakeCase(f.name()));
+                    }
+                }
+            }
+        }
+        return List.copyOf(columns);
     }
 
     // ---------------- node method ----------------
@@ -771,10 +807,16 @@ final class FlowResolver {
             if (fact.annotations().contains("Transactional") || type.hasAnnotation("Transactional")) {
                 attrs.put("transactional", true);
             }
+            String security = fact.annotationValues().containsKey("PreAuthorize.value")
+                    ? fact.annotationValues().get("PreAuthorize.value")
+                    : type.type().annotationValues().get("PreAuthorize.value");
+            if (security != null && !security.isBlank() && !security.startsWith(JavaFileFacts.CONSTANT_REF_PREFIX)) {
+                attrs.put("preAuthorize", security);
+            }
             List<Map<String, Object>> thrown = throwsByMethod
                     .getOrDefault(type.fqn() + "#" + fact.signature(), List.of())
                     .stream()
-                    .map(FlowResolver::throwAttrs)
+                    .map(this::throwAttrs)
                     .toList();
             if (!thrown.isEmpty()) {
                 attrs.put("throws", thrown);
@@ -783,12 +825,26 @@ final class FlowResolver {
         return new IrNode(target.key(), NodeKind.BE_METHOD, TypeNames.simple(type.fqn()) + "." + target.name(), null, target.location(), attrs);
     }
 
-    private static Map<String, Object> throwAttrs(ThrowFact t) {
+    private Map<String, Object> throwAttrs(ThrowFact t) {
         Map<String, Object> m = new TreeMap<>();
         m.put("order", t.order());
         m.put("exception", t.exceptionType());
         if (t.messageKey() != null) {
-            m.put("messageKey", t.messageKey());
+            String key = t.messageKey();
+            String text;
+            int dot = key.indexOf('.');
+            if (dot > 0 && CONSTANT_REF.matcher(key).matches()) {
+                // AppError.NOT_FOUND → khóa thông báo khai báo trong enum → câu hiển thị; nhãn là tên hằng
+                String constant = key.substring(dot + 1);
+                text = enumMessage(key.substring(0, dot), constant);
+                key = constant;
+            } else {
+                text = messages.get(key);
+            }
+            m.put("messageKey", key);
+            if (text != null) {
+                m.put("message", text);
+            }
         }
         if (t.guard() != null) {
             m.put("guardType", t.guard().type().name());
@@ -799,6 +855,18 @@ final class FlowResolver {
         }
         m.put("line", t.line());
         return m;
+    }
+
+    /** Câu hiển thị của hằng enum mã lỗi: đối số chuỗi đầu tiên của hằng là khóa trong file thông báo. */
+    private String enumMessage(String enumSimpleName, String constant) {
+        return index.allTypes().stream()
+                .filter(t -> t.type().kind() == JavaFileFacts.TypeFact.Kind.ENUM && TypeNames.simple(t.fqn()).equals(enumSimpleName))
+                .map(t -> t.type().enumMessageKeys().get(constant))
+                .filter(Objects::nonNull)
+                .map(messages::get)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     private List<Diagnostic> diagnostics() {

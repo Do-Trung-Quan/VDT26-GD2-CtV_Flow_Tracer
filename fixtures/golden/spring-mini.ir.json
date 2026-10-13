@@ -40,7 +40,10 @@
         "in" : "PATH",
         "name" : "id",
         "required" : true,
-        "type" : "Long"
+        "type" : "Long",
+        "typeExpr" : {
+          "t" : "integer"
+        }
       } ],
       "path" : "/shop-api/api/v1/categories/{id}",
       "pathResolved" : true,
@@ -68,16 +71,29 @@
         "in" : "QUERY",
         "name" : "page",
         "required" : false,
-        "type" : "int"
+        "type" : "int",
+        "typeExpr" : {
+          "t" : "integer"
+        }
       }, {
         "in" : "QUERY",
         "name" : "keyword",
         "required" : false,
-        "type" : "String"
+        "type" : "String",
+        "typeExpr" : {
+          "t" : "string"
+        }
       } ],
       "path" : "/shop-api/api/v1/categories",
       "pathResolved" : true,
       "responseType" : "List<CategoryResponse>",
+      "responseTypeExpr" : {
+        "items" : {
+          "name" : "CategoryResponse",
+          "t" : "object"
+        },
+        "t" : "array"
+      },
       "summary" : "Lấy danh sách danh mục",
       "summarySource" : "OPERATION",
       "tag" : "Danh mục"
@@ -102,6 +118,9 @@
       "path" : "/shop-api/api/v1/categories/export",
       "pathResolved" : true,
       "responseType" : "byte[]",
+      "responseTypeExpr" : {
+        "t" : "integer"
+      },
       "tag" : "Danh mục"
     }
   }, {
@@ -125,11 +144,18 @@
         "in" : "PATH",
         "name" : "id",
         "required" : true,
-        "type" : "Long"
+        "type" : "Long",
+        "typeExpr" : {
+          "t" : "integer"
+        }
       } ],
       "path" : "/shop-api/api/v1/categories/{id}",
       "pathResolved" : true,
       "responseType" : "CategoryResponse",
+      "responseTypeExpr" : {
+        "name" : "CategoryResponse",
+        "t" : "object"
+      },
       "summary" : "Lấy chi tiết một danh mục.",
       "summarySource" : "JAVADOC",
       "tag" : "Danh mục"
@@ -154,11 +180,21 @@
         "in" : "HEADER",
         "name" : "X-Shop-Id",
         "required" : true,
-        "type" : "String"
+        "type" : "String",
+        "typeExpr" : {
+          "t" : "string"
+        }
       } ],
       "path" : "/shop-api/api/v1/orders",
       "pathResolved" : true,
-      "responseType" : "List<OrderResponse>"
+      "responseType" : "List<OrderResponse>",
+      "responseTypeExpr" : {
+        "items" : {
+          "name" : "OrderResponse",
+          "t" : "object"
+        },
+        "t" : "array"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/${ExternalPaths.REPORT}",
@@ -181,7 +217,10 @@
       "pathIssue" : "CONSTANT",
       "pathIssueReason" : "không tìm thấy giá trị của hằng số ExternalPaths.REPORT",
       "pathResolved" : false,
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.api-token}",
@@ -204,7 +243,10 @@
       "pathIssue" : "PROPERTY",
       "pathIssueReason" : "khóa shop.order.api-token thuộc nhóm nhạy cảm nên tool không đọc",
       "pathResolved" : false,
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.env-path}",
@@ -227,7 +269,10 @@
       "pathIssue" : "PROPERTY",
       "pathIssueReason" : "khóa ORDER_ENV_PATH lấy từ biến môi trường lúc chạy, tool không biết giá trị",
       "pathResolved" : false,
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.missing-path}",
@@ -250,7 +295,10 @@
       "pathIssue" : "PROPERTY",
       "pathIssueReason" : "khóa shop.order.missing-path không có trong file cấu hình mặc định và code không có giá trị mặc định",
       "pathResolved" : false,
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/${shop.order.profile-path}",
@@ -273,7 +321,10 @@
       "pathIssue" : "PROPERTY",
       "pathIssueReason" : "khóa shop.order.profile-path chỉ có trong file theo profile, tool không biết profile nào được dùng",
       "pathResolved" : false,
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/archive",
@@ -295,7 +346,10 @@
       "path" : "/shop-api/api/v1/orders/archive",
       "pathResolved" : true,
       "pathSources" : [ "shop.order.archive-path = /archive (src/main/resources/application.yml)" ],
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/exports",
@@ -317,7 +371,10 @@
       "path" : "/shop-api/api/v1/orders/exports",
       "pathResolved" : true,
       "pathSources" : [ "shop.order.export-path = /exports (src/main/resources/application.yml)" ],
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /shop-api/api/v1/orders/tokens",
@@ -339,7 +396,10 @@
       "path" : "/shop-api/api/v1/orders/tokens",
       "pathResolved" : true,
       "pathSources" : [ "shop.order.token-path = /tokens (src/main/resources/application.yml)" ],
-      "responseType" : "String"
+      "responseType" : "String",
+      "responseTypeExpr" : {
+        "t" : "string"
+      }
     }
   }, {
     "key" : "java:endpoint:POST /shop-api/api/v1/categories",
@@ -364,12 +424,28 @@
         "in" : "BODY",
         "name" : "request",
         "required" : true,
-        "type" : "CategoryRequest"
+        "type" : "CategoryRequest",
+        "typeExpr" : {
+          "name" : "CategoryRequest",
+          "t" : "object"
+        }
       } ],
       "path" : "/shop-api/api/v1/categories",
       "pathResolved" : true,
       "requestType" : "CategoryRequest",
+      "requestTypeExpr" : {
+        "name" : "CategoryRequest",
+        "t" : "object"
+      },
       "responseType" : "ApiResponse<CategoryResponse>",
+      "responseTypeExpr" : {
+        "args" : [ {
+          "name" : "CategoryResponse",
+          "t" : "object"
+        } ],
+        "name" : "ApiResponse",
+        "t" : "object"
+      },
       "summary" : "Tạo danh mục",
       "summarySource" : "OPERATION",
       "tag" : "Danh mục"
@@ -394,6 +470,9 @@
       "path" : "/shop-api/api/v1/categories/export",
       "pathResolved" : true,
       "responseType" : "byte[]",
+      "responseTypeExpr" : {
+        "t" : "integer"
+      },
       "tag" : "Danh mục"
     }
   }, {
@@ -416,17 +495,32 @@
         "in" : "PATH",
         "name" : "id",
         "required" : true,
-        "type" : "Long"
+        "type" : "Long",
+        "typeExpr" : {
+          "t" : "integer"
+        }
       }, {
         "in" : "BODY",
         "name" : "request",
         "required" : true,
-        "type" : "OrderStatusRequest"
+        "type" : "OrderStatusRequest",
+        "typeExpr" : {
+          "name" : "OrderStatusRequest",
+          "t" : "object"
+        }
       } ],
       "path" : "/shop-api/api/v1/orders/{id}/status",
       "pathResolved" : true,
       "requestType" : "OrderStatusRequest",
-      "responseType" : "OrderResponse"
+      "requestTypeExpr" : {
+        "name" : "OrderStatusRequest",
+        "t" : "object"
+      },
+      "responseType" : "OrderResponse",
+      "responseTypeExpr" : {
+        "name" : "OrderResponse",
+        "t" : "object"
+      }
     }
   }, {
     "key" : "java:method:com.example.shop.category.CategoryController#create(CategoryRequest)",

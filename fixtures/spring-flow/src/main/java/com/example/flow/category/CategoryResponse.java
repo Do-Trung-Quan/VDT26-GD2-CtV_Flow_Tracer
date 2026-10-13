@@ -1,3 +1,3 @@
 package com.example.flow.category;
 
-public record CategoryResponse(Long id, String code, String title) {}
+public record CategoryResponse(Long id, String code, String title, CategoryStatus status) {}

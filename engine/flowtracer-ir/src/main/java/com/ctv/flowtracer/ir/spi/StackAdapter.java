@@ -40,6 +40,30 @@ public interface StackAdapter {
         return false;
     }
 
+    /**
+     * File này có phải thư viện đóng gói sẵn mà adapter muốn đọc khai báo kiểu bên trong (vd {@code .jar} chứa lớp bọc
+     * {@code ApiResponse<T>} của dự án) không. Chỉ file thỏa điều kiện này được đọc nguyên bytes và đưa vào
+     * {@link #libraryFiles(List, List)}.
+     *
+     * @param relativePath đường dẫn tương đối trong Source, dùng dấu '/'
+     */
+    default boolean isLibraryArchive(String relativePath) {
+        return false;
+    }
+
+    /**
+     * Dựng "mã nguồn rút gọn" (chỉ khai báo kiểu và trường) cho những lớp thư viện mà mã dự án thật sự dùng, để các lớp đó
+     * được phân tích như mã nguồn thường — vd lớp bọc kết quả trả về nằm trong jar. Chạy một lần cho cả Source, sau khi
+     * đã đọc xong file mã nguồn.
+     *
+     * @param archives các thư viện thỏa {@link #isLibraryArchive(String)}
+     * @param projectFiles file mã nguồn của dự án (để biết lớp nào được dùng, lớp nào đã có mã nguồn thật)
+     * @return file rút gọn, đường dẫn dạng {@code libs/x.jar!/com/acme/Foo.java}; sắp xếp ổn định
+     */
+    default List<SourceFile> libraryFiles(List<LibraryArchive> archives, List<SourceFile> projectFiles) {
+        return List.of();
+    }
+
     /** Phiên bản cách trích dữ kiện pha 1 — đổi thì dữ kiện đã cache với phiên bản cũ không được dùng lại. */
     default String factsVersion() {
         return "1";

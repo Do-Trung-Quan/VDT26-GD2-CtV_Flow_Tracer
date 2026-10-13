@@ -1,5 +1,6 @@
 package com.example.flow.category;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
@@ -8,6 +9,7 @@ import jakarta.persistence.Table;
 public class Category {
 
     private Long id;
+    @Column(unique = true, length = 50)
     private String code;
     private String title;
     private boolean deleted;

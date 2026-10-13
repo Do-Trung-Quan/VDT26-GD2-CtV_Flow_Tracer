@@ -17,7 +17,8 @@ import java.util.List;
  * PHA 2: ghép dữ kiện của cả Source → IrFragment (đã sắp xếp ổn định).
  *
  * <p>Endpoint + module (Giai đoạn 2); từ endpoint đi xuống controller → service → repository → truy vấn → bảng
- * (Giai đoạn 3, xem {@link FlowResolver}); chẩn đoán file lỗi cú pháp.
+ * (Giai đoạn 3, xem {@link FlowResolver}); kiểu dữ liệu vào / ra và thông báo lỗi (Giai đoạn 6, xem {@link DtoSchemaBuilder},
+ * {@link MessageResolver}); chẩn đoán file lỗi cú pháp.
  */
 public final class JavaResolver {
 
@@ -28,6 +29,7 @@ public final class JavaResolver {
 
     private final ApplicationConfigReader configReader = new ApplicationConfigReader();
     private final EndpointBuilder endpointBuilder = new EndpointBuilder();
+    private final MessageResolver messageResolver = new MessageResolver();
 
     public IrFragment resolve(ResolveContext ctx, List<JavaFileFacts> facts) {
         var diagnostics = new ArrayList<Diagnostic>();
@@ -43,13 +45,22 @@ public final class JavaResolver {
                 endpointBuilder.build(parsed, config, new PropertyLookup(ctx.allPaths(), ctx.loader()));
         diagnostics.addAll(endpoints.diagnostics());
 
-        FlowResolver.Result flow = new FlowResolver(parsed, new QuerySinkRules(ctx.manualRules())).resolve(endpoints.endpoints());
+        // Kiểu dữ liệu vào / ra của từng endpoint (Giai đoạn 6): node DATA_TYPE + biểu thức kiểu ghi lên endpoint
+        DtoSchemaBuilder.Result types = new DtoSchemaBuilder(
+                        new ClassIndex(parsed), parsed, path -> config.forFile(path).map(ApplicationConfigReader.AppConfig::jsonNamingStrategy).orElse(null))
+                .build(endpoints.endpoints());
+
+        FlowResolver.Result flow = new FlowResolver(parsed, new QuerySinkRules(ctx.manualRules()), messageResolver.loadMessages(ctx))
+                .resolve(types.endpoints());
         diagnostics.addAll(flow.diagnostics());
 
-        var nodes = new ArrayList<>(endpoints.endpoints());
+        var nodes = new ArrayList<>(types.endpoints());
         nodes.addAll(flow.nodes());
+        nodes.addAll(types.dataTypes());
         diagnostics.sort(DIAGNOSTIC_ORDER);
         var linkRules = new SpringLinkRules().detect(endpoints.endpoints());
-        return new IrFragment(SpringStackAdapter.ID, nodes, flow.edges(), linkRules, diagnostics).sorted();
+        var edges = new ArrayList<>(flow.edges());
+        edges.addAll(types.edges());
+        return new IrFragment(SpringStackAdapter.ID, nodes, edges, linkRules, diagnostics).sorted();
     }
 }

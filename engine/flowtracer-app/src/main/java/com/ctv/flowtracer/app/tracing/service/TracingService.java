@@ -2,10 +2,6 @@ package com.ctv.flowtracer.app.tracing.service;
 
 import com.ctv.flowtracer.app.linking.service.LinkOverrideService;
 import com.ctv.flowtracer.core.tracer.OverrideRule;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import com.ctv.flowtracer.app.common.error.AppException;
 import com.ctv.flowtracer.app.common.error.ErrorCode;
@@ -85,11 +81,8 @@ public class TracingService {
     }
 
     private CachedTrace compute(UUID workspaceId, TraceRequest traceRequest) {
-        Map<String, Set<String>> pinTargets = new HashMap<>();
-        traceRequest.overrides().stream()
-                .filter(o -> o.decision() == OverrideRule.Decision.PIN)
-                .forEach(o -> pinTargets.computeIfAbsent(o.fromKey(), k -> new HashSet<>()).add(o.toKey()));
-        Subgraph graph = graphQueryService.subgraphFrom(workspaceId, traceRequest.startKey(), traceRequest.maxDepth(), pinTargets);
+        Subgraph graph = graphQueryService.subgraphFrom(
+                workspaceId, traceRequest.startKey(), traceRequest.maxDepth(), LinkOverrideService.pinTargets(traceRequest.overrides()));
         IrNode start = graph.nodes().stream()
                 .filter(n -> n.key().equals(traceRequest.startKey()))
                 .findFirst()
@@ -106,6 +99,18 @@ public class TracingService {
             throw new AppException(ErrorCode.TRACE_START_UNSUPPORTED, e.getMessage());
         }
         return new CachedTrace(trace, start.name(), start.displayName(), traceRequest.maxDepth());
+    }
+
+    /**
+     * Kết quả dò vết còn trong bộ nhớ đệm — cho package {@code explanation} (kịch bản của luồng).
+     *
+     * @throws AppException {@code WORKSPACE_NOT_FOUND}; {@code TRACE_NOT_FOUND} nếu đã hết hạn (dò lại bằng D1 ra cùng {@code trace_id})
+     */
+    public CachedTrace cachedTrace(UUID workspaceId, String traceId) {
+        workspaceService.requireExists(workspaceId);
+        return cache.get(workspaceId, traceId)
+                .orElseThrow(() -> new AppException(
+                        ErrorCode.TRACE_NOT_FOUND, "Kết quả dò vết không còn trong bộ nhớ đệm; hãy dò vết lại rồi mở lại kịch bản"));
     }
 
     /**

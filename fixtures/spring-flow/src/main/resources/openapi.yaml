@@ -1,0 +1,16 @@
+openapi: 3.0.3
+info:
+  title: Shop API (fixture)
+  version: 1.0.0
+paths:
+  /api/v1/categories:
+    get:
+      summary: Tìm kiếm danh mục
+    post:
+      summary: Thêm mới danh mục
+  /api/v1/categories/{categoryId}:
+    delete:
+      summary: Xóa danh mục
+  /api/v1/categories/export:
+    get:
+      summary: Xuất danh mục ra Excel

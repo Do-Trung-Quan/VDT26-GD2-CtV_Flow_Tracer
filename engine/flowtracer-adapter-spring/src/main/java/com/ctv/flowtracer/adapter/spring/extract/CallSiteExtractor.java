@@ -216,6 +216,9 @@ public final class CallSiteExtractor {
             } else if (e instanceof MethodCallExpr call) {
                 type = call.getScope().map(s -> AstSupport.snippet(s) + ".").orElse("") + call.getNameAsString();
                 key = messageKey(call.getArguments());
+                if (key == null) {
+                    key = enumConstantRef(call);
+                }
             } else if (e instanceof NameExpr name) {
                 type = Optional.ofNullable(locals.get(name.getNameAsString())).orElse(name.getNameAsString());
             } else {
@@ -273,6 +276,22 @@ public final class CallSiteExtractor {
                     GuardResolver.guardOf(at),
                     AstSupport.line(at),
                     httpArgs(at, methodName)));
+        }
+
+        /**
+         * {@code AppError.NOT_FOUND.exception()}: lỗi dựng từ một hằng enum mã lỗi → "AppError.NOT_FOUND" (bộ ghép sẽ tra khóa
+         * thông báo của hằng đó trong enum); null nếu không có dạng này.
+         */
+        private static String enumConstantRef(MethodCallExpr call) {
+            if (call.getScope().orElse(null) instanceof FieldAccessExpr f
+                    && CONSTANT_NAME.matcher(f.getNameAsString()).matches()
+                    && (f.getScope() instanceof NameExpr || f.getScope() instanceof FieldAccessExpr)) {
+                String owner = AstSupport.lastName(f.getScope());
+                if (!owner.isEmpty() && Character.isUpperCase(owner.charAt(0))) {
+                    return owner + "." + f.getNameAsString();
+                }
+            }
+            return null;
         }
 
         /** Đối số đầu tiên (trong 2 đối số đầu) là chuỗi literal hoặc tên hằng {@code UPPER_SNAKE}; null nếu không có. */

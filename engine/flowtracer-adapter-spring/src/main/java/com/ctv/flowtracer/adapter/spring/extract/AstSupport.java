@@ -8,7 +8,11 @@ import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.BooleanLiteralExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.DoubleLiteralExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.expr.LongLiteralExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
@@ -184,6 +188,13 @@ final class AstSupport {
         }
         if (expr instanceof BooleanLiteralExpr b) {
             return Optional.of(String.valueOf(b.getValue()));
+        }
+        if (expr instanceof IntegerLiteralExpr || expr instanceof LongLiteralExpr || expr instanceof DoubleLiteralExpr) {
+            return Optional.of(expr.toString().replaceAll("[lLdDfF_]", ""));
+        }
+        if (expr instanceof UnaryExpr u && u.getOperator() == UnaryExpr.Operator.MINUS
+                && (u.getExpression() instanceof IntegerLiteralExpr || u.getExpression() instanceof LongLiteralExpr)) {
+            return Optional.of("-" + u.getExpression().toString().replaceAll("[lL_]", ""));
         }
         if (expr instanceof FieldAccessExpr || expr instanceof NameExpr) {
             return Optional.of(JavaFileFacts.CONSTANT_REF_PREFIX + expr);

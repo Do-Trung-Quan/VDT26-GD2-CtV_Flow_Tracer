@@ -121,7 +121,7 @@ flowtracer-ir/src/main/java/com/ctv/flowtracer/ir/
 │   ├── Trace.java, Participant.java, TraceStep.java, TraceBlock.java   # Các kiểu dữ liệu mô tả MỘT LUỒNG đã dò được: toàn bộ luồng; một cột
 │   │                                #   trên sequence diagram (kèm VAI TRÒ: User / Frontend / Controller / Service / Repository / Database / bên ngoài); một mũi tên; một khối điều kiện (vd nhánh lỗi)
 ├── scenario/
-│   └── ScenarioStep.java            # Kiểu dữ liệu mô tả MỘT BƯỚC trong tab Kịch bản (số thứ tự, câu mô tả bằng lời, chi tiết kỹ thuật kèm theo)
+│   └── Scenario.java                # Nội dung tab Kịch bản: các actor tham gia (tên cột + mô tả) và các dòng (bước n = mũi tên n, hoặc dòng điều kiện "Nếu …:")
 └── spi/                             # "Hợp đồng" mà mọi bộ phân tích theo công nghệ (Spring, Angular…) phải tuân theo
     ├── StackAdapter.java            # Khuôn mẫu chung của một bộ phân tích: nhận diện công nghệ → đọc từng file → ghép lại thành kết quả
     ├── DetectContext.java, DetectResult.java, ExtractContext.java, ResolveContext.java   # Dữ liệu đưa vào và kết quả trả ra của từng bước
@@ -182,14 +182,16 @@ flowtracer-core/src/main/java/com/ctv/flowtracer/core/
 │   ├── PlantUmlExporter.java        # Xuất luồng thành mã PlantUML (strictuml, autonumber, activate) — để dán sequence diagram vào tài liệu, wiki
 │   └── SvgExporter.java             # Xuất diagram thành file ảnh SVG để tải về
 ├── scenario/                        # Nhóm xử lý "viết tab Kịch bản bằng lời"
-│   ├── DisplayNames.java            # Đặt tên dễ đọc cho từng thành phần (vd CategoryServiceImpl → "Dịch vụ Danh mục"),
-│   │                                #   ưu tiên nhãn tiếng Việt có sẵn trong code
-│   ├── StepTemplatesVi.java         # Các mẫu câu tiếng Việt cho từng loại bước: "bấm…", "gửi yêu cầu…", "đọc dữ liệu…", "trả kết quả…"
-│   └── ScenarioBuilder.java         # Ghép luồng đã dò với mẫu câu để ra "Bước n: A làm gì tới B" — bước n khớp mũi tên số n; nhánh alt ghi rõ điều kiện
-├── explain/                         # Nhóm xử lý "viết tab Diễn giải"
-│   ├── IoSchemaBuilder.java         # Lập khối JSON Đầu vào / Đầu ra của một API hoặc nút bấm từ các class dữ liệu trong code
-│   ├── ConstraintsExtractor.java    # Liệt kê các ràng buộc bằng lời (bắt buộc nhập, không được trùng, cần quyền gì…) từ code kiểm tra
-│   └── JsonSchemaBuilder.java       # Tạo bản mô tả cấu trúc dữ liệu (JSON Schema) — để AI sinh dữ liệu mẫu đúng cấu trúc và để kiểm tra lại
+│   ├── StepTemplatesVi.java         # Các mẫu câu tiếng Việt cho từng loại bước: "bấm…", "gửi yêu cầu … đến", "chuyển tiếp … đến", "gọi … trên", "truy vấn … trên", "trả về … cho"
+│   └── ScenarioBuilder.java         # Ghép luồng đã dò với mẫu câu để ra "Bước n: A làm gì tới B" — bước n khớp mũi tên số n; khối alt mở bằng dòng "Nếu …:" / "Ngược lại:"
+├── explain/                         # Nhóm xử lý "viết tab Diễn giải" (Giai đoạn 6)
+│   ├── TypeExprs.java               # Đọc "biểu thức kiểu" của DTO do bộ phân tích ghi (kiểu, generic, tham số kiểu T được thay bằng đối số)
+│   ├── IoSchemaBuilder.java         # Lập khối JSON Đầu vào / Đầu ra của một API từ các class dữ liệu (mỗi trường một câu "kiểu — bắt buộc, tối đa …"), kèm lỗi có thể gặp
+│   ├── ConstraintsExtractor.java    # Liệt kê ràng buộc thô bằng lời: quyền, kiểm tra dữ liệu đầu vào, nhánh báo lỗi (throw + điều kiện + thông báo), cột không được trùng
+│   ├── JsonSchemaBuilder.java       # Tạo bản mô tả cấu trúc dữ liệu (JSON Schema draft 2020-12) — để kiểm tra dữ liệu mẫu và để AI sinh đúng cấu trúc
+│   ├── PurposeRule.java             # "Mục đích" dự phòng: @Operation → Javadoc → câu khung; mô tả ngắn của thành phần chứa
+│   ├── BackendFlow.java             # Các hàm Backend, bảng dữ liệu, hệ thống khác mà một API đi qua (để rút ràng buộc, lỗi, "Gọi tới")
+│   └── UiFlowResolver.java          # Một thao tác giao diện dẫn tới đâu: API gọi, hộp thoại mở, màn hình chuyển tới
 └── mock/                            # Nhóm xử lý "dữ liệu mẫu"
     ├── SchemaValidator.java         # Kiểm tra một dữ liệu mẫu có đúng cấu trúc yêu cầu không (dùng để kiểm tra dữ liệu AI sinh ra)
     └── FallbackMockGenerator.java   # Bộ sinh dữ liệu mẫu dự phòng KHÔNG dùng AI — dùng khi AI tắt hoặc lỗi; cùng cấu trúc luôn ra cùng dữ liệu
@@ -237,7 +239,11 @@ flowtracer-adapter-spring/src/main/java/com/ctv/flowtracer/adapter/spring/
 │   ├── QueryTextAnalyzer.java       # Đọc nội dung câu truy vấn (JPQL/SQL) để biết nó chạm vào bảng nào, kể cả câu được ghép từ nhiều đoạn
 │   ├── EntityTableResolver.java     # Biết class dữ liệu nào ứng với bảng nào trong CSDL
 │   ├── DtoSchemaBuilder.java        # Tạo mô tả cấu trúc dữ liệu vào/ra của API (tên trường, kiểu, ràng buộc)
-│   └── MessageResolver.java         # Đổi mã thông báo lỗi trong code thành câu tiếng Việt (tra file messages_vi.properties của dự án)
+│   └── MessageResolver.java         # Đổi mã thông báo lỗi trong code thành câu tiếng Việt (tra file messages*.properties của dự án, kể cả messages-app_vi; hằng enum mã lỗi tra qua khóa khai báo trong enum)
+├── library/                         # Kiểu nằm trong jar của dự án (không có mã nguồn) — Giai đoạn 6
+│   ├── ClassFileReader.java         # Đọc khai báo trong file .class (trường, kiểu generic, annotation); không nạp lớp, không chạy mã
+│   ├── StubTypes.java               # Đổi chữ ký kiểu của .class sang cú pháp Java, quản lý import
+│   └── LibraryStubBuilder.java      # Dựng "mã nguồn rút gọn" cho lớp mà mã dự án dùng (vd lớp bọc kết quả trả về) + khai báo sẵn Page<T> của Spring
 ├── config/
 │   ├── ApplicationConfigReader.java # Đọc vài thiết lập cố định trong file cấu hình của dự án (tiền tố đường dẫn API, kiểu đặt tên trường JSON)
 │   │                                #   — không giữ mật khẩu hay giá trị bí mật; hiểu file lưu UTF-8 có BOM
@@ -274,7 +280,7 @@ flowtracer-app/
     │   ├── explanation/             # Chức năng nhóm 6: nội dung tab Diễn giải, Kịch bản, dữ liệu mẫu
     │   ├── ai/                      # Chức năng nhóm 9: cổng gọi AI duy nhất và cấu hình AI
     │   ├── feature/                 # (MỞ RỘNG) Chức năng nhóm 7: nhóm chức năng
-    │   └── comparison/              # (MỞ RỘNG) Chức năng nhóm 8: so sánh hệ thống cũ – mới
+    │   └── comparison/              # (MỞ RỘNG — TẠM HOÃN, chưa làm) Chức năng nhóm 8: so sánh hệ thống cũ – mới
     │
     │   # Mỗi thư mục chức năng (workspace … comparison) đều có cùng bố cục chuẩn:
     │   #   controller/  — nhận yêu cầu HTTP từ giao diện, chỉ gọi Service
@@ -462,15 +468,13 @@ graph/
 ├── controller/
 │   ├── TreeController.java          # Nhận yêu cầu lấy cây API Backend và cây thành phần Frontend để hiện ở cột trái (API C1–C2)
 │   ├── SearchController.java        # Nhận yêu cầu tìm kiếm nhanh Ctrl+K (API C3)
-│   ├── SearchController.java        # Nhận yêu cầu tìm kiếm nhanh (theo đường dẫn API, nhãn nút, tên màn hình, tên bảng…) (API C3)
-│   ├── NodeController.java          # Nhận yêu cầu xem chi tiết một thành phần và xem đoạn code của nó (API C4–C5)
-│   └── OpenApiCheckController.java  # Nhận yêu cầu đối chiếu kết quả phân tích với tài liệu Swagger của dự án (API C6)
+│   ├── NodeController.java          # Nhận yêu cầu xem chi tiết một thành phần: "Được gọi từ", "Gọi tới", chuỗi thành phần chứa (API C4)
+│   └── OpenApiController.java       # Nhận yêu cầu đối chiếu kết quả phân tích với tài liệu Swagger của dự án (API C6)
 ├── service/
 │   ├── GraphQueryService.java       # Cung cấp cách ĐỌC bản đồ cho các chức năng khác (cây API Backend, cây Frontend, tìm kiếm nhanh, vùng xung quanh để dò luồng…)
 │   ├── GraphWriteService.java       # Cung cấp cách GHI bản đồ cho các chức năng khác (thay toàn bộ kết quả của một thư mục sau khi quét…)
 │   ├── TreeBuilder.java             # Dựng cây hiển thị: Backend theo Module → API; Frontend theo Ứng dụng → Màn hình → … → Nút bấm
-│   ├── SourceSnippetService.java    # Lấy các đoạn code theo từng lớp trong luồng (Controller/Service/Repository/Entity hoặc template/component/…)
-│   │                                #   để hiện thành các tab trong popup "Xem code" (đọc qua bộ đọc mã nguồn an toàn)
+│   ├── NodeDetailService.java       # "Được gọi từ" (đi ngược theo liên kết tới các phần tử giao diện), "Gọi tới", chuỗi thành phần chứa, thống kê trong thành phần chứa
 │   └── OpenApiCheckService.java     # Tìm file đặc tả Swagger có sẵn trong repo (hoặc đọc URL nếu được cung cấp), kiểm tra đúng định dạng OpenAPI,
 │                                    #   so với danh sách API tool tìm được và báo chỗ lệch
 ├── repository/
@@ -484,9 +488,8 @@ graph/
     ├── BackendTreeResponse.java, ApiModuleResponse.java, EndpointNodeResponse.java   # Cây API Backend Module → Endpoint (C1)
     ├── TreeNodeResponse.java        # (Giai đoạn 4) Một nút trên cây Frontend
     ├── SearchResultResponse.java    # Một kết quả tìm kiếm
-    ├── NodeDetailResponse.java      # Chi tiết một thành phần: thông tin, "được gọi từ", "gọi tới"
-    ├── SourceSnippetResponse.java   # Một đoạn code kèm đường dẫn file và số dòng
-    └── OpenApiReportResponse.java   # Báo cáo đối chiếu với Swagger: API khớp, chỉ có trong code, chỉ có trong Swagger
+    ├── NodeDetailResponse.java, NodeRelationResponse.java   # Chi tiết một thành phần: thông tin, "được gọi từ", "gọi tới", chuỗi thành phần chứa (C4)
+    └── OpenApiCheckResponse.java, OpenApiOperationResponse.java   # Báo cáo đối chiếu với Swagger: API khớp, chỉ có trong code, chỉ có trong Swagger (C6)
 ```
 
 #### 4.4.6. `linking/` — Liên kết Frontend – Backend & độ tin cậy
@@ -561,23 +564,25 @@ tracing/
 ```text
 explanation/
 ├── controller/
-│   ├── ExplanationController.java   # Nhận yêu cầu lấy nội dung tab Diễn giải của một thành phần (có thể nhận dần từng phần khi AI đang viết) (API F1)
-│   ├── MockDataController.java      # Nhận yêu cầu lấy dữ liệu mẫu (request/response mẫu) của một API hoặc nút bấm (API F2)
-│   ├── ScenarioController.java      # Nhận yêu cầu lấy nội dung tab Kịch bản của một luồng đã dò (API F3)
-│   └── RegenerateController.java    # Nhận yêu cầu "Sinh lại" nội dung AI khi người dùng thấy chưa tốt (API F4)
+│   ├── ExplanationController.java   # Nhận yêu cầu lấy tab Diễn giải của một thành phần (F1), dữ liệu mẫu (F2) và tab Kịch bản của một luồng đã dò (F3)
+│   ├── CodeController.java          # Nhận yêu cầu lấy đoạn mã theo từng lớp trong luồng cho popup "Xem code" (API C5)
+│   └── RegenerateController.java    # (Giai đoạn 7) Nhận yêu cầu "Sinh lại" nội dung AI khi người dùng thấy chưa tốt (API F4)
 ├── service/
-│   ├── ExplanationService.java      # Gom đủ các mục của tab Diễn giải: mục đích, đầu vào/đầu ra (UI lấy theo API nó gọi), lỗi có thể gặp, ràng buộc, được gọi từ / gọi tới
-│   ├── PurposeResolver.java         # Lấy "Mục đích": bản AI đã lưu → nhờ AI viết 80–100 từ (kèm ràng buộc gọn) → nếu AI lỗi/tắt thì mô tả Swagger → Javadoc → tài liệu → câu khung
-│   ├── SpecDocReader.java           # Tìm đoạn mô tả API/màn hình trong các file tài liệu .md có sẵn trong repo của dự án
-│   ├── MockDataService.java         # Lấy dữ liệu mẫu: đã lưu thì dùng lại; chưa có thì nhờ AI sinh một lần theo cấu trúc dữ liệu, kiểm tra đúng
-│   │                                #   cấu trúc rồi lưu; AI tắt/lỗi thì dùng bộ sinh dự phòng không cần AI
-│   ├── ScenarioService.java         # Tạo tab Kịch bản: danh sách actor tham gia + khung câu "Bước n" từ luồng đã dò; nếu bật thì nhờ AI viết thành lời kể tự nhiên
-│   └── ScenarioPolishRule.java      # Quy tắc chấp nhận câu AI viết lại: phải giữ nguyên số bước, thứ tự và tên thành phần; sai thì dùng câu gốc
-└── dto/                             # Dữ liệu trả về cho giao diện
-    ├── ExplanationResponse.java     # Nội dung tab Diễn giải (mục đích, đầu vào/ra dạng JSON, ràng buộc…)
-    ├── MockDataResponse.java        # Dữ liệu mẫu kèm nguồn sinh (do AI hay do bộ sinh dự phòng)
-    ├── ScenarioResponse.java        # Tab Kịch bản: các actor tham gia và các bước (số bước = số mũi tên, câu mô tả, nhánh alt)
-    └── RegenerateRequest.java       # Yêu cầu sinh lại nội dung AI (sinh lại việc gì, cho thành phần nào)
+│   ├── ExplanationService.java      # Gom đủ các mục của tab Diễn giải (mục đích, đầu vào/đầu ra theo từng API mà thành phần gọi, lỗi, ràng buộc,
+│   │                                #   được gọi từ / gọi tới), dữ liệu mẫu và kịch bản; áp liên kết chốt tay như dò vết. Phần tất định — chạy khi AI tắt
+│   ├── CodeSnippetService.java      # Duyệt đúng luồng mà dò vết đi và đọc đoạn code của từng lớp (Template, Component, Kết nối API, Controller, Service, Repository)
+│   │                                #   qua bộ đọc mã nguồn an toàn
+│   ├── PurposeResolver.java         # (Giai đoạn 7) Mục đích: bản AI đã lưu → nhờ AI viết 80–100 từ (kèm ràng buộc gọn) → AI lỗi/tắt thì PurposeRule của lõi
+│   ├── SpecDocReader.java           # (chưa làm) Tìm đoạn mô tả API/màn hình trong các file tài liệu .md có sẵn trong repo của dự án
+│   ├── MockDataService.java         # (Giai đoạn 7) Dữ liệu mẫu: đã lưu thì dùng lại; chưa có thì nhờ AI sinh một lần, kiểm tra đúng cấu trúc rồi lưu;
+│   │                                #   AI tắt/lỗi thì dùng FallbackMockGenerator của lõi
+│   └── ScenarioPolishRule.java      # (Giai đoạn 7) Quy tắc chấp nhận câu AI viết lại: phải giữ nguyên số bước, thứ tự và tên thành phần; sai thì dùng câu gốc
+└── dto/response/                    # Dữ liệu trả về cho giao diện
+    ├── ExplanationResponse.java, PurposeResponse.java, ApiIoResponse.java   # Nội dung tab Diễn giải: mục đích kèm nguồn; đầu vào/ra dạng JSON + lỗi + ràng buộc của từng API
+    ├── MockDataResponse.java        # Dữ liệu mẫu kèm nguồn sinh (bộ sinh dự phòng hay AI) và chỗ không khớp cấu trúc
+    ├── ScenarioResponse.java        # Tab Kịch bản: các actor tham gia và các dòng (số bước = số mũi tên, câu mô tả, dòng điều kiện)
+    ├── CodeTabResponse.java         # Một tab của popup "Xem code": vai trò lớp, file, số dòng, dòng tô sáng, nội dung
+    └── RegenerateRequest.java       # (Giai đoạn 7) Yêu cầu sinh lại nội dung AI (sinh lại việc gì, cho thành phần nào)
 ```
 
 #### 4.4.9. `ai/` — Cổng AI dùng chung
@@ -655,7 +660,7 @@ feature/                             # (MỞ RỘNG) Chức năng nhóm 7: gom n
 │   └── FeatureOrigin.java           # Nhóm do người dùng tự tạo hay lấy từ gợi ý
 └── dto/                             # Dữ liệu giao diện gửi lên và Engine trả về cho chức năng này
 
-comparison/                          # (MỞ RỘNG) Chức năng nhóm 8: so sánh luồng hệ thống cũ (PHP) với hệ thống mới — không có bảng riêng
+comparison/                          # (MỞ RỘNG — TẠM HOÃN, chưa làm) Chức năng nhóm 8: so sánh luồng hệ thống cũ (PHP) với hệ thống mới — không có bảng riêng
 ├── controller/
 │   └── ComparisonController.java    # Nhận yêu cầu gợi ý thành phần để so sánh, so hai luồng, tìm luồng cũ tương ứng (API H1–H3)
 ├── service/
@@ -729,7 +734,7 @@ analyzer-node/
 │       │   └── config/
 │       │       └── proxy-config.reader.ts      # Đọc proxy.conf.json để biết đường dẫn API bị đổi thế nào trước khi tới Backend (vd bỏ tiền tố /gateway)
 │       │   # Địa chỉ gốc của API (environment*.ts) được đọc như mọi hằng số khác: constant.extractor.ts + url-evaluator.ts
-│       └── php-legacy/              # (MỞ RỘNG) Bộ phân tích mã PHP của hệ thống cũ
+│       └── php-legacy/              # (MỞ RỘNG — TẠM HOÃN, chưa làm) Bộ phân tích mã PHP của hệ thống cũ
 └── test/
     ├── angular/                     # Kiểm thử Angular: extract.spec (từng bộ đọc bằng đoạn code TỰ VIẾT), resolve.spec (ghép IR trên fixtures/angular-mini),
     │                                #   golden.spec (so với fixtures/golden/angular-mini.ir.json; UPDATE_GOLDEN=1 để sinh lại)
@@ -761,14 +766,15 @@ web/
         │   │   ├── generated/schema.d.ts   # Kiểu dữ liệu API TỰ SINH từ /v3/api-docs của Engine (npm run gen:api) — không sửa tay, có commit
         │   │   ├── api-types.ts     # Tên ngắn cho các kiểu sinh ra; vỏ bọc ApiResponse; kiểu sự kiện SSE (không có trong OpenAPI)
         │   │   ├── api-error.ts     # Đọc lỗi từ vỏ bọc (code, message, errors) thành thông báo tiếng Việt
-        │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts, trace.api.ts, linking.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C / D / E, lấy data trong vỏ bọc
+        │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts, trace.api.ts, linking.api.ts, explanation.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C / D / E / F, lấy data trong vỏ bọc; khóa node trên đường dẫn mã hóa hai lần
         │   ├── ui/                  # Mảnh giao diện dùng chung: icon SVG, modal (Esc đóng modal trên cùng), hộp xác nhận, toast
         │   ├── explorer-navigation.ts   # Cầu nối bảng Ctrl+K (ở khung ứng dụng) → màn hình chính: "hãy mở thành phần này"
         │   └── workspace-context.ts # Danh sách Workspace, Workspace đang mở, trạng thái mở wizard Import và bảng Ctrl+K
         └── features/                # Mỗi thư mục là một nhóm màn hình
             ├── workspaces/          # Danh sách Workspace (thẻ có trạng thái lần quét gần nhất), wizard Import 3 bước + trình duyệt thư mục,
-            │                        #   trang Cài đặt (tab Nguồn mã, Luật liên kết, Bộ lọc nhiễu, Liên kết chốt tay, Lịch sử quét — mỗi tab một
-            │                        #   khối hướng dẫn); link-rules-tab, noise-filters-tab, link-overrides-tab, link-settings-model (thuần, test được)
+            │                        #   trang Cài đặt (tab Nguồn mã, Luật liên kết, Bộ lọc nhiễu, Liên kết chốt tay, Đối chiếu OpenAPI, Lịch sử quét — mỗi tab một
+            │                        #   khối hướng dẫn); link-rules-tab, noise-filters-tab, link-overrides-tab, openapi-check-tab, link-settings-model,
+            │                        #   openapi-check-model (thuần, test được)
             ├── scan/                # Quét: ScanTracker (bắt đầu / theo dõi SSE / hủy, tự hỏi lại khi rớt SSE), khung tiến độ góc phải dưới
             │                        #   (7 giai đoạn kể cả "Nối Frontend – Backend", giai đoạn bỏ qua, tóm tắt có căn cứ), hộp danh sách file lỗi, bảng Lịch sử quét
             ├── explorer/            # MÀN HÌNH CHÍNH 3 CỘT
@@ -787,9 +793,13 @@ web/
             │   │   ├── edge-popover.ts         # Popover liên kết (Giai đoạn 5): lý do, ứng viên + mức khớp Cao / Trung bình / Thấp (E1), chọn API khác
             │   │   │                           #   qua ô tìm (C3), Chốt tay (E4) / Bỏ chốt tay (E5); "Nhờ AI phân tích" mờ tới Giai đoạn 7
             │   │   └── edge-popover-model.ts   # Khi nào mở popover, nhãn mức tin cậy, danh sách ứng viên, giữ popover trọn trong canvas (thuần, test được)
-            │   └── right-panel/                # (Giai đoạn 6) Tab Diễn giải, tab Kịch bản, popup xem code
+            │   └── panel/                      # Cột phải (Giai đoạn 6)
+            │       ├── node-panel.ts           # Tên + nút Xem code + hai tab; Diễn giải (F1, F2), Kịch bản (F3, tô sáng đồng bộ với diagram), thành phần chứa
+            │       ├── json-block.ts           # Khối JSON nền tối, tô màu cú pháp, nút Sao chép
+            │       ├── code-dialog.ts          # Popup Xem code (C5): tab theo lớp, đánh số dòng, tô sáng, chỉ đọc
+            │       └── explanation-model.ts    # Tô màu JSON, đầu vào / đầu ra hiển thị, dòng kịch bản, dòng code, nhãn quan hệ (thuần, test được)
             ├── search/              # Bảng tìm nhanh Ctrl+K (API C3): gõ → kết quả nhóm theo loại, ↑ ↓ Enter Esc; chọn thì mở đúng thành phần trên cây
-            ├── compare/             # (MỞ RỘNG) Màn hình so sánh 2 diagram cạnh nhau và danh sách khác biệt cũ – mới
+            ├── compare/             # (MỞ RỘNG — TẠM HOÃN, chưa làm) Màn hình so sánh 2 diagram cạnh nhau và danh sách khác biệt cũ – mới
             └── ai-settings/         # Màn hình cấu hình AI: xem đang dùng AI nào, bật/tắt từng việc, kiểm tra kết nối, hạn mức token, thống kê (lượt gọi, token, trúng cache, lỗi)
 ```
 
@@ -809,7 +819,7 @@ fixtures/                            # Các dự án mẫu nhỏ TỰ VIẾT 100
 ├── angular-mini/                    # Dự án Frontend Angular nhỏ (Giai đoạn 4): ứng dụng + thư viện dùng chung, route standalone và NgModule, template tách file / viết
 │                                    #   trong .ts, @if/@for, form, tab, hộp thoại, facade → InjectionToken → repository HTTP, URL ghép từ hằng số ở thư viện khác,
 │                                    #   proxy đổi đường dẫn, nhãn từ điển t('khóa') và | translate (README.md liệt kê từng ca)
-├── php-legacy-mini/                 # (MỞ RỘNG) Dự án PHP mẫu mô phỏng hệ thống cũ
+├── php-legacy-mini/                 # (MỞ RỘNG — TẠM HOÃN, chưa làm) Dự án PHP mẫu mô phỏng hệ thống cũ
 └── golden/                          # Các "kết quả chuẩn" đã lưu khi phân tích dự án mẫu — test so kết quả mới với đây để phát hiện thay đổi ngoài ý muốn
 
 scripts/                             # Các công cụ chạy tay
@@ -843,7 +853,7 @@ docs/
 | 5. Liên kết FE–BE & độ tin cậy | `linking` (+ core linker) | `link_override` | E | explorer/right-panel, workspace settings |
 | 6. Diễn giải & dữ liệu mẫu | `explanation` (+ core scenario, explain, mock) | — | F | explorer/right-panel |
 | 7. Nhóm chức năng *(mở rộng)* | `feature` | `feature`, `feature_member` | G | explorer/left-panel |
-| 8. So sánh cũ – mới *(mở rộng)* | `comparison` (+ analyzer-node php-legacy) | — | H | features/compare |
+| 8. So sánh cũ – mới *(mở rộng, tạm hoãn)* | `comparison` (+ analyzer-node php-legacy) | — | H | features/compare |
 | 9. Cấu hình AI & hệ thống | `ai` (+ actuator health) | `ai_artifact`, `llm_call_log`, `app_setting` | I | features/ai-settings |
 
 ## 9. Phụ lục B — Service công khai được phép gọi chéo package
@@ -855,8 +865,8 @@ Ngoài các service dưới đây, package chức năng **không** gọi thành 
 | `SourceReader` | source | workspace, scan, graph, explanation |
 | `WorkspaceService` | workspace | scan, graph, linking, tracing, explanation |
 | `RunningScanRegistry`, `AdapterRegistry`, `ScanQueryService`, `FactsCache` | scan | workspace (chặn sửa/xóa khi đang quét; nhận diện thư mục, bộ lọc nhiễu mặc định; lần quét gần nhất; xóa cache khi xóa Workspace) |
-| `GraphQueryService` / `GraphWriteService` | graph | scan, linking, tracing, explanation, feature, comparison |
-| `LinkingService` / `LinkOverrideService` / `EdgeAdviceService` | linking | scan, tracing |
-| `TracingService` | tracing | explanation, feature, comparison |
+| `GraphQueryService` / `GraphWriteService` / `NodeDetailService` | graph | scan, linking, tracing, explanation, feature, comparison |
+| `LinkingService` / `LinkOverrideService` / `EdgeAdviceService` | linking | scan, tracing, explanation |
+| `TracingService` | tracing | explanation (kịch bản của luồng đã dò), feature, comparison |
 | `AiGateway` | ai | linking, explanation, feature, comparison |
 | `FeatureService` | feature | comparison, explanation |

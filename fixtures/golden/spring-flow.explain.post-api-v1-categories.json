@@ -1,0 +1,42 @@
+{
+  "constraints" : [ "Cần quyền: hasAuthority('CATEGORY_MANAGE')", "Trường code: bắt buộc, tối đa 50 ký tự", "Trường title: bắt buộc, tối đa 255 ký tự", "Trường brief: tối đa 1000 ký tự", "Nếu categoryRepository.existsByCode(code) thì báo lỗi “Mã danh mục đã tồn tại”", "Cột code của bảng category không được trùng" ],
+  "errors" : [ "mã danh mục đã tồn tại", "thiếu trường bắt buộc hoặc sai định dạng", "không đủ quyền" ],
+  "input" : {
+    "body" : {
+      "brief" : "string — không bắt buộc, tối đa 1000 ký tự",
+      "code" : "string — bắt buộc, tối đa 50 ký tự. Mã danh mục, không trùng với danh mục khác.",
+      "status" : "string (một trong: ACTIVE, INACTIVE) — không bắt buộc",
+      "title" : "string — bắt buộc, tối đa 255 ký tự"
+    }
+  },
+  "mock" : {
+    "request" : {
+      "brief" : "Mô tả mẫu",
+      "code" : "MA001",
+      "status" : "ACTIVE",
+      "title" : "Tên mẫu"
+    },
+    "response" : {
+      "data" : {
+        "code" : "MA001",
+        "id" : 1,
+        "status" : "ACTIVE",
+        "title" : "Tên mẫu"
+      },
+      "message" : "Thành công"
+    }
+  },
+  "output" : {
+    "data" : {
+      "code" : "string",
+      "id" : "integer",
+      "status" : "string (một trong: ACTIVE, INACTIVE)",
+      "title" : "string"
+    },
+    "message" : "string"
+  },
+  "purpose" : {
+    "source" : "OPERATION",
+    "text" : "Thêm mới danh mục"
+  }
+}

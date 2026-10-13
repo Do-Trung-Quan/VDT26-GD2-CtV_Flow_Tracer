@@ -1,0 +1,20 @@
+{
+  "constraints" : [ "Tham số id (đường dẫn) là bắt buộc", "Nếu !order.isPending() thì báo lỗi “Chỉ xác nhận được đơn hàng đang chờ xử lý”" ],
+  "errors" : [ "chỉ xác nhận được đơn hàng đang chờ xử lý", "thiếu trường bắt buộc hoặc sai định dạng" ],
+  "input" : {
+    "path" : {
+      "id" : "integer — bắt buộc"
+    }
+  },
+  "mock" : {
+    "request" : {
+      "id" : 1
+    },
+    "response" : "null"
+  },
+  "output" : { },
+  "purpose" : {
+    "source" : "SKELETON",
+    "text" : "API PUT /api/v1/orders/{id}/confirm thuộc nhóm “Order”: nhận id, không trả nội dung."
+  }
+}

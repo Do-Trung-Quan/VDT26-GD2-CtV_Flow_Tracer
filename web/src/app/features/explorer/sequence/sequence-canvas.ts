@@ -7,6 +7,7 @@ import {
   effect,
   inject,
   input,
+  model,
   output,
   signal,
   untracked,
@@ -222,7 +223,10 @@ export class SequenceCanvas {
   protected readonly colors = COLORS;
   protected readonly ZOOM_STEP = ZOOM_STEP;
   protected readonly zoom = signal(1);
-  protected readonly highlight = signal<number | null>(null);
+  /** Bước đang tô sáng (bấm); dùng chung với tab Kịch bản ở cột phải nên là biến hai chiều. */
+  readonly highlight = model<number | null>(null);
+  /** Bước đang được rê chuột ở tab Kịch bản: tô sáng tạm mũi tên tương ứng mà không đổi bước đã bấm. */
+  readonly preview = input<number | null>(null);
   protected readonly legendCollapsed = signal(false);
   protected readonly menuOpen = signal(false);
   protected readonly tip = signal<StepTip | null>(null);
@@ -242,7 +246,7 @@ export class SequenceCanvas {
   protected readonly percent = computed(() => Math.round(this.zoom() * 100));
   protected readonly svg = computed(() => {
     const l = this.layout();
-    return l ? this.sanitizer.bypassSecurityTrustHtml(renderSequenceSvg(l, { zoom: this.zoom(), highlight: this.highlight(), measure: this.measure })) : '';
+    return l ? this.sanitizer.bypassSecurityTrustHtml(renderSequenceSvg(l, { zoom: this.zoom(), highlight: this.preview() ?? this.highlight(), measure: this.measure })) : '';
   });
 
   private suppressClick = false;
@@ -360,6 +364,13 @@ export class SequenceCanvas {
     const g = target instanceof Element ? target.closest('.arrow') : null;
     const n = g ? Number(g.getAttribute('data-n')) : NaN;
     return Number.isFinite(n) ? n : null;
+  }
+
+  /** Cuộn tới mũi tên của một bước (khi bấm bước ở tab Kịch bản). */
+  revealStep(n: number): void {
+    queueMicrotask(() =>
+      this.host.nativeElement.querySelector(`.arrow[data-n="${n}"]`)?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    );
   }
 
   protected jumpToUnresolved(): void {

@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { toApiError } from '../../core/api/api-error';
-import type { BackendTreeDto, EndpointNodeDto, FrontendTreeDto, SearchHitDto, WorkspaceDto } from '../../core/api/api-types';
+import type { BackendTreeDto, EndpointNodeDto, FrontendTreeDto, NodeRelationDto, SearchHitDto, WorkspaceDto } from '../../core/api/api-types';
 import { TraceApi } from '../../core/api/trace.api';
 import { GraphApi } from '../../core/api/graph.api';
 import { WorkspaceApi } from '../../core/api/workspace.api';
@@ -12,7 +12,8 @@ import { isRunning, statusLabel } from '../scan/scan-format';
 import { ScanTracker } from '../scan/scan-tracker';
 import { BackendTree } from './backend-tree';
 import { FrontendTree, type RevealRequest, type UiSelection } from './frontend-tree';
-import { countElements, findTrail, fullLabel, isContainer, nodeLabel, typeLabel } from './frontend-tree-model';
+import { findTrail, fullLabel, isContainer, nodeLabel, typeLabel } from './frontend-tree-model';
+import { NodePanel, type PanelHeader } from './panel/node-panel';
 import { SequenceCanvas } from './sequence/sequence-canvas';
 import type { SequenceTrace } from './sequence/sequence-model';
 import { normalizeTrace } from './sequence/sequence-model';
@@ -29,7 +30,7 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
  */
 @Component({
   selector: 'app-explorer',
-  imports: [BackendTree, FrontendTree, Icon, SequenceCanvas],
+  imports: [BackendTree, FrontendTree, Icon, NodePanel, SequenceCanvas],
   template: `
     <div class="explorer" [style.--lw.px]="collapsed() ? 0 : leftWidth()">
       <aside class="left" [class.hidden]="collapsed()">
@@ -80,108 +81,19 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
           </button>
         </div>
         <app-sequence-canvas [workspaceId]="workspaceId()" [trace]="trace()" [loading]="traceLoading()" [error]="traceError()"
-          [emptyTitle]="emptyTitle()" [emptyText]="emptyHint()" (linkChanged)="reloadTrace()" />
+          [emptyTitle]="emptyTitle()" [emptyText]="emptyHint()" [(highlight)]="highlight" [preview]="preview()" (linkChanged)="reloadTrace()" />
       </section>
 
       <aside class="right">
-        @if (selectedUi(); as u) {
-          <div class="rh">
-            <div class="row">
-              <span class="pill p-gray">{{ typeOf(u) }}</span>
-              @if (u.node.kind === 'UI_ELEMENT') {
-                @if (u.node.callsApi) {
-                  <span class="pill p-blue">Gọi máy chủ</span>
-                } @else {
-                  <span class="pill p-gray">Chỉ giao diện</span>
-                }
-              }
-            </div>
-            <h2 [class.mono]="uiTechnical(u)">{{ uiTitle(u) }}</h2>
-          </div>
-          <div class="rb">
-            @if (uiTechnical(u)) {
-              <div class="hint gap">Mã nguồn không có nhãn cho thành phần này nên đang hiện tên kỹ thuật.</div>
-            }
-            @if (u.trail.length) {
-              <div class="sec">
-                <h4>Thuộc về</h4>
-                <p>{{ uiTrail(u) }}</p>
-              </div>
-            }
-            @if (u.node.filePath) {
-              <div class="sec">
-                <h4>Vị trí trong mã nguồn</h4>
-                <p class="mono">{{ u.node.filePath }}@if (u.node.line) {:{{ u.node.line }}}</p>
-              </div>
-            }
-            @if (uiIsContainer(u)) {
-              <div class="sec">
-                <h4>Thành phần chứa</h4>
-                <p>{{ uiElementCount(u) }} phần tử tương tác bên trong.</p>
-              </div>
-              <div class="hint">Đây là thành phần chứa. Chọn một nút hoặc ô nhập bên trong để xem luồng thao tác.</div>
-            } @else {
-              @if (trace(); as t) {
-                <div class="sec">
-                  <h4>Luồng xử lý</h4>
-                  <p>{{ t.steps.length }} bước · {{ t.lanes.length }} cột</p>
-                  <div class="chips">
-                    @for (l of t.lanes; track l.id) {
-                      <span class="pill p-gray">{{ l.label }}</span>
-                    }
-                  </div>
-                </div>
-              }
-              @if (traceInfo(); as info) {
-                <div class="warn gap">{{ info.text }}</div>
-              }
-              <div class="hint">Tab Diễn giải và Kịch bản có từ Giai đoạn 6.</div>
-            }
-          </div>
-        } @else if (selected(); as e) {
-          <div class="rh">
-            <div class="row"><span [class]="'mt ' + e.httpMethod">{{ e.httpMethod }}</span></div>
-            <h2 class="mono">{{ e.path }}</h2>
-          </div>
-          <div class="rb">
-            <div class="sec">
-              <h4>Mô tả</h4>
-              @if (e.summary) {
-                <p>{{ e.summary }}</p>
-                <div class="hint">Nguồn: {{ e.summarySource === 'OPERATION' ? '@Operation (Swagger)' : 'Javadoc' }}</div>
-              } @else {
-                <p class="muted">Mã nguồn không có @Operation hay Javadoc cho API này.</p>
-              }
-            </div>
-            <div class="sec">
-              <h4>Vị trí trong mã nguồn</h4>
-              <p class="mono">{{ e.filePath }}@if (e.line) {:{{ e.line }}}</p>
-            </div>
-            @if (e.deprecated) {
-              <div class="warn">API được đánh dấu ngừng dùng (@Deprecated).</div>
-            }
-            @for (w of e.warnings ?? []; track w) {
-              <div class="warn gap">{{ w }}</div>
-            }
-            @if (trace(); as t) {
-              <div class="sec">
-                <h4>Luồng xử lý</h4>
-                <p>{{ t.steps.length }} bước · {{ t.lanes.length }} cột</p>
-                <div class="chips">
-                  @for (l of t.lanes; track l.id) {
-                    <span class="pill p-gray">{{ l.label }}</span>
-                  }
-                </div>
-              </div>
-              @for (w of t.warnings; track w) {
-                <div class="warn gap">{{ w }}</div>
-              }
-            }
-            <div class="hint">Tab Diễn giải và Kịch bản có từ Giai đoạn 6.</div>
-          </div>
+        @if (panelHeader(); as h) {
+          <app-node-panel [workspaceId]="workspaceId()" [header]="h" [nodeKey]="panelKey()" [notes]="panelNotes()" [trace]="trace()"
+            [traceLoading]="traceLoading()" [refresh]="refreshSeq()" [(highlight)]="highlight" (preview)="preview.set($event)"
+            (stepClicked)="canvas()?.revealStep($event)" (openNode)="openRelation($event)" />
         } @else {
-          <div class="empty">
-            <span>{{ sideTab() === 'fe' ? 'Chọn một thành phần giao diện để xem thông tin.' : 'Chọn một API để xem thông tin.' }}</span>
+          <div class="empty full">
+            <div class="ic"><app-icon name="info" /></div>
+            <h3>Chưa chọn thành phần</h3>
+            <span>Chọn một API hoặc phần tử ở cột trái để xem diễn giải và kịch bản.</span>
           </div>
         }
       </aside>
@@ -189,7 +101,8 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
   `,
   styles: `
     :host { display: block; height: 100%; }
-    .explorer { display: grid; grid-template-columns: var(--lw) minmax(0, 1fr) 360px; height: 100%; }
+    .explorer { display: grid; grid-template-columns: var(--lw) minmax(0, 1fr) var(--rw, 390px); height: 100%; }
+    @media (max-width: 1100px) { .explorer { --rw: 330px; } }
     .left { background: #fff; box-shadow: inset -1px 0 0 var(--bd); display: flex; flex-direction: column; min-height: 0; position: relative; }
     .left.hidden { visibility: hidden; }
     .left .tabs { padding: 0 8px 0 12px; margin: 0; align-items: center; }
@@ -207,19 +120,7 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
     .sdot.blue { background: var(--blue); }
     .center { height: 100%; }
     .right { background: #fff; box-shadow: inset 1px 0 0 var(--bd); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-    .rh { padding: 14px 16px 0; }
-    .rh h2 { margin: 8px 0 6px; font-size: 15px; overflow-wrap: anywhere; }
-    .rb { flex: 1; overflow: auto; padding: 14px 16px 28px; }
-    .sec { margin-bottom: 18px; }
-    .sec h4 { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--t3); }
-    .sec p { margin: 0; overflow-wrap: anywhere; }
-    .gap { margin-bottom: 12px; }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .mt { font: 700 11px var(--mono); padding: 2px 6px; border-radius: 4px; background: #f3f4f6; }
-    .mt.GET { background: var(--green-l); color: var(--green); }
-    .mt.POST { background: var(--blue-l); color: var(--blue); }
-    .mt.PUT, .mt.PATCH { background: var(--amber-l); color: var(--amber); }
-    .mt.DELETE { background: var(--brand-l); color: var(--brand); }
+    .empty.full { height: 100%; }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -249,6 +150,11 @@ export class ExplorerPage {
   /** Thông báo (không phải lỗi) thay cho diagram: phần tử gọi API chưa dò được khi chưa có phần nối FE–BE. */
   protected readonly traceInfo = signal<{ title: string; text: string } | null>(null);
   private revealSeq = 0;
+  /** Bước đang tô sáng, dùng chung giữa diagram và tab Kịch bản; `preview` là bước đang được rê chuột ở tab Kịch bản. */
+  protected readonly highlight = signal<number | null>(null);
+  protected readonly preview = signal<number | null>(null);
+  protected readonly refreshSeq = signal(0);
+  protected readonly canvas = viewChild(SequenceCanvas);
   protected readonly trace = signal<SequenceTrace | null>(null);
   protected readonly traceLoading = signal(false);
   protected readonly traceError = signal<string | null>(null);
@@ -333,6 +239,57 @@ export class ExplorerPage {
     this.ws()?.lastScan ? 'Lần quét không tìm thấy endpoint nào trong các nguồn Backend.' : 'Workspace chưa được quét.'
   );
 
+  protected readonly panelKey = computed(() => this.selectedUi()?.node.nodeKey ?? this.selected()?.nodeKey ?? null);
+
+  protected readonly panelHeader = computed<PanelHeader | null>(() => {
+    const u = this.selectedUi();
+    if (u) {
+      const element = u.node.kind === 'UI_ELEMENT';
+      const technical = this.uiTechnical(u);
+      return {
+        title: this.uiTitle(u),
+        mono: technical,
+        method: null,
+        path: null,
+        pills: [
+          { text: this.typeOf(u), cls: 'p-gray' },
+          ...(element ? [u.node.callsApi ? { text: 'Gọi máy chủ', cls: 'p-blue' } : { text: 'Chỉ giao diện', cls: 'p-gray' }] : [])
+        ],
+        container: this.uiIsContainer(u),
+        note: technical ? 'Mã nguồn không có nhãn cho thành phần này nên đang hiện tên kỹ thuật.' : null
+      };
+    }
+    const e = this.selected();
+    if (e) {
+      return {
+        title: e.summary || e.path || '',
+        mono: !e.summary,
+        method: e.httpMethod ?? null,
+        path: e.summary ? (e.path ?? null) : null,
+        pills: [],
+        container: false,
+        note: null
+      };
+    }
+    return null;
+  });
+
+  /** Cảnh báo trên đầu cột phải: API ngừng dùng, cảnh báo của API / luồng, luồng chưa dò được. */
+  protected readonly panelNotes = computed(() => {
+    const notes: string[] = [];
+    const e = this.selectedUi() ? null : this.selected();
+    if (e?.deprecated) {
+      notes.push('API được đánh dấu ngừng dùng (@Deprecated).');
+    }
+    notes.push(...(e?.warnings ?? []));
+    notes.push(...(this.trace()?.warnings ?? []));
+    const info = this.traceInfo();
+    if (info) {
+      notes.push(info.text);
+    }
+    return notes;
+  });
+
   private readonly datePipe = new DatePipe('en-US');
 
   constructor() {
@@ -363,7 +320,10 @@ export class ExplorerPage {
           if (this.feTree() || this.sideTab() === 'fe') {
             reloaded.push(this.loadFrontend(done.workspaceId));
           }
-          void Promise.all(reloaded).then(() => this.loadTrace(this.traceStart()));
+          void Promise.all(reloaded).then(() => {
+            this.refreshSeq.update((n) => n + 1);
+            return this.loadTrace(this.traceStart());
+          });
         });
       }
     });
@@ -417,16 +377,8 @@ export class ExplorerPage {
     return nodeLabel(u.node).technical && u.node.kind === 'UI_ELEMENT';
   }
 
-  protected uiTrail(u: UiSelection): string {
-    return u.trail.map(fullLabel).join(' › ');
-  }
-
   protected uiIsContainer(u: UiSelection): boolean {
     return isContainer(u.node);
-  }
-
-  protected uiElementCount(u: UiSelection): number {
-    return countElements(u.node);
   }
 
   /** Mở thành phần mà bảng tìm nhanh vừa chọn: đổi tab, mở các tổ tiên trên cây, chọn và cuộn tới. */
@@ -457,6 +409,11 @@ export class ExplorerPage {
     } else {
       this.describeOther(hit);
     }
+  }
+
+  /** Bấm một chip quan hệ ở cột phải: mở thành phần đó như khi chọn từ bảng tìm nhanh. */
+  protected openRelation(r: NodeRelationDto): void {
+    void this.openHit({ seq: 0, workspaceId: this.workspaceId(), hit: { nodeKey: r.nodeKey, kind: r.kind, name: r.name } });
   }
 
   /** Bảng dữ liệu và loại khác chưa có chỗ mở riêng: báo thông tin thay vì im lặng. */
@@ -495,6 +452,7 @@ export class ExplorerPage {
 
   /** Dò vết lại thành phần đang chọn (vd sau khi chốt / bỏ chốt một liên kết trên diagram). */
   protected reloadTrace(): void {
+    this.refreshSeq.update((n) => n + 1);
     void this.loadTrace(this.traceStart());
   }
 

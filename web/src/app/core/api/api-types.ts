@@ -50,6 +50,19 @@ export type LinkRuleDto = Schemas['LinkRuleResponse'];
 export type LinkRuleType = NonNullable<LinkRuleDto['type']>;
 export type UpdateLinkRulesRequest = Schemas['UpdateLinkRulesRequest'];
 
+export type ExplanationDto = Schemas['ExplanationResponse'];
+export type PurposeDto = Schemas['PurposeResponse'];
+export type ApiIoDto = Schemas['ApiIoResponse'];
+export type NodeRelationDto = Schemas['NodeRelationResponse'];
+export type NodeDetailDto = Schemas['NodeDetailResponse'];
+export type MockDataDto = Schemas['MockDataResponse'];
+export type ScenarioDto = Schemas['ScenarioResponse'];
+export type ScenarioActorDto = Schemas['ActorResponse'];
+export type ScenarioItemDto = Schemas['ItemResponse'];
+export type CodeTabDto = Schemas['CodeTabResponse'];
+export type OpenApiCheckDto = Schemas['OpenApiCheckResponse'];
+export type OpenApiOperationDto = Schemas['OpenApiOperationResponse'];
+
 /** Kết quả phân trang dùng chung của Engine. */
 export interface PageDto<T> {
   items: T[];

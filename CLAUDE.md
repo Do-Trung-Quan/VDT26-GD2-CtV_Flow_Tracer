@@ -43,6 +43,7 @@ Nếu tài liệu mâu thuẫn nhau, hoặc yêu cầu của người dùng mâu
 - Chức năng "làm giàu dữ liệu mẫu bằng AI" riêng. Dữ liệu mẫu do AI sinh **một lần** rồi lưu cache (mục 3.7).
 - DDD, CQRS, Ports & Adapters cho mọi package, hay interface cho mọi Service. Kiến trúc đã chốt là monolith đơn giản (mục 3.2).
 - Tính năng ghi *Mở rộng* trong `feature_list.md` khi phase hiện tại **chưa** tới, trừ khi người dùng yêu cầu rõ.
+- **Đối chiếu hệ thống cũ** (phân tích mã PHP `php-legacy`, Source `LEGACY`, package `comparison`, Nhóm 8 / API H, `AiPurpose.LEGACY_MATCH`): **tạm hoãn** vì thời hạn gấp, không làm cho tới khi người dùng yêu cầu lại.
 - Bất kỳ tính năng nào không có trong tài liệu đã chốt.
 
 ---
@@ -158,10 +159,11 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
   - Trong Engine: chỉ qua `SourceReader`. Mọi đường dẫn tương đối `SOURCE_ROOT`; chặn path traversal và symlink trỏ ra ngoài.
   - Sidecar: chỉ đọc đúng các file Engine liệt kê trong request.
 - **Không** build, chạy, cài dependency hay thực thi file nào của dự án được phân tích. Engine chỉ chạy tiến trình con là sidecar của chính tool.
+- Jar nằm trong Source (vd thư viện lõi chứa `ApiResponse<T>`) được đọc nguyên bytes qua `SourceReader` để lấy **khai báo** kiểu (tên trường, kiểu, annotation) từ file `.class`; **không** nạp lớp, không chạy mã. Giới hạn: tối đa 20 jar, 64 MB mỗi jar, 300 lớp rút gọn.
 - **Không** kết nối CSDL của dự án được phân tích. Dữ liệu mẫu **chỉ** sinh từ cấu trúc DTO.
 - Được gửi **mã nguồn** tới AI bên ngoài, nhưng **bắt buộc che secret** trước khi gửi (`SecretRedactor`): giá trị của khóa chứa `password`, `secret`, `token`, `key`, `credential`; chuỗi kết nối CSDL; khối private key. **Không gửi** file `.env`, keystore, file dữ liệu.
 - API key **chỉ** nằm trong biến môi trường: không lưu CSDL, không trả về API, không gửi xuống trình duyệt, không ghi log. `llm_call_log` **không lưu nội dung prompt** (chỉ lưu hash).
-- Đọc cấu hình của dự án được phân tích (`application*.yml/.properties`) chỉ ở hai nơi, đều không giữ giá trị bí mật:
+- Đọc cấu hình của dự án được phân tích (`application*.yml/.properties`) chỉ ở hai nơi, đều không giữ giá trị bí mật (ngoài ra `MessageResolver` đọc file thông báo `messages_vi.properties` / `messages.properties` để lấy câu hiển thị của lệnh `throw`, bỏ khóa có `password / secret / token / credential`):
   - `ApplicationConfigReader`: chỉ hai khóa cố định (context-path, Jackson naming).
   - `PropertyLookup`: tra theo yêu cầu khóa mà mã nguồn tham chiếu trong đường dẫn mapping (`${khóa}`), chỉ trong file `application` mặc định của module (không đọc file profile để lấy giá trị). Thứ tự như Spring: cấu hình rồi mặc định trong code. Khóa có đoạn `password / secret / token / credential` bị chặn, trừ khi đoạn cuối là `path / paths / endpoint / uri / route` và giá trị bắt đầu bằng `/`. Giá trị phải có hình dạng đường dẫn. Không giải được thì giữ `${khóa}` và cảnh báo — không đoán.
 
@@ -235,13 +237,13 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 | `source` | `SourceReader` — điểm duy nhất đọc mã nguồn người dùng | — | (nền tảng) |
 | `workspace` | Workspace, Source (lồng nhau), nhận diện công nghệ, duyệt thư mục, xuất/nhập, bộ lọc nhiễu | `workspace`, `source` | 1 · A, I4–I5 |
 | `scan` | Pipeline DISCOVER → DIFF → EXTRACT → RESOLVE → PERSIST → LINK → FINALIZE; AdapterRegistry; gọi sidecar; cache dữ kiện; SSE tiến độ | `scan_run`, `source_file` | 2 · B |
-| `graph` | **Chủ sở hữu IR** (JdbcClient batch), cây BE/FE, tìm kiếm, chi tiết node, đoạn code, đối chiếu OpenAPI | `ir_node`, `ir_edge` | 3 · C |
+| `graph` | **Chủ sở hữu IR** (JdbcClient batch), cây BE/FE, tìm kiếm, chi tiết node (C4), đối chiếu OpenAPI (C6) | `ir_node`, `ir_edge` | 3 · C |
 | `linking` | Nối FE ↔ BE (và BE ↔ BE, hệ thống ngoài), liên kết chốt tay, luật liên kết, AI phân tích liên kết, xác minh runtime (mở rộng) | `link_override` | 5 · E |
 | `tracing` | Dò vết (không lưu CSDL, cache theo `trace_id`), xuất diagram, flowchart (mở rộng) | — | 4 · D |
-| `explanation` | Tab Diễn giải, dữ liệu mẫu, tab Kịch bản, sinh lại nội dung AI | — | 6 · F |
+| `explanation` | Tab Diễn giải, dữ liệu mẫu, tab Kịch bản, đoạn code "Xem code" (C5, đặt ở đây để dùng cùng liên kết chốt tay với diagram), sinh lại nội dung AI | — | 6 · F |
 | `ai` | **Cổng AI duy nhất**: bật/tắt mục đích → cache → hạn mức → che secret → provider → kiểm tra → lưu & log | `ai_artifact`, `llm_call_log`, `app_setting` | 9 · I1–I3, I6 |
 | `feature` *(mở rộng)* | Nhóm chức năng | `feature`, `feature_member` | 7 · G |
-| `comparison` *(mở rộng)* | So sánh & đối chiếu cũ – mới | — | 8 · H |
+| `comparison` *(mở rộng, tạm hoãn)* | So sánh & đối chiếu cũ – mới | — | 8 · H |
 
 Health (API I7) dùng Spring Boot Actuator, phục vụ tại `/api/health`.
 

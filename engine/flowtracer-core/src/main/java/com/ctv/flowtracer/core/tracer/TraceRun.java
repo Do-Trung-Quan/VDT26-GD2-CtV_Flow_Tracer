@@ -337,7 +337,9 @@ final class TraceRun {
         }
         int mark = openDepth;
         open(type, label);
+        boolean before = aborted;
         emitList(group);
+        aborted = before; // lỗi không điều kiện chỉ kết thúc nhánh này
         closeTo(mark);
         return end;
     }
@@ -412,11 +414,16 @@ final class TraceRun {
         boolean alt = terminal || !elseGroup.isEmpty();
         int mark = openDepth;
         open(alt ? TraceBlock.Type.ALT : TraceBlock.Type.OPT, guard.text());
+        // Lệnh throw không điều kiện chỉ kết thúc nhánh chứa nó: nhánh else (hoặc phần còn lại của luồng) vẫn chạy được
+        boolean before = aborted;
         emitList(thenGroup);
+        boolean thenAborted = aborted;
+        aborted = before;
         if (alt) {
             elseBranch(OTHERWISE);
         }
         emitList(elseGroup);
+        aborted = before || thenAborted && !elseGroup.isEmpty() && aborted;
         if (!terminal) {
             closeTo(mark);
         }
@@ -451,7 +458,9 @@ final class TraceRun {
                 } else {
                     elseBranch(label);
                 }
+                boolean before = aborted;
                 emitList(branch);
+                aborted = before;
             }
             next = end;
         }

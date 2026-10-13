@@ -1,0 +1,36 @@
+{
+  "constraints" : [ "Tham số keyword (query) là bắt buộc" ],
+  "errors" : [ "thiếu trường bắt buộc hoặc sai định dạng" ],
+  "input" : {
+    "query" : {
+      "keyword" : "string — bắt buộc"
+    }
+  },
+  "mock" : {
+    "request" : {
+      "keyword" : "Giá trị mẫu"
+    },
+    "response" : {
+      "data" : [ {
+        "code" : "MA001",
+        "id" : 1,
+        "status" : "ACTIVE",
+        "title" : "Tên mẫu"
+      } ],
+      "message" : "Thành công"
+    }
+  },
+  "output" : {
+    "data" : [ {
+      "code" : "string",
+      "id" : "integer",
+      "status" : "string (một trong: ACTIVE, INACTIVE)",
+      "title" : "string"
+    } ],
+    "message" : "string"
+  },
+  "purpose" : {
+    "source" : "OPERATION",
+    "text" : "Tìm kiếm danh mục"
+  }
+}

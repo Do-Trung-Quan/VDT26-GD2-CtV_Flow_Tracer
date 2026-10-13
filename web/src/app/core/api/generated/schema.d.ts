@@ -100,6 +100,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/openapi-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{id}/link-overrides": {
         parameters: {
             query?: never;
@@ -212,6 +228,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/traces/{traceId}/scenario": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["scenario"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{id}/traces/{traceId}/export": {
         parameters: {
             query?: never;
@@ -236,6 +268,70 @@ export interface paths {
             cookie?: never;
         };
         get: operations["search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{id}/nodes/{nodeKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{id}/nodes/{nodeKey}/source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["source"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{id}/nodes/{nodeKey}/mock-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["mockData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{id}/nodes/{nodeKey}/explanation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["explanation"];
         put?: never;
         post?: never;
         delete?: never;
@@ -663,6 +759,36 @@ export interface components {
             /** Format: int64 */
             durationMs?: number;
         };
+        OpenApiCheckRequest: {
+            openapiUrl?: string;
+        };
+        ApiResponseOpenApiCheckResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["OpenApiCheckResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        OpenApiCheckResponse: {
+            source?: string;
+            specVersion?: string;
+            /** Format: int32 */
+            codeTotal?: number;
+            /** Format: int32 */
+            specTotal?: number;
+            matched?: components["schemas"]["OpenApiOperationResponse"][];
+            onlyInCode?: components["schemas"]["OpenApiOperationResponse"][];
+            onlyInSpec?: components["schemas"]["OpenApiOperationResponse"][];
+        };
+        OpenApiOperationResponse: {
+            method?: string;
+            path?: string;
+            nodeKey?: string;
+            summary?: string;
+        };
         CreateLinkOverrideRequest: {
             fromNodeKey: string;
             toNodeKey?: string;
@@ -839,6 +965,36 @@ export interface components {
             line?: number;
             warnings?: string[];
         };
+        ActorResponse: {
+            id?: string;
+            name?: string;
+            description?: string;
+        };
+        ApiResponseScenarioResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["ScenarioResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        ItemResponse: {
+            /** Format: int32 */
+            index?: number;
+            text?: string;
+            /** Format: int32 */
+            depth?: number;
+            unresolved?: boolean;
+        };
+        ScenarioResponse: {
+            traceId?: string;
+            title?: string;
+            source?: string;
+            actors?: components["schemas"]["ActorResponse"][];
+            items?: components["schemas"]["ItemResponse"][];
+        };
         ApiResponseTraceExportResponse: {
             /** Format: int32 */
             status?: number;
@@ -909,6 +1065,125 @@ export interface components {
             page?: number;
             /** Format: int32 */
             limit?: number;
+        };
+        ApiResponseNodeDetailResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["NodeDetailResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        NodeDetailResponse: {
+            nodeKey?: string;
+            /** @enum {string} */
+            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
+            name?: string;
+            displayName?: string;
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+            sourceName?: string;
+            trail?: components["schemas"]["NodeRelationResponse"][];
+            calledFrom?: components["schemas"]["NodeRelationResponse"][];
+            /** Format: int32 */
+            calledFromTotal?: number;
+            callsTo?: components["schemas"]["NodeRelationResponse"][];
+        };
+        NodeRelationResponse: {
+            nodeKey?: string;
+            /** @enum {string} */
+            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
+            name?: string;
+            displayName?: string;
+            context?: string;
+            elementType?: string;
+            fallbackName?: string;
+            routePath?: string;
+        };
+        ApiResponseListCodeTabResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["CodeTabResponse"][];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        CodeTabResponse: {
+            title?: string;
+            role?: string;
+            filePath?: string;
+            sourceName?: string;
+            /** Format: int32 */
+            startLine?: number;
+            highlightLines?: number[];
+            code?: string;
+        };
+        ApiResponseMockDataResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["MockDataResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        MockDataResponse: {
+            apiKey?: string;
+            request?: unknown;
+            response?: unknown;
+            source?: string;
+            problems?: string[];
+        };
+        ApiIoResponse: {
+            apiKey?: string;
+            method?: string;
+            path?: string;
+            displayName?: string;
+            input?: {
+                [key: string]: unknown;
+            };
+            output?: {
+                [key: string]: unknown;
+            };
+            errors?: string[];
+            constraints?: string[];
+        };
+        ApiResponseExplanationResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["ExplanationResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        ExplanationResponse: {
+            nodeKey?: string;
+            /** @enum {string} */
+            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
+            name?: string;
+            displayName?: string;
+            container?: boolean;
+            purpose?: components["schemas"]["PurposeResponse"];
+            apis?: components["schemas"]["ApiIoResponse"][];
+            unresolvedCalls?: string[];
+            trail?: components["schemas"]["NodeRelationResponse"][];
+            calledFrom?: components["schemas"]["NodeRelationResponse"][];
+            /** Format: int32 */
+            calledFromTotal?: number;
+            callsTo?: components["schemas"]["NodeRelationResponse"][];
+        };
+        PurposeResponse: {
+            text?: string;
+            source?: string;
+            sourceLabel?: string;
         };
         ApiResponseListLinkOverrideResponse: {
             /** Format: int32 */
@@ -1278,6 +1553,32 @@ export interface operations {
             };
         };
     };
+    check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OpenApiCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseOpenApiCheckResponse"];
+                };
+            };
+        };
+    };
     list_1: {
         parameters: {
             query?: never;
@@ -1536,6 +1837,29 @@ export interface operations {
             };
         };
     };
+    scenario: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                traceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseScenarioResponse"];
+                };
+            };
+        };
+    };
     export: {
         parameters: {
             query: {
@@ -1583,6 +1907,102 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseSearchResponse"];
+                };
+            };
+        };
+    };
+    detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                nodeKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseNodeDetailResponse"];
+                };
+            };
+        };
+    };
+    source: {
+        parameters: {
+            query?: {
+                context_lines?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+                nodeKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListCodeTabResponse"];
+                };
+            };
+        };
+    };
+    mockData: {
+        parameters: {
+            query?: {
+                apiKey?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                nodeKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMockDataResponse"];
+                };
+            };
+        };
+    };
+    explanation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                nodeKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseExplanationResponse"];
                 };
             };
         };

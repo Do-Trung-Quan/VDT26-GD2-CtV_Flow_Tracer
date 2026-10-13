@@ -95,7 +95,7 @@ Sau khi kiểm thử trực tiếp trên dự án demo, người dùng phát hi�
 ### 7.1. Khử trùng lặp bước khi quét thành phần danh sách & bảng (Deduplication)
 
 - **Hiện tượng:**
-  - Thành phần bảng (`Bảng onSelectionChange`) và ô tìm kiếm (`Ô Tên loại sách` trong màn hình Loại sách) bị hiển thị lặp đúp các bước thực thi giống hệt nhau (22 bước thay vì 12 bước, 2 khối lặp giống nhau).
+  - Thành phần bảng (sự kiện chọn dòng) và ô tìm kiếm trên dự án demo bị hiển thị lặp đúp các bước thực thi giống hệt nhau (22 bước thay vì 12 bước, 2 khối lặp giống nhau).
 - **Nguyên nhân:**
   - Phía sidecar Angular (`screen-tree.builder.ts`):
     1. Một phần tử giao diện liên kết nhiều sự kiện cùng trỏ tới 1 hàm xử lý (ví dụ: `shared-input` có cả `(enter)` và `(suffixClick)` cùng gọi `onSearch()`).
@@ -109,7 +109,7 @@ Sau khi kiểm thử trực tiếp trên dự án demo, người dùng phát hi�
     + Thêm `seenTargets = new HashSet<String>()` trong `runFromElement()` để ngăn chặn việc dò lại phương thức xử lý đã được kích hoạt.
     + Trong `handleHttp()`, gom và gộp các lời gọi lặp tới cùng endpoint thay vì mở rộng lặp lại.
 - **Kết quả:**
-  - Diagram của `shared-input.enter.onSearch` và `shared-table.selectionChange.onSelectionChange` giảm từ 22 bước $\rightarrow$ **12 bước chuẩn xác**, không còn bước lặp.
+  - Diagram của hai thành phần trên giảm từ 22 bước → **12 bước**, không còn bước lặp.
 
 ### 7.2. Lược bỏ khung bao `opt [try]` trên Sequence Diagram
 
@@ -128,7 +128,6 @@ Sau khi kiểm thử trực tiếp trên dự án demo, người dùng phát hi�
   - `analyzer-node`: 6 test suites, 45 tests passed.
   - `flowtracer-core`: 70 tests passed.
   - `flowtracer-app`: 34 unit tests + 23 ITs passed (tổng cộng 159 tests trong engine).
-- **Kiểm chứng trực quan (Live Browser & UI):**
-  - Đã quét lại workspace demo `46bca025-ba49-4ad9-9baa-c8ae829819bd`.
-  - Kiểm tra các màn hình (Loại sách, Tác giả...): sequence diagram hiển thị chuẩn 12 bước trên 6 lifelines (`User` $\rightarrow$ `Frontend` $\rightarrow$ `BookTypeController` $\rightarrow$ `BookTypeServiceImpl` $\rightarrow$ `BookTypeRepository` $\rightarrow$ `Database`), không còn khối `try`, không còn lặp bước.
+- **Kiểm chứng trực quan:** quét lại Workspace demo (chỉ ghi số liệu tổng hợp); các luồng danh sách / tìm kiếm hiển thị 12 bước trên 6 cột (User → Frontend → Controller → Service → Repository → Database), không còn khối `try`, không còn lặp bước.
 
+> Vệ sinh repo: bản nhật ký ban đầu của mục 7 có tên lớp / màn hình / id Workspace của dự án demo; đã ẩn danh theo CLAUDE.md §3.5.

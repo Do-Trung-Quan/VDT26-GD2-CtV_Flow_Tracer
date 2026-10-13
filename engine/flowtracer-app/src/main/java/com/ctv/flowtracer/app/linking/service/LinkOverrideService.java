@@ -127,6 +127,15 @@ public class LinkOverrideService {
                 .toList();
     }
 
+    /** Các đích đã ghim theo thành phần gọi — để nạp thêm phần đi tới được từ đích đó khi dựng đồ thị con. */
+    public static Map<String, Set<String>> pinTargets(List<OverrideRule> rules) {
+        Map<String, Set<String>> pins = new HashMap<>();
+        rules.stream()
+                .filter(o -> o.decision() == OverrideRule.Decision.PIN)
+                .forEach(o -> pins.computeIfAbsent(o.fromKey(), k -> new java.util.HashSet<>()).add(o.toKey()));
+        return pins;
+    }
+
     /** Quyết định đang áp cho một liên kết (thành phần gọi + loại); ghim được ưu tiên, rồi quyết định mới nhất. */
     @Transactional(readOnly = true)
     public LinkOverrideResponse findFor(UUID workspaceId, String fromKey, EdgeKind kind, Map<String, IrNode> knownNodes) {

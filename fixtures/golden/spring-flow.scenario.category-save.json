@@ -1,0 +1,138 @@
+{
+  "actors" : [ {
+    "id" : "user",
+    "name" : "User",
+    "description" : "Người dùng thao tác trên giao diện."
+  }, {
+    "id" : "fe",
+    "name" : "Frontend",
+    "description" : "Giao diện ứng dụng web."
+  }, {
+    "id" : "c1",
+    "name" : "Controller Danh mục",
+    "description" : "Tiếp nhận và điều phối yêu cầu danh mục ở Backend."
+  }, {
+    "id" : "s1",
+    "name" : "Service Danh mục",
+    "description" : "Xử lý nghiệp vụ và ràng buộc của danh mục."
+  }, {
+    "id" : "r1",
+    "name" : "Repository Danh mục",
+    "description" : "Truy xuất dữ liệu danh mục."
+  }, {
+    "id" : "t1",
+    "name" : "Bảng category",
+    "description" : "Bảng dữ liệu category."
+  } ],
+  "items" : [ {
+    "index" : 1,
+    "text" : "User gửi biểu mẫu bằng \"Lưu\" trên Frontend."
+  }, {
+    "index" : 2,
+    "text" : "Frontend gửi yêu cầu POST /api/v1/categories đến Controller Danh mục."
+  }, {
+    "index" : 3,
+    "text" : "Controller Danh mục chuyển tiếp yêu cầu create(request) đến Service Danh mục."
+  }, {
+    "index" : 4,
+    "text" : "Service Danh mục tự xử lý: checkPermission(), normalize()."
+  }, {
+    "index" : 5,
+    "text" : "Service Danh mục gọi existsByCode(code) trên Repository Danh mục."
+  }, {
+    "index" : 6,
+    "text" : "Repository Danh mục truy vấn SELECT trên Bảng category."
+  }, {
+    "index" : 7,
+    "text" : "Bảng category trả về kết quả cho Repository Danh mục."
+  }, {
+    "index" : 8,
+    "text" : "Repository Danh mục trả về true / false cho Service Danh mục."
+  }, {
+    "text" : "Nếu categoryRepository.existsByCode(code):",
+    "condition" : true
+  }, {
+    "index" : 9,
+    "text" : "Service Danh mục trả lỗi CATEGORY_CODE_EXISTS cho Controller Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 10,
+    "text" : "Controller Danh mục trả lỗi BusinessException cho Frontend.",
+    "depth" : 1
+  }, {
+    "index" : 11,
+    "text" : "Frontend trả lỗi BusinessException cho User.",
+    "depth" : 1
+  }, {
+    "text" : "Ngược lại:",
+    "condition" : true
+  }, {
+    "index" : 12,
+    "text" : "Service Danh mục gọi save(entity) trên Repository Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 13,
+    "text" : "Repository Danh mục truy vấn INSERT/UPDATE trên Bảng category.",
+    "depth" : 1
+  }, {
+    "index" : 14,
+    "text" : "Bảng category trả về OK cho Repository Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 15,
+    "text" : "Repository Danh mục trả về Category cho Service Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 16,
+    "text" : "Service Danh mục tự xử lý: toResponse().",
+    "depth" : 1
+  }, {
+    "index" : 17,
+    "text" : "Service Danh mục trả về CategoryResponse cho Controller Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 18,
+    "text" : "Controller Danh mục trả về 200 ApiResponse<CategoryResponse> cho Frontend.",
+    "depth" : 1
+  }, {
+    "index" : 19,
+    "text" : "Frontend gửi yêu cầu GET /api/v1/categories đến Controller Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 20,
+    "text" : "Controller Danh mục chuyển tiếp yêu cầu search(keyword) đến Service Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 21,
+    "text" : "Service Danh mục gọi search(keyword) trên Repository Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 22,
+    "text" : "Repository Danh mục truy vấn SELECT trên Bảng category.",
+    "depth" : 1
+  }, {
+    "index" : 23,
+    "text" : "Bảng category trả về kết quả cho Repository Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 24,
+    "text" : "Repository Danh mục trả về List<Category> cho Service Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 25,
+    "text" : "Service Danh mục tự xử lý: toResponse().",
+    "depth" : 1
+  }, {
+    "index" : 26,
+    "text" : "Service Danh mục trả về List<CategoryResponse> cho Controller Danh mục.",
+    "depth" : 1
+  }, {
+    "index" : 27,
+    "text" : "Controller Danh mục trả về 200 ApiResponse<List<CategoryResponse>> cho Frontend.",
+    "depth" : 1
+  }, {
+    "index" : 28,
+    "text" : "Frontend phản hồi cho User: giao diện đã cập nhật.",
+    "depth" : 1
+  } ]
+}

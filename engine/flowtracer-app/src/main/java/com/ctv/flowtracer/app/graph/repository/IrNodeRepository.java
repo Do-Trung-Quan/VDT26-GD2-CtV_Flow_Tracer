@@ -279,6 +279,19 @@ public class IrNodeRepository {
                 .list();
     }
 
+    /** Thành phần chứa trực tiếp một node (theo {@code CONTAINS}); nhiều cha thì lấy cha có key nhỏ nhất. */
+    public Optional<IrNodeRow> findParent(UUID workspaceId, UUID childId) {
+        return jdbc.sql(SELECT + """
+                         WHERE n.workspace_id = :ws AND n.id IN (
+                             SELECT e.from_node_id FROM ir_edges e WHERE e.kind = 'CONTAINS' AND e.to_node_id = :child)
+                         ORDER BY n.key LIMIT 1
+                         """)
+                .param("ws", workspaceId)
+                .param("child", childId)
+                .query(this::mapRow)
+                .optional();
+    }
+
     public Optional<IrNodeRow> findByKey(UUID workspaceId, String key) {
         return jdbc.sql(SELECT + " WHERE n.workspace_id = :ws AND n.key = :key")
                 .param("ws", workspaceId)

@@ -56,6 +56,10 @@ public record JavaFileFacts(
      * @param annotationValues giá trị chuỗi/enum/boolean của annotation, khóa {@code TênAnnotation.thuộc_tính}
      *     (vd {@code Table.name}, {@code Qualifier.value}); thuộc tính không phải hằng đơn giản bị bỏ
      * @param modifiers {@code abstract} nếu là lớp trừu tượng
+     * @param typeParameters tên tham số kiểu của lớp generic ({@code T} của {@code ApiResponse<T>})
+     * @param enumConstants các hằng của enum, theo thứ tự khai báo; rỗng với kiểu khác
+     * @param enumMessageKeys hằng của enum → đối số chuỗi đầu tiên của nó (vd khóa thông báo của enum mã lỗi
+     *     {@code NOT_FOUND(404, "msg.not.found")}); hằng không có đối số chuỗi thì vắng mặt
      */
     public record TypeFact(
             String fqn,
@@ -66,13 +70,19 @@ public record JavaFileFacts(
             String javadoc,
             int line,
             Map<String, String> annotationValues,
-            List<String> modifiers) {
+            List<String> modifiers,
+            List<String> typeParameters,
+            List<String> enumConstants,
+            Map<String, String> enumMessageKeys) {
 
         public TypeFact {
             annotations = annotations == null ? List.of() : List.copyOf(annotations);
             interfaces = interfaces == null ? List.of() : List.copyOf(interfaces);
             annotationValues = annotationValues == null ? Map.of() : Map.copyOf(annotationValues);
             modifiers = modifiers == null ? List.of() : List.copyOf(modifiers);
+            typeParameters = typeParameters == null ? List.of() : List.copyOf(typeParameters);
+            enumConstants = enumConstants == null ? List.of() : List.copyOf(enumConstants);
+            enumMessageKeys = enumMessageKeys == null ? Map.of() : Map.copyOf(enumMessageKeys);
         }
 
         public enum Kind {
@@ -250,7 +260,26 @@ public record JavaFileFacts(
      */
     public record StringFragmentFact(String method, String text, boolean conditional, int line) {}
 
-    /** Trường của DTO/Entity kèm tên JSON và ràng buộc validation. */
+    /**
+     * Trường của DTO/Entity (kể cả thành phần của record) kèm tên JSON và ràng buộc.
+     *
+     * @param jsonName tên do {@code @JsonProperty} đặt; null nếu theo tên trường (và chiến lược đặt tên của Jackson)
+     * @param javaType kiểu viết trong mã nguồn, còn generic ({@code List<CategoryResponse>})
+     * @param constraints annotation ràng buộc dạng {@code Tên} hoặc {@code Tên(khóa=giá trị, …)}: {@code NotNull},
+     *     {@code Size(min=1, max=50)}, {@code Min(value=1)}, {@code Pattern(regexp=…)}, {@code Column(length=50, unique=true)}…
+     * @param description câu giải thích từ {@code @Schema(description)} hoặc Javadoc của trường; null nếu không có
+     */
     public record DtoFieldFact(
-            String declaringType, String name, String jsonName, String javaType, List<String> constraints, int line) {}
+            String declaringType,
+            String name,
+            String jsonName,
+            String javaType,
+            List<String> constraints,
+            int line,
+            String description) {
+
+        public DtoFieldFact {
+            constraints = constraints == null ? List.of() : List.copyOf(constraints);
+        }
+    }
 }

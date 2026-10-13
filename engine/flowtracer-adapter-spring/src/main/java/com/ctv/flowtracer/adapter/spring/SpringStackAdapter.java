@@ -2,6 +2,7 @@ package com.ctv.flowtracer.adapter.spring;
 
 import com.ctv.flowtracer.adapter.spring.extract.JavaFileExtractor;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
+import com.ctv.flowtracer.adapter.spring.library.LibraryStubBuilder;
 import com.ctv.flowtracer.adapter.spring.resolve.JavaResolver;
 import com.ctv.flowtracer.ir.IrFragment;
 import com.ctv.flowtracer.ir.NoiseFilter;
@@ -10,6 +11,7 @@ import com.ctv.flowtracer.ir.spi.DetectContext;
 import com.ctv.flowtracer.ir.spi.DetectResult;
 import com.ctv.flowtracer.ir.spi.ExtractContext;
 import com.ctv.flowtracer.ir.spi.FileFacts;
+import com.ctv.flowtracer.ir.spi.LibraryArchive;
 import com.ctv.flowtracer.ir.spi.ResolveContext;
 import com.ctv.flowtracer.ir.spi.SourceFile;
 import com.ctv.flowtracer.ir.spi.StackAdapter;
@@ -23,11 +25,12 @@ public final class SpringStackAdapter implements StackAdapter {
     public static final String ID = "spring";
 
     private static final Pattern CONFIG_FILE =
-            Pattern.compile("^(?:.*/)?src/main/resources/application(?:-[^/]+)?\\.(?:yml|yaml|properties)$");
+            Pattern.compile("^(?:.*/)?src/main/resources/(?:application(?:-[^/]+)?\\.(?:yml|yaml|properties)|(?:[^/]+/)*messages(?:-[A-Za-z0-9]+)*(?:_[A-Za-z]+)*\\.properties)$");
 
     private final SpringDetector detector = new SpringDetector();
     private final JavaFileExtractor extractor = new JavaFileExtractor();
     private final JavaResolver resolver = new JavaResolver();
+    private final LibraryStubBuilder libraryStubs = new LibraryStubBuilder();
 
     @Override
     public String id() {
@@ -49,10 +52,24 @@ public final class SpringStackAdapter implements StackAdapter {
         return relativePath.endsWith(".java");
     }
 
-    /** Cấu hình Spring của từng module (mặc định và theo profile) — quyết định context-path và đường dẫn dùng thuộc tính. */
+    /**
+     * Cấu hình Spring của từng module (mặc định và theo profile) — quyết định context-path và đường dẫn dùng thuộc tính; và
+     * jar của dự án — đổi jar thì kiểu lấy từ thư viện đổi theo.
+     */
     @Override
     public boolean affectsAnalysis(String relativePath) {
-        return CONFIG_FILE.matcher(relativePath).matches();
+        return CONFIG_FILE.matcher(relativePath).matches() || isLibraryArchive(relativePath);
+    }
+
+    /** Jar nằm trong Source (vd thư viện lõi chứa lớp bọc kết quả trả về); bỏ qua jar trong thư mục build / phụ thuộc. */
+    @Override
+    public boolean isLibraryArchive(String relativePath) {
+        return relativePath.endsWith(".jar") && !relativePath.startsWith("target/") && !relativePath.contains("/target/");
+    }
+
+    @Override
+    public List<SourceFile> libraryFiles(List<LibraryArchive> archives, List<SourceFile> projectFiles) {
+        return libraryStubs.build(archives, projectFiles);
     }
 
     @Override

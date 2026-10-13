@@ -7,8 +7,8 @@
     "displayName" : "Xóa danh mục",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 38,
-      "endLine" : 42
+      "startLine" : 40,
+      "endLine" : 44
     },
     "attrs" : {
       "controller" : "com.example.flow.category.CategoryController",
@@ -20,11 +20,21 @@
         "in" : "PATH",
         "name" : "id",
         "required" : true,
-        "type" : "Long"
+        "type" : "Long",
+        "typeExpr" : {
+          "t" : "integer"
+        }
       } ],
       "path" : "/api/v1/categories/{id}",
       "pathResolved" : true,
       "responseType" : "ApiResponse<Boolean>",
+      "responseTypeExpr" : {
+        "args" : [ {
+          "t" : "boolean"
+        } ],
+        "key" : "java:type:com.example.flow.common.ApiResponse",
+        "t" : "ref"
+      },
       "summary" : "Xóa danh mục",
       "summarySource" : "OPERATION",
       "tag" : "Danh mục"
@@ -36,8 +46,8 @@
     "displayName" : "Tìm kiếm danh mục",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 32,
-      "endLine" : 36
+      "startLine" : 34,
+      "endLine" : 38
     },
     "attrs" : {
       "controller" : "com.example.flow.category.CategoryController",
@@ -49,11 +59,25 @@
         "in" : "QUERY",
         "name" : "keyword",
         "required" : true,
-        "type" : "String"
+        "type" : "String",
+        "typeExpr" : {
+          "t" : "string"
+        }
       } ],
       "path" : "/api/v1/categories",
       "pathResolved" : true,
       "responseType" : "ApiResponse<List<CategoryResponse>>",
+      "responseTypeExpr" : {
+        "args" : [ {
+          "items" : {
+            "key" : "java:type:com.example.flow.category.CategoryResponse",
+            "t" : "ref"
+          },
+          "t" : "array"
+        } ],
+        "key" : "java:type:com.example.flow.common.ApiResponse",
+        "t" : "ref"
+      },
       "summary" : "Tìm kiếm danh mục",
       "summarySource" : "OPERATION",
       "tag" : "Danh mục"
@@ -77,16 +101,33 @@
         "in" : "QUERY",
         "name" : "keyword",
         "required" : true,
-        "type" : "String"
+        "type" : "String",
+        "typeExpr" : {
+          "t" : "string"
+        }
       }, {
         "in" : "QUERY",
         "name" : "withBrand",
         "required" : true,
-        "type" : "boolean"
+        "type" : "boolean",
+        "typeExpr" : {
+          "t" : "boolean"
+        }
       } ],
       "path" : "/api/v1/products",
       "pathResolved" : true,
-      "responseType" : "ApiResponse<List<Product>>"
+      "responseType" : "ApiResponse<List<Product>>",
+      "responseTypeExpr" : {
+        "args" : [ {
+          "items" : {
+            "key" : "java:type:com.example.flow.product.Product",
+            "t" : "ref"
+          },
+          "t" : "array"
+        } ],
+        "key" : "java:type:com.example.flow.common.ApiResponse",
+        "t" : "ref"
+      }
     }
   }, {
     "key" : "java:endpoint:GET /api/v1/products/options",
@@ -106,7 +147,18 @@
       "params" : [ ],
       "path" : "/api/v1/products/options",
       "pathResolved" : true,
-      "responseType" : "ApiResponse<List<Product>>"
+      "responseType" : "ApiResponse<List<Product>>",
+      "responseTypeExpr" : {
+        "args" : [ {
+          "items" : {
+            "key" : "java:type:com.example.flow.product.Product",
+            "t" : "ref"
+          },
+          "t" : "array"
+        } ],
+        "key" : "java:type:com.example.flow.common.ApiResponse",
+        "t" : "ref"
+      }
     }
   }, {
     "key" : "java:endpoint:POST /api/v1/categories",
@@ -115,8 +167,8 @@
     "displayName" : "Thêm mới danh mục",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 26,
-      "endLine" : 30
+      "startLine" : 27,
+      "endLine" : 32
     },
     "attrs" : {
       "controller" : "com.example.flow.category.CategoryController",
@@ -128,12 +180,28 @@
         "in" : "BODY",
         "name" : "request",
         "required" : true,
-        "type" : "CategoryRequest"
+        "type" : "CategoryRequest",
+        "typeExpr" : {
+          "key" : "java:type:com.example.flow.category.CategoryRequest",
+          "t" : "ref"
+        }
       } ],
       "path" : "/api/v1/categories",
       "pathResolved" : true,
       "requestType" : "CategoryRequest",
+      "requestTypeExpr" : {
+        "key" : "java:type:com.example.flow.category.CategoryRequest",
+        "t" : "ref"
+      },
       "responseType" : "ApiResponse<CategoryResponse>",
+      "responseTypeExpr" : {
+        "args" : [ {
+          "key" : "java:type:com.example.flow.category.CategoryResponse",
+          "t" : "ref"
+        } ],
+        "key" : "java:type:com.example.flow.common.ApiResponse",
+        "t" : "ref"
+      },
       "summary" : "Thêm mới danh mục",
       "summarySource" : "OPERATION",
       "tag" : "Danh mục"
@@ -157,7 +225,10 @@
         "in" : "PATH",
         "name" : "id",
         "required" : true,
-        "type" : "Long"
+        "type" : "Long",
+        "typeExpr" : {
+          "t" : "integer"
+        }
       } ],
       "path" : "/api/v1/orders/{id}/confirm",
       "pathResolved" : true
@@ -218,8 +289,8 @@
     "name" : "Category.markDeleted",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/Category.java",
-      "startLine" : 15,
-      "endLine" : 17
+      "startLine" : 17,
+      "endLine" : 19
     },
     "attrs" : {
       "businessName" : "Danh mục",
@@ -237,8 +308,8 @@
     "name" : "CategoryController.create",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 26,
-      "endLine" : 30
+      "startLine" : 27,
+      "endLine" : 32
     },
     "attrs" : {
       "businessName" : "Danh mục",
@@ -247,6 +318,7 @@
       "layer" : "CONTROLLER",
       "layerBasis" : "ANNOTATION",
       "paramNames" : [ "request" ],
+      "preAuthorize" : "hasAuthority('CATEGORY_MANAGE')",
       "returnType" : "ResponseEntity<ApiResponse<CategoryResponse>>",
       "signature" : "create(CategoryRequest)"
     }
@@ -256,8 +328,8 @@
     "name" : "CategoryController.delete",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 38,
-      "endLine" : 42
+      "startLine" : 40,
+      "endLine" : 44
     },
     "attrs" : {
       "businessName" : "Danh mục",
@@ -275,8 +347,8 @@
     "name" : "CategoryController.search",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 32,
-      "endLine" : 36
+      "startLine" : 34,
+      "endLine" : 38
     },
     "attrs" : {
       "businessName" : "Danh mục",
@@ -414,6 +486,7 @@
         "guardText" : "categoryRepository.existsByCode(code)",
         "guardType" : "IF",
         "line" : 26,
+        "message" : "Mã danh mục đã tồn tại",
         "messageKey" : "CATEGORY_CODE_EXISTS",
         "order" : 4
       } ],
@@ -443,6 +516,7 @@
         "guardText" : "productQueryService.countByCategoryId(id) > 0",
         "guardType" : "IF",
         "line" : 45,
+        "message" : "Danh mục đang được sản phẩm sử dụng, không thể xóa",
         "messageKey" : "CATEGORY_IN_USE",
         "order" : 4
       } ],
@@ -689,6 +763,7 @@
         "guardText" : "!order.isPending()",
         "guardType" : "IF",
         "line" : 40,
+        "message" : "Chỉ xác nhận được đơn hàng đang chờ xử lý",
         "messageKey" : "ORDER_NOT_PENDING",
         "order" : 3
       } ]
@@ -1032,12 +1107,13 @@
     "name" : "category",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/Category.java",
-      "startLine" : 6,
-      "endLine" : 6
+      "startLine" : 7,
+      "endLine" : 7
     },
     "attrs" : {
       "entity" : "Category",
-      "name" : "category"
+      "name" : "category",
+      "uniqueColumns" : [ "code" ]
     }
   }, {
     "key" : "java:table:product",
@@ -1078,6 +1154,142 @@
       "entity" : "Order",
       "name" : "shop_order"
     }
+  }, {
+    "key" : "java:type:com.example.flow.category.CategoryRequest",
+    "kind" : "DATA_TYPE",
+    "name" : "CategoryRequest",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryRequest.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "fields" : [ {
+        "constraints" : [ {
+          "kind" : "notBlank"
+        }, {
+          "kind" : "size",
+          "max" : 50
+        } ],
+        "description" : "Mã danh mục, không trùng với danh mục khác.",
+        "name" : "code",
+        "required" : true,
+        "type" : {
+          "t" : "string"
+        }
+      }, {
+        "constraints" : [ {
+          "kind" : "notBlank"
+        }, {
+          "kind" : "size",
+          "max" : 255
+        } ],
+        "name" : "title",
+        "required" : true,
+        "type" : {
+          "t" : "string"
+        }
+      }, {
+        "constraints" : [ {
+          "kind" : "size",
+          "max" : 1000
+        } ],
+        "name" : "brief",
+        "type" : {
+          "t" : "string"
+        }
+      }, {
+        "name" : "status",
+        "type" : {
+          "t" : "enum",
+          "values" : [ "ACTIVE", "INACTIVE" ]
+        }
+      } ],
+      "kind" : "CLASS"
+    }
+  }, {
+    "key" : "java:type:com.example.flow.category.CategoryResponse",
+    "kind" : "DATA_TYPE",
+    "name" : "CategoryResponse",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryResponse.java",
+      "startLine" : 3,
+      "endLine" : 3
+    },
+    "attrs" : {
+      "fields" : [ {
+        "name" : "id",
+        "type" : {
+          "t" : "integer"
+        }
+      }, {
+        "name" : "code",
+        "type" : {
+          "t" : "string"
+        }
+      }, {
+        "name" : "title",
+        "type" : {
+          "t" : "string"
+        }
+      }, {
+        "name" : "status",
+        "type" : {
+          "t" : "enum",
+          "values" : [ "ACTIVE", "INACTIVE" ]
+        }
+      } ],
+      "kind" : "RECORD"
+    }
+  }, {
+    "key" : "java:type:com.example.flow.common.ApiResponse",
+    "kind" : "DATA_TYPE",
+    "name" : "ApiResponse",
+    "displayName" : "Vỏ bọc kết quả trả về (envelope chung của mọi API).",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/common/ApiResponse.java",
+      "startLine" : 4,
+      "endLine" : 4
+    },
+    "attrs" : {
+      "fields" : [ {
+        "name" : "message",
+        "type" : {
+          "t" : "string"
+        }
+      }, {
+        "name" : "data",
+        "type" : {
+          "name" : "T",
+          "t" : "var"
+        }
+      } ],
+      "kind" : "CLASS",
+      "typeParameters" : [ "T" ]
+    }
+  }, {
+    "key" : "java:type:com.example.flow.product.Product",
+    "kind" : "DATA_TYPE",
+    "name" : "Product",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/Product.java",
+      "startLine" : 6,
+      "endLine" : 6
+    },
+    "attrs" : {
+      "fields" : [ {
+        "name" : "id",
+        "type" : {
+          "t" : "integer"
+        }
+      }, {
+        "name" : "title",
+        "type" : {
+          "t" : "string"
+        }
+      } ],
+      "kind" : "CLASS"
+    }
   } ],
   "edges" : [ {
     "fromKey" : "java:endpoint:DELETE /api/v1/categories/{id}",
@@ -1087,8 +1299,20 @@
     "callOrder" : 0,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 38,
-      "endLine" : 42
+      "startLine" : 40,
+      "endLine" : 44
+    }
+  }, {
+    "fromKey" : "java:endpoint:DELETE /api/v1/categories/{id}",
+    "toKey" : "java:type:com.example.flow.common.ApiResponse",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 40,
+      "endLine" : 44
     }
   }, {
     "fromKey" : "java:endpoint:GET /api/v1/categories",
@@ -1098,8 +1322,32 @@
     "callOrder" : 0,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 32,
-      "endLine" : 36
+      "startLine" : 34,
+      "endLine" : 38
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/categories",
+    "toKey" : "java:type:com.example.flow.common.ApiResponse",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 34,
+      "endLine" : 38
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/categories",
+    "toKey" : "java:type:com.example.flow.category.CategoryResponse",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 34,
+      "endLine" : 38
     }
   }, {
     "fromKey" : "java:endpoint:GET /api/v1/products",
@@ -1107,6 +1355,30 @@
     "kind" : "HANDLED_BY",
     "confidence" : "CERTAIN",
     "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 25,
+      "endLine" : 28
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/products",
+    "toKey" : "java:type:com.example.flow.common.ApiResponse",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 25,
+      "endLine" : 28
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/products",
+    "toKey" : "java:type:com.example.flow.product.Product",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 1,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
       "startLine" : 25,
@@ -1124,6 +1396,30 @@
       "endLine" : 23
     }
   }, {
+    "fromKey" : "java:endpoint:GET /api/v1/products/options",
+    "toKey" : "java:type:com.example.flow.common.ApiResponse",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 20,
+      "endLine" : 23
+    }
+  }, {
+    "fromKey" : "java:endpoint:GET /api/v1/products/options",
+    "toKey" : "java:type:com.example.flow.product.Product",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/product/ProductController.java",
+      "startLine" : 20,
+      "endLine" : 23
+    }
+  }, {
     "fromKey" : "java:endpoint:POST /api/v1/categories",
     "toKey" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)",
     "kind" : "HANDLED_BY",
@@ -1131,8 +1427,44 @@
     "callOrder" : 0,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 26,
-      "endLine" : 30
+      "startLine" : 27,
+      "endLine" : 32
+    }
+  }, {
+    "fromKey" : "java:endpoint:POST /api/v1/categories",
+    "toKey" : "java:type:com.example.flow.category.CategoryRequest",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu vào của API",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 27,
+      "endLine" : 32
+    }
+  }, {
+    "fromKey" : "java:endpoint:POST /api/v1/categories",
+    "toKey" : "java:type:com.example.flow.common.ApiResponse",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 27,
+      "endLine" : 32
+    }
+  }, {
+    "fromKey" : "java:endpoint:POST /api/v1/categories",
+    "toKey" : "java:type:com.example.flow.category.CategoryResponse",
+    "kind" : "USES_TYPE",
+    "confidence" : "CERTAIN",
+    "reason" : "Kiểu dữ liệu đầu ra của API",
+    "callOrder" : 2,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
+      "startLine" : 27,
+      "endLine" : 32
     }
   }, {
     "fromKey" : "java:endpoint:PUT /api/v1/orders/{id}/confirm",
@@ -1154,8 +1486,8 @@
     "callOrder" : 0,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 29,
-      "endLine" : 29
+      "startLine" : 31,
+      "endLine" : 31
     }
   }, {
     "fromKey" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)",
@@ -1165,8 +1497,8 @@
     "callOrder" : 1,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 29,
-      "endLine" : 29
+      "startLine" : 31,
+      "endLine" : 31
     }
   }, {
     "fromKey" : "java:method:com.example.flow.category.CategoryController#delete(Long)",
@@ -1177,8 +1509,8 @@
     "callOrder" : 0,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 41,
-      "endLine" : 41
+      "startLine" : 43,
+      "endLine" : 43
     }
   }, {
     "fromKey" : "java:method:com.example.flow.category.CategoryController#delete(Long)",
@@ -1188,8 +1520,8 @@
     "callOrder" : 1,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 41,
-      "endLine" : 41
+      "startLine" : 43,
+      "endLine" : 43
     }
   }, {
     "fromKey" : "java:method:com.example.flow.category.CategoryController#search(String)",
@@ -1200,8 +1532,8 @@
     "callOrder" : 0,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 35,
-      "endLine" : 35
+      "startLine" : 37,
+      "endLine" : 37
     }
   }, {
     "fromKey" : "java:method:com.example.flow.category.CategoryController#search(String)",
@@ -1211,8 +1543,8 @@
     "callOrder" : 1,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/category/CategoryController.java",
-      "startLine" : 35,
-      "endLine" : 35
+      "startLine" : 37,
+      "endLine" : 37
     }
   }, {
     "fromKey" : "java:method:com.example.flow.category.CategoryRepository#existsByCode(String)",

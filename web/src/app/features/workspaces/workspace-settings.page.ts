@@ -14,26 +14,28 @@ import { FolderBrowser } from './folder-browser';
 import { LinkOverridesTab } from './link-overrides-tab';
 import { LinkRulesTab } from './link-rules-tab';
 import { NoiseFiltersTab } from './noise-filters-tab';
+import { OpenApiCheckTab } from './openapi-check-tab';
 
-type SettingsTab = 'sources' | 'rules' | 'noise' | 'overrides' | 'history';
+type SettingsTab = 'sources' | 'rules' | 'noise' | 'overrides' | 'openapi' | 'history';
 
-/** Các tab theo bản vẽ giao diện; "Đối chiếu OpenAPI" (Nên có) chưa làm. */
+/** Các tab theo bản vẽ giao diện (chưa có tab Xuất / Nhập của nhóm Nên có). */
 const TABS: readonly { id: SettingsTab; label: string }[] = [
   { id: 'sources', label: 'Nguồn mã' },
   { id: 'rules', label: 'Luật liên kết' },
   { id: 'noise', label: 'Bộ lọc nhiễu' },
   { id: 'overrides', label: 'Liên kết chốt tay' },
+  { id: 'openapi', label: 'Đối chiếu OpenAPI' },
   { id: 'history', label: 'Lịch sử quét' }
 ];
 
 /**
  * Cài đặt Workspace: Nguồn mã — thông tin Workspace (A3, A4), thêm / sửa tên và thư mục loại trừ / gỡ nguồn mã (A7–A9), vùng nguy
- * hiểm xóa Workspace (A5); Luật liên kết (E6–E7); Bộ lọc nhiễu (I4–I5); Liên kết chốt tay (E3, E5); Lịch sử quét (B5). Mỗi tab có
+ * hiểm xóa Workspace (A5); Luật liên kết (E6–E7); Bộ lọc nhiễu (I4–I5); Liên kết chốt tay (E3, E5); Đối chiếu OpenAPI (C6); Lịch sử quét (B5). Mỗi tab có
  * một khối hướng dẫn ngắn như bản vẽ giao diện.
  */
 @Component({
   selector: 'app-workspace-settings',
-  imports: [Icon, Modal, ConfirmDialog, FolderBrowser, ScanHistory, LinkRulesTab, NoiseFiltersTab, LinkOverridesTab],
+  imports: [Icon, Modal, ConfirmDialog, FolderBrowser, ScanHistory, LinkRulesTab, NoiseFiltersTab, LinkOverridesTab, OpenApiCheckTab],
   template: `
     <section class="page">
       @if (loading() && !ws()) {
@@ -59,6 +61,8 @@ const TABS: readonly { id: SettingsTab; label: string }[] = [
           <app-noise-filters-tab [workspaceId]="w.id!" />
         } @else if (tab() === 'overrides') {
           <app-link-overrides-tab [workspaceId]="w.id!" />
+        } @else if (tab() === 'openapi') {
+          <app-openapi-check-tab [workspaceId]="w.id!" />
         } @else {
 
         <div class="card pad block">
@@ -226,6 +230,8 @@ export class WorkspaceSettingsPage {
       'Những lời gọi vô nghĩa với người đọc (ghi log, hàm tiện ích, chuyển đổi DTO…) bị ẩn khỏi diagram để luồng gọn. Danh sách mặc định không xóa được; bạn có thể thêm bộ lọc riêng.',
     overrides:
       'Mỗi lần bạn bấm "Chốt tay" trên diagram, lựa chọn được lưu ở đây. Liên kết chốt tay <b>luôn thắng</b> kết quả tự động và được giữ qua mọi lần quét lại. Bỏ chốt ở đây để trả về kết quả tự động.',
+    openapi:
+      'Nếu dự án có sẵn file đặc tả Swagger/OpenAPI trong repo, tool so sánh với danh sách API tìm được từ code để bạn biết tool có bỏ sót API không, hoặc tài liệu có lỗi thời không.',
     history:
       'Các lần quét trước: kết quả, số file thay đổi và file lỗi. Lần quét thất bại hoặc bị hủy không làm mất dữ liệu của lần quét thành công trước đó.'
   };

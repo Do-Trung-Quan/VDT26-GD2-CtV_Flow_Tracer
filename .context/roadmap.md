@@ -5,8 +5,8 @@
 > - Mỗi giai đoạn vừa đủ cho **một lần làm việc của Claude Code**: làm xong, kiểm thử xong, ghi nhật ký rồi mới sang giai đoạn sau.
 > - **Phạm vi:**
 >   - MVP + Nên có (theo [feature_list.md](feature_list.md));
->   - phần Mở rộng **chỉ gồm** phân tích mã PHP hệ thống cũ và **so sánh & đối chiếu cũ – mới** (Nhóm 8);
->   - các chức năng Mở rộng khác không nằm trong lộ trình này.
+>   - **không** có chức năng Mở rộng nào trong lộ trình đang chạy. Nhóm **đối chiếu hệ thống cũ** (Giai đoạn 9 phân tích mã PHP cũ + Giai đoạn 10 so sánh & đối chiếu cũ – mới, Nhóm 8) đã **tạm hoãn** vì thời hạn gấp: nội dung giữ nguyên bên dưới để làm lại nếu còn thời gian, nhưng **không** làm và **không** tính vào Definition of Done;
+>   - các chức năng Mở rộng khác cũng không nằm trong lộ trình này.
 > - Giao diện bám theo bản vẽ [docs/UI/UI_offline.html](../docs/UI/UI_offline.html).
 
 ---
@@ -62,7 +62,9 @@ npm --prefix web start                                                          
 | 3 | Luồng Backend & sequence diagram (Task 3.1–3.3) — nhật ký: `docs/progress/1210_gd3_be_luong_xu_ly.md` | ✅ Xong, chờ người dùng review |
 | 4 | Frontend Angular & tìm kiếm nhanh — phần BE (Task 4.1, BE của 4.2) — nhật ký: `docs/progress/1210_gd4_be_frontend_angular.md` | ✅ Xong (BE + FE), chờ người dùng review |
 | 5 | Liên kết Frontend ↔ Backend & End-to-End (Task 5.1–5.2, đã tinh chỉnh khử trùng lặp & bỏ khung `opt [try]`) — nhật ký: `docs/progress/1310_gd5_lien_ket_fe_be.md` | ✅ Xong (BE + FE), đã kiểm chứng UI |
-| 6 → 11 | Xem bên dưới | ⏳ Chưa làm |
+| 6 | Diễn giải & Kịch bản (không AI) — phần BE (Task 6.1) — nhật ký: `docs/progress/1310_gd6_dien_giai_kich_ban.md` | ✅ Xong (BE + FE), chờ người dùng review |
+| 7 · 8 · 11 | Xem bên dưới | ⏳ Chưa làm |
+| 9 · 10 | Đối chiếu hệ thống cũ (phân tích PHP + so sánh cũ – mới) | ⏸ **Tạm hoãn** (deadline gấp); xem lại nếu còn thời gian |
 
 ---
 
@@ -96,7 +98,7 @@ Tôi sẽ làm:
 - `flowtracer-core/detection/StackDetector`:
   - trả `VALID` (kèm các gốc dự án), `INSIDE_PROJECT` (kèm gốc gợi ý) hoặc `NOT_FOUND`;
   - xử lý Maven nhiều module;
-  - phát hiện thư mục mã PHP nằm trong `docs/` của BE và chỉ **báo** là có; Source `LEGACY` để tới Giai đoạn 9.
+  - phát hiện thư mục mã PHP nằm trong `docs/` của BE và chỉ **báo** là có (đã làm); Source `LEGACY` thuộc Giai đoạn 9 — đang tạm hoãn.
 - Package `workspace`:
   - `WorkspaceService` (`409` khi trùng tên / đang quét), `SourceService` + `NestedSourceRules`;
   - API A1–A10 (`POST /api/fs/detect`), I4–I5;
@@ -364,7 +366,7 @@ Tôi sẽ làm:
 
 ---
 
-## Giai đoạn 6 — Diễn giải & Kịch bản (chưa dùng AI) 🟠
+## Giai đoạn 6 — Diễn giải & Kịch bản (chưa dùng AI) 🟠 ✅
 
 > Kết thúc giai đoạn: **cột phải đầy đủ khi `LLM_PROVIDER=none`**.
 
@@ -376,7 +378,7 @@ Tôi sẽ làm:
 - `IoSchemaBuilder` / `JsonSchemaBuilder` (bóc `ApiResponse<T>`). Thành phần UI lấy I/O theo API mà nó gọi; luồng chỉ giao diện thì ghi "Không có".
 - `ConstraintsExtractor` (ràng buộc thô): Bean Validation, `@PreAuthorize`, `if … throw` + thông báo i18n (`MessageResolver`), unique / khóa ngoại, kiểm tra "đang được tham chiếu".
 - `FallbackMockGenerator` + `SchemaValidator`.
-- Mục đích dự phòng: `@Operation` → Javadoc → tài liệu → câu khung. Thành phần chứa: tên, loại, mô tả ngắn.
+- Mục đích dự phòng: `@Operation` → Javadoc → tài liệu → câu khung. Thành phần chứa: tên, loại, mô tả ngắn. (Bước "tài liệu" chưa làm — xem nhật ký.)
 - `ScenarioBuilder`: "Các actor tham gia" + "Bước n" khớp 1–1 mũi tên.
 - API C4 ("Được gọi từ / Gọi tới"), C5 (đoạn code theo từng lớp), F1–F3.
 - C6 đối chiếu OpenAPI *(Nên có)*.
@@ -442,7 +444,7 @@ Tôi sẽ làm:
 
 Tôi sẽ làm:
 - BE — prompt `*.v1.st` + schema đầu ra:
-  - `purpose-text`: 80–100 từ + câu ràng buộc trỏ về ràng buộc thô;
+  - `purpose-text`: 80–100 từ + câu ràng buộc trỏ về ràng buộc thô, **và diễn đạt lại danh sách "Lỗi có thể gặp"** (người dùng đồng ý 13/10: không tự dịch thủ công hết được mọi lỗi, nhất là lỗi phát sinh về sau; cùng mục đích `PURPOSE_TEXT`, mỗi câu phải trỏ về một lỗi thô có thật, lỗi/tắt AI thì dùng câu tất định ở §2.2.6);
   - `scenario-polish`: `ScenarioPolishRule` giữ nguyên số bước, thứ tự, thành phần;
   - `mock-data`: khớp schema DTO, sinh một lần;
   - `edge-resolution`: giải thích ứng viên; ứng viên đề xuất thêm phải qua `AiAdviceRule`.
@@ -504,7 +506,9 @@ Tôi sẽ làm:
 
 ---
 
-## Giai đoạn 9 — Mở rộng 1: Phân tích mã PHP hệ thống cũ ⚪
+## Giai đoạn 9 — Mở rộng 1: Phân tích mã PHP hệ thống cũ ⚪ ⏸ TẠM HOÃN
+
+> ⏸ **Tạm hoãn** (deadline gấp): không làm trong lộ trình hiện tại, không tính vào Definition of Done. Nội dung dưới đây giữ lại để làm tiếp nếu còn thời gian. Phần đã có từ Giai đoạn 1 vẫn giữ nguyên: nhận diện thư mục chỉ **báo** có mã PHP, không tự thêm Source `LEGACY`.
 
 > Bối cảnh (theo Phụ lục B của overview):
 > - Mã PHP cũ nằm **trong thư mục tài liệu của repo BE**; framework PHP tự viết; dữ liệu trên MongoDB.
@@ -555,7 +559,9 @@ Tôi sẽ làm:
 
 ---
 
-## Giai đoạn 10 — Mở rộng 2: So sánh & đối chiếu hệ thống cũ – mới ⚪
+## Giai đoạn 10 — Mở rộng 2: So sánh & đối chiếu hệ thống cũ – mới ⚪ ⏸ TẠM HOÃN
+
+> ⏸ **Tạm hoãn** (deadline gấp), phụ thuộc Giai đoạn 9. Nội dung giữ lại để làm tiếp nếu còn thời gian.
 
 > Kết thúc giai đoạn: **mở một luồng mới, bấm "So sánh với hệ thống cũ", thấy hai diagram cạnh nhau và danh sách khác biệt (có vị trí code hai phía)**.
 
@@ -610,7 +616,7 @@ Tôi sẽ làm:
 **Mục tiêu:** Chạy toàn bộ tool bằng một lệnh (NFR-23).
 
 Tôi sẽ làm:
-- Hoàn thiện `docker/Dockerfile` nhiều stage: web build vào `static/` của Engine; sidecar `dist` (Angular + php-legacy); JRE 21 + Node 22.
+- Hoàn thiện `docker/Dockerfile` nhiều stage: web build vào `static/` của Engine; sidecar `dist` (Angular; thêm php-legacy nếu Giai đoạn 9 được làm lại); JRE 21 + Node 22.
 - `docker-compose.yml`:
   - `postgres` có volume;
   - healthcheck `/api/health`;
@@ -624,7 +630,7 @@ Tôi sẽ làm:
 docker compose -f docker/docker-compose.yml up -d --build
 docker compose -f docker/docker-compose.yml ps     # flowtracer-app: healthy
 ```
-> ✅ Kết quả mong đợi: mở `http://127.0.0.1:8600`, import demo, quét, xem luồng, so sánh cũ – mới; máy khác trong mạng không truy cập được cổng 8600.
+> ✅ Kết quả mong đợi: mở `http://127.0.0.1:8600`, import demo, quét, xem luồng; máy khác trong mạng không truy cập được cổng 8600.
 
 ---
 
@@ -663,8 +669,8 @@ GĐ 0 (xong)
   → GĐ 6  Diễn giải & Kịch bản (không AI) [BE + FE]
   → GĐ 7  Cổng AI & nội dung AI          [BE + FE]
   → GĐ 8  Hoàn thiện & đo lường MVP
-  → GĐ 9  Mở rộng: phân tích PHP cũ      [BE + FE]
-  → GĐ 10 Mở rộng: so sánh cũ – mới      [BE + FE]
+  → GĐ 9  Mở rộng: phân tích PHP cũ      [TẠM HOÃN]
+  → GĐ 10 Mở rộng: so sánh cũ – mới      [TẠM HOÃN]
   → GĐ 11 Đóng gói & phát hành
 ```
 
@@ -678,6 +684,6 @@ GĐ 0 (xong)
 | 6 — Diễn giải & Kịch bản | 6.1, 6.2 | 🟠 | Cột phải khi AI tắt |
 | 7 — Cổng AI | 7.1, 7.2 | 🟠 | Nội dung AI, "Nhờ AI phân tích" |
 | 8 — Hoàn thiện & đo lường | 8.1, 8.2 | 🟢 | Đạt NFR |
-| 9 — PHP hệ thống cũ | 9.1, 9.2 | ⚪ | Tab Hệ thống cũ, luồng PHP |
-| 10 — So sánh cũ – mới | 10.1, 10.2 | ⚪ | Split view, khác biệt, checklist |
+| 9 — PHP hệ thống cũ ⏸ | 9.1, 9.2 | ⚪ tạm hoãn | (không làm) |
+| 10 — So sánh cũ – mới ⏸ | 10.1, 10.2 | ⚪ tạm hoãn | (không làm) |
 | 11 — Đóng gói & phát hành | 11.1, 11.2 | 🟢 | `docker compose up` trên máy sạch |

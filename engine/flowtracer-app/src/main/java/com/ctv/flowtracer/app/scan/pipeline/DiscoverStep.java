@@ -5,11 +5,13 @@ import com.ctv.flowtracer.app.scan.model.ScanStage;
 import com.ctv.flowtracer.app.source.SourceReader;
 import com.ctv.flowtracer.core.discovery.ContentHash;
 import com.ctv.flowtracer.core.discovery.FileFilter;
+import com.ctv.flowtracer.ir.spi.LibraryArchive;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
@@ -26,6 +28,8 @@ class DiscoverStep {
     private static final Logger log = LoggerFactory.getLogger(DiscoverStep.class);
 
     private static final int BINARY_PROBE_BYTES = 8 * 1024;
+    private static final int MAX_ARCHIVES = 20;
+    private static final long MAX_ARCHIVE_BYTES = 64L * 1024 * 1024;
 
     private final SourceReader reader;
     private final long maxFileBytes;
@@ -69,6 +73,7 @@ class DiscoverStep {
                 readConfig(work, path);
             }
         }
+        loadLibraries(ctx, work, entries, prefix);
         log.debug("DISCOVER {}: duyệt {} file trong {} ms, đọc {} file trong {} ms", work.target.name(), entries.size(),
                 (walked - start) / 1_000_000, work.files.size(), (System.nanoTime() - walked) / 1_000_000);
         if (work.files.isEmpty()) {
@@ -76,6 +81,32 @@ class DiscoverStep {
                     ? "Thư mục không có file nào sau khi áp luật lọc"
                     : "Bộ phân tích '" + work.adapter.id() + "' không xử lý file nào của nguồn này";
         }
+    }
+
+    /**
+     * Thư viện đóng gói sẵn (jar) trong Source: đọc nguyên bytes (chỉ đọc) rồi để bộ phân tích dựng mã rút gọn cho những lớp mà mã
+     * dự án dùng. Jar quá lớn, quá nhiều hoặc không đọc được thì bỏ qua — chỉ mất phần kiểu lấy từ thư viện.
+     */
+    private void loadLibraries(ScanContext ctx, SourceWork work, List<SourceReader.Entry> entries, int prefix) {
+        List<LibraryArchive> archives = new ArrayList<>();
+        for (SourceReader.Entry entry : entries) {
+            String relative = entry.relativePath().substring(prefix);
+            if (archives.size() >= MAX_ARCHIVES || entry.sizeBytes() > MAX_ARCHIVE_BYTES || !work.adapter.isLibraryArchive(relative)) {
+                continue;
+            }
+            ctx.checkCancelled();
+            try {
+                archives.add(new LibraryArchive(relative, reader.readBytes(entry.relativePath())));
+            } catch (UncheckedIOException e) {
+                log.debug("Bỏ qua thư viện không đọc được: {}", relative);
+            }
+        }
+        List<com.ctv.flowtracer.ir.spi.SourceFile> project = work.files.values().stream()
+                .filter(f -> f.content() != null)
+                .map(f -> new com.ctv.flowtracer.ir.spi.SourceFile(f.relativePath(), f.content(), f.contentHash()))
+                .toList();
+        work.adapter.libraryFiles(archives, project).forEach(f -> work.libraryFiles.put(f.relativePath(), f));
+        log.debug("DISCOVER {}: {} thư viện, dựng {} lớp rút gọn", work.target.name(), archives.size(), work.libraryFiles.size());
     }
 
     /** File cấu hình chỉ cần mã băm; không đọc được thì bỏ qua (không ảnh hưởng gì tới kết quả). */

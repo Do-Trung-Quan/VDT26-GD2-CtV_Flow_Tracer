@@ -16,7 +16,7 @@ import java.util.List;
  * PHA 1: parse một file (chịu lỗi cú pháp) bằng JavaParser và gom dữ kiện.
  *
  * <p>Trích: package, import, kiểu, field, method, mapping HTTP (Giai đoạn 2); lời gọi, throw, mảnh chuỗi truy vấn
- * (Giai đoạn 3). Trường DTO làm ở Giai đoạn 6 (để rỗng). Kiểu của receiver được giải bằng khai báo (biến, tham số, field)
+ * (Giai đoạn 3); trường DTO / Entity và thành phần của record (Giai đoạn 6). Kiểu của receiver được giải bằng khai báo (biến, tham số, field)
  * và import — không dùng JavaSymbolSolver vì dự án phân tích không có classpath.
  */
 public final class JavaFileExtractor {
@@ -26,7 +26,7 @@ public final class JavaFileExtractor {
      * Dữ kiện cache với phiên bản cũ bị bỏ, và "Quét lại" phân tích lại toàn bộ dù không file nào đổi — nếu không IR đã lưu
      * sẽ thiếu những gì bản mới biết.
      */
-    public static final String VERSION = "5";
+    public static final String VERSION = "8";
 
     private static final int MAX_REPORTED_PROBLEMS = 5;
 
@@ -35,6 +35,7 @@ public final class JavaFileExtractor {
     private final MappingExtractor mappings = new MappingExtractor();
     private final CallSiteExtractor callSites = new CallSiteExtractor();
     private final StringFragmentExtractor fragments = new StringFragmentExtractor();
+    private final DtoFieldExtractor dtoFields = new DtoFieldExtractor();
 
     public JavaFileFacts extract(ExtractContext ctx, SourceFile file) {
         var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21));
@@ -56,7 +57,7 @@ public final class JavaFileExtractor {
                 body.callSites(),
                 body.throwsFacts(),
                 fragments.extract(unit),
-                List.of(),
+                dtoFields.extract(unit),
                 List.of());
     }
 

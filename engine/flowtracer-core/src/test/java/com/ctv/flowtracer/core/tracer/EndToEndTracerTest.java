@@ -175,4 +175,32 @@ class EndToEndTracerTest {
                 "3 x1 --> fe kết quả",
                 "4 fe --> user giao diện đã cập nhật");
     }
+
+    @Test
+    void severalEventsOfOneElementCallingTheSameHandlerAreTracedOnce() {
+        saveFlow(new IrEdge("h:create", ENDPOINT, EdgeKind.HTTP_REQUEST, Confidence.INFERRED, "suy luận", null, null, List.of(), LOC));
+        // cùng một hàm xử lý bị nối hai lần (vd hai sự kiện của một ô nhập): chỉ dò một lần
+        edge("e:save", "m:onSave", EdgeKind.TRIGGERS, 1);
+
+        Trace trace = trace(List.of());
+
+        assertThat(trace.steps()).hasSize(10);
+        assertThat(trace.steps().stream().filter(s -> s.kind() == EdgeKind.HTTP_REQUEST)).hasSize(1);
+    }
+
+    @Test
+    void tryBlockIsFlattenedAndNotDrawnAsAnOptFrame() {
+        nodes.clear();
+        edges.clear();
+        node(ENDPOINT, NodeKind.API_ENDPOINT, "POST /api/v1/items", null, Map.of("responseType", "ItemResponse"));
+        beMethod("b:ctrl", "CONTROLLER", "com.x.ItemController", "create(ItemRequest)", "ItemResponse");
+        beMethod("b:svc", "SERVICE", "com.x.ItemServiceImpl", "create(ItemRequest)", "ItemResponse");
+        edge(ENDPOINT, "b:ctrl", EdgeKind.HANDLED_BY, 0);
+        edges.add(new IrEdge("b:ctrl", "b:svc", EdgeKind.CALLS, Confidence.CERTAIN, null, 0, new Guard(Guard.Type.TRY, null, null), List.of(), LOC));
+
+        Trace trace = new Tracer().trace(new Subgraph(nodes, edges), new TraceRequest(ENDPOINT, 12, "scan-1", List.of(), List.of()));
+
+        assertThat(trace.blocks()).isEmpty();
+        assertThat(lines(trace)).contains("2 c1 -> s1 create(request)");
+    }
 }

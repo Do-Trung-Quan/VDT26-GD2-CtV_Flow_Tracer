@@ -8,7 +8,7 @@
 > - Chức năng được **chia nhóm theo mục đích sử dụng**. Mỗi nhóm có bảng chức năng, kèm phần **Quy tắc & cách xử lý** để người mới hiểu hệ thống làm gì bên dưới.
 > - Tổng số: 72 chức năng chia làm 9 nhóm (46 MVP, 4 Nên có, 22 Mở rộng).
 > - API tương ứng với từng nhóm: xem [API_list.md](API_list.md).
-> - **Lộ trình hiện tại** ([roadmap.md](roadmap.md)): trong phần Mở rộng chỉ làm **phân tích mã PHP hệ thống cũ** và **Nhóm 8 (So sánh & đối chiếu cũ – mới)**. Các chức năng Mở rộng còn lại để sau, chưa có kế hoạch.
+> - **Lộ trình hiện tại** ([roadmap.md](roadmap.md)): **không** làm chức năng Mở rộng nào. **Phân tích mã PHP hệ thống cũ** và **Nhóm 8 (So sánh & đối chiếu cũ – mới)** đã **tạm hoãn** vì thời hạn gấp, sẽ xem xét lại nếu còn thời gian. Các chức năng Mở rộng còn lại để sau, chưa có kế hoạch.
 
 ---
 
@@ -182,7 +182,8 @@
   - Mỗi bước theo mẫu "Bước n: [actor nguồn] [hành động] [tới actor đích]"; hành động theo loại quan hệ: "bấm", "gửi yêu cầu … đến", "chuyển tiếp … đến", "truy vấn … trên", "trả về … cho", "tự kiểm tra …".
 - **Bộ nhớ đệm:** mọi nội dung do AI sinh được lưu lại. Chỉ gọi AI lại khi đoạn code liên quan thay đổi hoặc người dùng bấm "Sinh lại".
 - **Khi AI tắt hoặc lỗi:** Mục đích hiện mô tả từ annotation/Javadoc hoặc câu khung; ràng buộc hiện danh sách thô; kịch bản dùng khung câu; dữ liệu mẫu do bộ sinh tất định tạo; mọi mục khác vẫn đầy đủ.
-- Ví dụ đầy đủ của hai tab: xem **Phụ lục A** trong [overview.md](overview.md).
+- Ví dụ đầy đủ của hai tab: xem **Phụ lục A** trong [overview.md](overview.md). Cách dựng chi tiết của phần tất định (Giai đoạn 6): xem §2.2.6 của overview.
+- **Chưa làm ở Giai đoạn 6:** bước "tài liệu đặc tả" trong chuỗi dự phòng của Mục đích (Workspace chưa có nơi khai báo thư mục tài liệu); phần AI (Mục đích 80–100 từ, câu ràng buộc gọn, dữ liệu mẫu do AI sinh, lời kịch bản, "Sinh lại") thuộc Giai đoạn 7.
 
 ---
 
@@ -203,7 +204,7 @@
 
 ---
 
-## Nhóm 8: So sánh & đối chiếu hệ thống cũ – mới
+## Nhóm 8: So sánh & đối chiếu hệ thống cũ – mới ⏸ *(tạm hoãn — không nằm trong lộ trình hiện tại)*
 
 > Phục vụ dự án chuyển đổi (migration): đặt luồng của hệ thống cũ (PHP) cạnh luồng của hệ thống mới (Angular + Spring Boot) để kiểm tra có sót logic không.
 

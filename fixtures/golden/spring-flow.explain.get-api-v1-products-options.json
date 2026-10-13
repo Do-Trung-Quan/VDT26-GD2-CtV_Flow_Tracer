@@ -1,0 +1,26 @@
+{
+  "constraints" : [ ],
+  "errors" : [ ],
+  "input" : { },
+  "mock" : {
+    "request" : { },
+    "response" : {
+      "data" : [ {
+        "id" : 1,
+        "title" : "Tên mẫu"
+      } ],
+      "message" : "Thành công"
+    }
+  },
+  "output" : {
+    "data" : [ {
+      "id" : "integer",
+      "title" : "string"
+    } ],
+    "message" : "string"
+  },
+  "purpose" : {
+    "source" : "SKELETON",
+    "text" : "API GET /api/v1/products/options thuộc nhóm “Product”: không nhận tham số, trả về ApiResponse<List<Product>>."
+  }
+}

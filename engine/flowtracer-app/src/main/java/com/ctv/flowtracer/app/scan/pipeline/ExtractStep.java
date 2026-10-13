@@ -104,6 +104,26 @@ class ExtractStep {
             }));
         }
         collect(ctx, work, pending, onFileDone);
+        extractLibraries(ctx, work, extractCtx);
+    }
+
+    /** Lớp thư viện rút gọn: nhỏ, nhanh nên chạy tuần tự; hỏng một lớp chỉ mất lớp đó (kiểu hiện là "object"). */
+    private void extractLibraries(ScanContext ctx, SourceWork work, ExtractContext extractCtx) {
+        for (SourceFile stub : work.libraryFiles.values()) {
+            ctx.checkCancelled();
+            try {
+                Optional<FileFacts> cached = factsCache.get(ctx.workspaceId(), work.adapter, stub.contentHash());
+                if (cached.isPresent()) {
+                    work.facts.add(cached.get());
+                    continue;
+                }
+                FileFacts facts = work.adapter.extract(extractCtx, stub);
+                factsCache.put(ctx.workspaceId(), work.adapter, stub.contentHash(), facts);
+                work.facts.add(facts);
+            } catch (RuntimeException e) {
+                log.debug("Bỏ qua lớp thư viện {}: {}", stub.relativePath(), e.toString());
+            }
+        }
     }
 
     private void collect(ScanContext ctx, SourceWork work, Map<String, Future<FileFacts>> pending, Runnable onFileDone) {

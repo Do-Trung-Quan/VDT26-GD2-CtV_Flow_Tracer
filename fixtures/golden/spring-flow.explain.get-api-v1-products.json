@@ -1,0 +1,34 @@
+{
+  "constraints" : [ "Tham số keyword (query) là bắt buộc", "Tham số withBrand (query) là bắt buộc" ],
+  "errors" : [ "thiếu trường bắt buộc hoặc sai định dạng" ],
+  "input" : {
+    "query" : {
+      "keyword" : "string — bắt buộc",
+      "withBrand" : "boolean — bắt buộc"
+    }
+  },
+  "mock" : {
+    "request" : {
+      "keyword" : "Giá trị mẫu",
+      "withBrand" : true
+    },
+    "response" : {
+      "data" : [ {
+        "id" : 1,
+        "title" : "Tên mẫu"
+      } ],
+      "message" : "Thành công"
+    }
+  },
+  "output" : {
+    "data" : [ {
+      "id" : "integer",
+      "title" : "string"
+    } ],
+    "message" : "string"
+  },
+  "purpose" : {
+    "source" : "SKELETON",
+    "text" : "API GET /api/v1/products thuộc nhóm “Product”: nhận keyword, withBrand, trả về ApiResponse<List<Product>>."
+  }
+}
