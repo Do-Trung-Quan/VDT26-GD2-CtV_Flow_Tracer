@@ -1,12 +1,13 @@
 import type { ScanStage, ScanStatus, ScanTrigger } from '../../core/api/api-types';
 
-/** 6 giai đoạn của lần quét, theo thứ tự — khớp enum ScanStage của Engine. */
+/** 7 giai đoạn của lần quét, theo thứ tự — khớp enum ScanStage của Engine. */
 export const SCAN_STAGES: readonly { id: ScanStage; label: string }[] = [
   { id: 'DISCOVER', label: 'Liệt kê file' },
   { id: 'DIFF', label: 'So sánh thay đổi' },
   { id: 'EXTRACT', label: 'Đọc & trích xuất' },
   { id: 'RESOLVE', label: 'Ghép kết quả' },
   { id: 'PERSIST', label: 'Lưu dữ liệu' },
+  { id: 'LINK', label: 'Nối Frontend – Backend' },
   { id: 'FINALIZE', label: 'Hoàn tất' }
 ];
 

@@ -3,6 +3,7 @@ package com.ctv.flowtracer.core.tracer;
 import com.ctv.flowtracer.core.graph.Subgraph;
 import com.ctv.flowtracer.ir.Candidate;
 import com.ctv.flowtracer.ir.Confidence;
+import com.ctv.flowtracer.ir.EdgeKind;
 import com.ctv.flowtracer.ir.IrEdge;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +20,8 @@ import java.util.Set;
  *       ứng viên đó.
  *   <li>{@code PIN} (từ, tới, loại): edge cùng {@code từ} và {@code loại} mà đích hoặc một ứng viên là {@code tới} được
  *       đổi thành edge chắc chắn tới {@code tới} (lý do "Chốt tay"), đánh dấu {@code pinned}; ứng viên khác bị bỏ.
- *       Nếu {@code từ} có nhiều lời gọi cùng ứng viên đó thì tất cả cùng được chốt.
+ *       Nếu {@code từ} có nhiều lời gọi cùng ứng viên đó thì tất cả cùng được chốt. Với {@code HTTP_REQUEST} (mỗi lời gọi
+ *       HTTP chỉ có một cạnh) đích ghim không cần nằm trong ứng viên — người dùng có thể chọn API bất kỳ.
  * </ul>
  */
 public final class OverrideApplier {
@@ -62,7 +64,8 @@ public final class OverrideApplier {
             }
             boolean sameTarget = rule.toKey().equals(e.toKey());
             boolean isCandidate = e.candidates().stream().anyMatch(c -> c.nodeKey().equals(rule.toKey()));
-            if (!sameTarget && !isCandidate) {
+            // lời gọi HTTP chỉ có một cạnh tới API nên được ghim sang API bất kỳ người dùng chọn; lời gọi hàm thì chỉ trong ứng viên
+            if (!sameTarget && !isCandidate && e.kind() != EdgeKind.HTTP_REQUEST) {
                 continue;
             }
             IrEdge fixed = new IrEdge(

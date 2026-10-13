@@ -1,6 +1,7 @@
 package com.ctv.flowtracer.core.tracer;
 
 import com.ctv.flowtracer.ir.IrNode;
+import com.ctv.flowtracer.ir.NodeKind;
 import com.ctv.flowtracer.ir.trace.Participant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,6 +19,7 @@ import java.util.Map;
 final class ParticipantBuilder {
 
     static final String CLIENT_ID = "user";
+    static final String FRONTEND_ID = "fe";
     static final String DATABASE_ID = "db";
 
     private record Entry(Participant participant, String className, int order) {}
@@ -26,11 +28,32 @@ final class ParticipantBuilder {
     private final Map<Participant.Role, Integer> counters = new EnumMap<>(Participant.Role.class);
     private final List<Entry> special = new ArrayList<>();
     private final Map<String, String> tableIds = new LinkedHashMap<>();
+    private final Map<String, String> externalIds = new LinkedHashMap<>();
     private int order;
 
     /** Cột người gọi API (luồng bắt đầu từ Backend). */
     String client() {
         return special("Client", Participant.Role.USER, CLIENT_ID, null);
+    }
+
+    /** Cột người dùng (luồng bắt đầu từ một phần tử giao diện). */
+    String user() {
+        return special("User", Participant.Role.USER, CLIENT_ID, null);
+    }
+
+    /** Cột "Frontend": toàn bộ phần giao diện (component, facade, repository FE…) gộp một cột. */
+    String frontend() {
+        return special("Frontend", Participant.Role.FRONTEND, FRONTEND_ID, null);
+    }
+
+    /**
+     * Cột của hệ thống ngoài Workspace, hoặc của đích chưa xác định của một lời gọi HTTP.
+     *
+     * @param nodeKey node {@code EXTERNAL}; null với đích chưa xác định
+     */
+    String external(String label, String nodeKey) {
+        String id = externalIds.computeIfAbsent(label, n -> "x" + (externalIds.size() + 1));
+        return special(label, Participant.Role.EXTERNAL, id, nodeKey);
     }
 
     /** Cột "Database" chung, chỉ dùng khi truy vấn không xác định được bảng nào. */
@@ -58,6 +81,9 @@ final class ParticipantBuilder {
      *     vào bước tự xử lý của cột đang chạy)
      */
     String forMethod(IrNode method) {
+        if (method.kind() != NodeKind.BE_METHOD) {
+            return null; // hàm phía Frontend luôn thuộc cột Frontend đang chạy
+        }
         Participant.Role role = roleOf(method.attrs().get("layer"));
         return role == null ? null : register(method, role);
     }

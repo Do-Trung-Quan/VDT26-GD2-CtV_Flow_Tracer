@@ -7,6 +7,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
   viewChild
@@ -17,6 +18,8 @@ import { TraceApi } from '../../../core/api/trace.api';
 import { Icon } from '../../../core/ui/icon';
 import { Modal } from '../../../core/ui/modal';
 import { ToastService } from '../../../core/ui/toast.service';
+import { EdgePopover } from './edge-popover';
+import { opensLinkPopover } from './edge-popover-model';
 import { createMeasure, downloadBlob, fileBase, svgToPng } from './sequence-export';
 import { layoutSequence } from './sequence-layout';
 import type { SequenceTrace, Step } from './sequence-model';
@@ -37,16 +40,24 @@ export interface StepTip {
   y: number;
 }
 
+/** Popover liên kết đang mở: bước và điểm bấm (tính trong vùng canvas). */
+interface OpenLink {
+  step: Step;
+  x: number;
+  y: number;
+}
+
 /**
  * Canvas sequence diagram: vẽ luồng đã dò (API D1), zoom / kéo / vừa khung, chú giải, thẻ cảnh báo bước chưa xác định,
- * tô sáng mũi tên, mô tả khi di chuột và xuất PlantUML / SVG / PNG (D2). Cụm nút trạng thái quét nằm ở trang chứa.
+ * tô sáng mũi tên, mô tả khi di chuột, popover liên kết khi bấm mũi tên chưa chắc chắn / đã chốt tay (E1, E4, E5) và xuất
+ * PlantUML / SVG / PNG (D2). Cụm nút trạng thái quét nằm ở trang chứa.
  */
 @Component({
   selector: 'app-sequence-canvas',
-  imports: [Icon, Modal],
+  imports: [Icon, Modal, EdgePopover],
   template: `
     <div #scroll class="scroll" tabindex="0" role="group" aria-label="Sequence diagram" [class.dragging]="dragging()"
-      (pointerdown)="startDrag($event)" (click)="onClick($event)" (keydown.escape)="highlight.set(null)"
+      (pointerdown)="startDrag($event)" (click)="onClick($event)" (keydown.escape)="highlight.set(null); link.set(null)"
       (mouseover)="onHover($event)" (focus)="tip.set(null)" (mousemove)="onHover($event)" (mouseleave)="tip.set(null)"
       (wheel)="onWheel($event)">
       @if (loading()) {
@@ -132,6 +143,11 @@ export interface StepTip {
       </div>
     }
 
+    @if (link(); as o) {
+      <app-edge-popover [workspaceId]="workspaceId()" [step]="o.step" [fromLabel]="laneLabel(o.step.from)" [toLabel]="laneLabel(o.step.to)"
+        [at]="{ x: o.x, y: o.y }" [area]="area()" (closed)="link.set(null)" (changed)="link.set(null); linkChanged.emit()" />
+    }
+
     @if (tip(); as t) {
       <div class="tip" [style.left.px]="t.x + 14" [style.top.px]="t.y + 14">
         <b>{{ t.title }}</b>
@@ -200,6 +216,8 @@ export class SequenceCanvas {
   readonly error = input<string | null>(null);
   readonly emptyTitle = input('Chọn một API ở cột trái');
   readonly emptyText = input('');
+  /** Người dùng vừa chốt / bỏ chốt một liên kết: trang chứa dò vết lại. */
+  readonly linkChanged = output<void>();
 
   protected readonly colors = COLORS;
   protected readonly ZOOM_STEP = ZOOM_STEP;
@@ -210,6 +228,8 @@ export class SequenceCanvas {
   protected readonly tip = signal<StepTip | null>(null);
   protected readonly plantUml = signal<string | null>(null);
   protected readonly dragging = signal(false);
+  protected readonly link = signal<OpenLink | null>(null);
+  protected readonly area = signal({ width: 800, height: 600 });
 
   protected readonly layout = computed(() => {
     const t = this.trace();
@@ -234,6 +254,7 @@ export class SequenceCanvas {
       untracked(() => {
         this.highlight.set(null);
         this.tip.set(null);
+        this.link.set(null);
         this.zoom.set(l ? this.autoZoom(l.width) : 1);
       });
     });
@@ -301,10 +322,35 @@ export class SequenceCanvas {
       return;
     }
     const n = this.stepNumberAt(e.target);
+    const step = n === null ? undefined : this.trace()?.steps.find((s) => s.index === n);
+    if (step && opensLinkPopover(step)) {
+      this.highlight.set(n);
+      this.openLink(step, e.clientX, e.clientY);
+      return;
+    }
+    this.link.set(null);
     this.highlight.set(n === null || n === this.highlight() ? null : n);
   }
 
+  /** Mở popover liên kết tại điểm bấm (đổi sang tọa độ trong vùng canvas). */
+  private openLink(step: Step, clientX: number, clientY: number): void {
+    const host = this.host.nativeElement;
+    const r = host.getBoundingClientRect();
+    this.tip.set(null);
+    this.area.set({ width: host.clientWidth || 800, height: host.clientHeight || 600 });
+    this.link.set({ step, x: clientX - r.left - 20, y: clientY - r.top + 14 });
+  }
+
+  protected laneLabel(id: string): string {
+    // bỏ dấu " ?" của cột chưa xác định: tiêu đề popover đã có nhãn "Chưa xác định"
+    return (this.trace()?.lanes.find((l) => l.id === id)?.label ?? id).replace(/ \?$/, '');
+  }
+
   protected onHover(e: MouseEvent): void {
+    if (this.link()) {
+      this.tip.set(null); // popover liên kết đang mở: không che nó bằng mô tả
+      return;
+    }
     const n = this.stepNumberAt(e.target);
     const step = n === null ? undefined : this.trace()?.steps.find((s) => s.index === n);
     this.tip.set(step ? describe(step, e.clientX, e.clientY) : null);
@@ -325,6 +371,13 @@ export class SequenceCanvas {
     queueMicrotask(() => {
       const arrow = this.host.nativeElement.querySelector(`.arrow[data-n="${first.index}"]`);
       arrow?.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+      // Như bản vẽ: cuộn tới rồi mở luôn popover ứng viên của bước đó
+      if (arrow && opensLinkPopover(first)) {
+        setTimeout(() => {
+          const r = arrow.getBoundingClientRect();
+          this.openLink(first, r.left + r.width / 2, r.top + 10);
+        }, 350);
+      }
     });
   }
 
@@ -396,7 +449,9 @@ export class SequenceCanvas {
 function describe(step: Step, x: number, y: number): StepTip {
   const level = step.pinned ? 'Chốt tay' : step.confidence === 'INFERRED' ? 'Suy luận' : step.confidence === 'UNRESOLVED' ? 'Chưa xác định' : 'Chắc chắn';
   const lines: string[] = [];
-  if (step.reason) {
+  if (step.pinned) {
+    lines.push('Bạn đã chốt tay liên kết này; luôn được ưu tiên và giữ qua mọi lần quét lại.');
+  } else if (step.reason) {
     lines.push(step.reason);
   } else if (step.error) {
     lines.push('Nhánh lỗi: ngoại lệ nghiệp vụ lan lên từ nơi phát sinh.');
@@ -409,6 +464,9 @@ function describe(step: Step, x: number, y: number): StepTip {
   }
   if (step.repeatOf !== null) {
     lines.push(`Lần gọi lặp lại: phần bên trong xem ở bước ${step.repeatOf}.`);
+  }
+  if (opensLinkPopover(step)) {
+    lines.push('Bấm để xem ứng viên');
   }
   return { title: `Bước ${step.index} · ${level}`, lines, x, y };
 }

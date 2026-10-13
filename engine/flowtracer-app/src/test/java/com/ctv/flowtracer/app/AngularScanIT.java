@@ -27,7 +27,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Quét Frontend Angular qua sidecar thật ({@code fixtures/angular-mini}) rồi đọc lại qua API: cây thành phần Frontend (C2),
- * tìm kiếm (C3) và dò vết luồng chỉ có giao diện (D1). Bỏ qua nếu chưa build sidecar ({@code npm --prefix analyzer-node run build}).
+ * tìm kiếm (C3), dò vết luồng chỉ có giao diện và luồng gọi API khi Workspace chỉ có Frontend (D1). Bỏ qua nếu chưa build sidecar ({@code npm --prefix analyzer-node run build}).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers(disabledWithoutDocker = true)
@@ -125,11 +125,12 @@ class AngularScanIT {
                 "{\"startKey\":\"ng:element:admin-app/ProductListComponent#button.click.toggleFilter\"}").data();
         assertThat(filter.get("steps").get(1).get("label").asString()).isEqualTo("giao diện đã cập nhật");
 
-        // --- nút gọi API chưa dò được (cần nối FE–BE ở giai đoạn sau) ---
-        var remove = call("POST", "/api/workspaces/" + ws + "/traces",
-                "{\"startKey\":\"ng:element:admin-app/CategoryListComponent#button.click.onDelete\"}");
-        assertThat(remove.status).isEqualTo(422);
-        assertThat(remove.body.get("code").asString()).isEqualTo("TRACE_START_UNSUPPORTED");
+        // --- nút gọi API: Workspace chỉ có Frontend nên lời gọi tới "API bên ngoài" ---
+        JsonNode remove = call("POST", "/api/workspaces/" + ws + "/traces",
+                "{\"startKey\":\"ng:element:admin-app/CategoryListComponent#button.click.onDelete\"}").data();
+        assertThat(remove.get("uiOnly").asBoolean()).isFalse();
+        assertThat(names(remove.get("participants"), "label")).containsExactly("User", "Frontend", "API bên ngoài");
+        assertThat(remove.get("steps").get(1).get("kind").asString()).isEqualTo("HTTP_REQUEST");
     }
 
     // ---------------- tiện ích ----------------

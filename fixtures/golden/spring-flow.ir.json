@@ -163,6 +163,56 @@
       "pathResolved" : true
     }
   }, {
+    "key" : "java:http:com.example.flow.order.CatalogGateway#productOptions():0",
+    "kind" : "HTTP_CALL",
+    "name" : "GET /api/v1/products/options",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/CatalogGateway.java",
+      "startLine" : 17,
+      "endLine" : 17
+    },
+    "attrs" : {
+      "httpMethod" : "GET",
+      "origin" : "BE",
+      "urlExpr" : "\"/api/v1/products/options\"",
+      "urlPattern" : "/api/v1/products/options",
+      "urlResolved" : true
+    }
+  }, {
+    "key" : "java:http:com.example.flow.order.OrderService#confirm(Long):0",
+    "kind" : "HTTP_CALL",
+    "name" : "POST /api/v1/inventory/{orderId}/reserve",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 43,
+      "endLine" : 43
+    },
+    "attrs" : {
+      "httpMethod" : "POST",
+      "origin" : "BE",
+      "urlExpr" : "\"/api/v1/inventory/{orderId}/reserve\"",
+      "urlHost" : "inventory-service",
+      "urlPattern" : "/api/v1/inventory/{orderId}/reserve",
+      "urlResolved" : true
+    }
+  }, {
+    "key" : "java:http:com.example.flow.order.PaymentGateway#charge(Long):0",
+    "kind" : "HTTP_CALL",
+    "name" : "POST /api/charges",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/PaymentGateway.java",
+      "startLine" : 19,
+      "endLine" : 19
+    },
+    "attrs" : {
+      "httpMethod" : "POST",
+      "origin" : "BE",
+      "urlExpr" : "PAYMENT_URL + \"/charges\"",
+      "urlHost" : "payment.example.com",
+      "urlPattern" : "/api/charges",
+      "urlResolved" : true
+    }
+  }, {
     "key" : "java:method:com.example.flow.category.Category#markDeleted()",
     "kind" : "BE_METHOD",
     "name" : "Category.markDeleted",
@@ -539,6 +589,24 @@
       "signature" : "send(String)"
     }
   }, {
+    "key" : "java:method:com.example.flow.order.CatalogGateway#productOptions()",
+    "kind" : "BE_METHOD",
+    "name" : "CatalogGateway.productOptions",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/CatalogGateway.java",
+      "startLine" : 16,
+      "endLine" : 18
+    },
+    "attrs" : {
+      "businessName" : "CatalogGateway",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.order.CatalogGateway",
+      "layer" : "OTHER",
+      "layerBasis" : "NONE",
+      "returnType" : "String",
+      "signature" : "productOptions()"
+    }
+  }, {
     "key" : "java:method:com.example.flow.order.Order#isPending()",
     "kind" : "BE_METHOD",
     "name" : "Order.isPending",
@@ -603,8 +671,8 @@
     "name" : "OrderService.confirm",
     "location" : {
       "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
-      "startLine" : 28,
-      "endLine" : 36
+      "startLine" : 37,
+      "endLine" : 48
     },
     "attrs" : {
       "businessName" : "Order",
@@ -620,10 +688,29 @@
         "guardBranch" : "then",
         "guardText" : "!order.isPending()",
         "guardType" : "IF",
-        "line" : 31,
+        "line" : 40,
         "messageKey" : "ORDER_NOT_PENDING",
         "order" : 3
       } ]
+    }
+  }, {
+    "key" : "java:method:com.example.flow.order.PaymentGateway#charge(Long)",
+    "kind" : "BE_METHOD",
+    "name" : "PaymentGateway.charge",
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/PaymentGateway.java",
+      "startLine" : 18,
+      "endLine" : 20
+    },
+    "attrs" : {
+      "businessName" : "PaymentGateway",
+      "businessNameSource" : "CLASS",
+      "className" : "com.example.flow.order.PaymentGateway",
+      "layer" : "OTHER",
+      "layerBasis" : "NONE",
+      "paramNames" : [ "orderId" ],
+      "returnType" : "void",
+      "signature" : "charge(Long)"
     }
   }, {
     "key" : "java:method:com.example.flow.product.ArchivedProductService#countByCategoryId(Long)",
@@ -1314,6 +1401,17 @@
       "endLine" : 37
     }
   }, {
+    "fromKey" : "java:method:com.example.flow.order.CatalogGateway#productOptions()",
+    "toKey" : "java:http:com.example.flow.order.CatalogGateway#productOptions():0",
+    "kind" : "SENDS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 1,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/CatalogGateway.java",
+      "startLine" : 17,
+      "endLine" : 17
+    }
+  }, {
     "fromKey" : "java:method:com.example.flow.order.OrderController#confirm(Long)",
     "toKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
     "kind" : "CALLS",
@@ -1343,8 +1441,8 @@
     "callOrder" : 0,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
-      "startLine" : 29,
-      "endLine" : 29
+      "startLine" : 38,
+      "endLine" : 38
     }
   }, {
     "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
@@ -1354,8 +1452,30 @@
     "callOrder" : 2,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
-      "startLine" : 30,
-      "endLine" : 30
+      "startLine" : 39,
+      "endLine" : 39
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.order.CatalogGateway#productOptions()",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 4,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 42,
+      "endLine" : 42
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:method:com.example.flow.order.PaymentGateway#charge(Long)",
+    "kind" : "CALLS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 6,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 44,
+      "endLine" : 44
     }
   }, {
     "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
@@ -1363,7 +1483,7 @@
     "kind" : "CALLS",
     "confidence" : "INFERRED",
     "reason" : "NotificationSender có 2 lớp hiện thực; chọn EmailSender vì được đánh dấu @Primary",
-    "callOrder" : 4,
+    "callOrder" : 7,
     "candidates" : [ {
       "nodeKey" : "java:method:com.example.flow.notify.EmailSender#send(String)",
       "score" : 0.9,
@@ -1375,8 +1495,8 @@
     } ],
     "location" : {
       "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
-      "startLine" : 33,
-      "endLine" : 33
+      "startLine" : 45,
+      "endLine" : 45
     }
   }, {
     "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
@@ -1384,7 +1504,7 @@
     "kind" : "CALLS",
     "confidence" : "CERTAIN",
     "reason" : "@Qualifier(\"sms\") khớp đúng SmsSender",
-    "callOrder" : 5,
+    "callOrder" : 8,
     "candidates" : [ {
       "nodeKey" : "java:method:com.example.flow.notify.SmsSender#send(String)",
       "score" : 0.9,
@@ -1396,8 +1516,8 @@
     } ],
     "location" : {
       "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
-      "startLine" : 34,
-      "endLine" : 34
+      "startLine" : 46,
+      "endLine" : 46
     }
   }, {
     "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
@@ -1405,11 +1525,33 @@
     "kind" : "CALLS",
     "confidence" : "UNRESOLVED",
     "reason" : "Không tìm thấy hàm record trong AuditService và các lớp cha trong mã nguồn (có thể kế thừa từ thư viện không có mã nguồn)",
-    "callOrder" : 6,
+    "callOrder" : 9,
     "location" : {
       "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
-      "startLine" : 35,
-      "endLine" : 35
+      "startLine" : 47,
+      "endLine" : 47
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)",
+    "toKey" : "java:http:com.example.flow.order.OrderService#confirm(Long):0",
+    "kind" : "SENDS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 5,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/OrderService.java",
+      "startLine" : 43,
+      "endLine" : 43
+    }
+  }, {
+    "fromKey" : "java:method:com.example.flow.order.PaymentGateway#charge(Long)",
+    "toKey" : "java:http:com.example.flow.order.PaymentGateway#charge(Long):0",
+    "kind" : "SENDS",
+    "confidence" : "CERTAIN",
+    "callOrder" : 0,
+    "location" : {
+      "filePath" : "src/main/java/com/example/flow/order/PaymentGateway.java",
+      "startLine" : 19,
+      "endLine" : 19
     }
   }, {
     "fromKey" : "java:method:com.example.flow.product.ArchivedProductService#countByCategoryId(Long)",

@@ -34,11 +34,43 @@ final class UiOnlyTracer {
     /** {@code guard.branch} mà bộ phân tích ghi cho lời gọi nằm trong callback chạy khi hộp thoại đóng. */
     static final String AFTER_CLOSED = "afterClosed";
 
+    /** Nhãn bước giao diện phản hồi khi thao tác không mở hộp thoại / chuyển màn hình nào. */
+    static final String NO_EFFECT = "giao diện đã cập nhật";
+
     static final String USER = "user";
     static final String FRONTEND = "fe";
 
     private static final Comparator<IrEdge> FLOW_ORDER =
             Comparator.comparing((IrEdge e) -> e.callOrder() == null ? Integer.MAX_VALUE : e.callOrder()).thenComparing(IrEdge::kind);
+
+    /**
+     * Thao tác trên phần tử có dẫn tới một lời gọi HTTP không: đi theo {@code TRIGGERS} → {@code CALLS} (bỏ lời gọi chạy khi
+     * hộp thoại đóng, không đi vào hộp thoại / màn hình được mở). Có thì luồng là End-to-End, không phải luồng chỉ giao diện.
+     */
+    static boolean callsServer(Subgraph graph, String startKey) {
+        Map<String, List<IrEdge>> out = new HashMap<>();
+        for (IrEdge e : graph.edges()) {
+            out.computeIfAbsent(e.fromKey(), k -> new ArrayList<>()).add(e);
+        }
+        var pending = new java.util.ArrayDeque<String>();
+        Set<String> visited = new HashSet<>();
+        pending.push(startKey);
+        visited.add(startKey);
+        while (!pending.isEmpty()) {
+            for (IrEdge e : out.getOrDefault(pending.pop(), List.of())) {
+                if (e.guard() != null && AFTER_CLOSED.equals(e.guard().branch())) {
+                    continue;
+                }
+                if (e.kind() == EdgeKind.SENDS) {
+                    return true;
+                }
+                if ((e.kind() == EdgeKind.TRIGGERS || e.kind() == EdgeKind.CALLS) && e.toKey() != null && visited.add(e.toKey())) {
+                    pending.push(e.toKey());
+                }
+            }
+        }
+        return false;
+    }
 
     Trace trace(Subgraph graph, TraceRequest request) {
         Map<String, IrNode> nodes = new HashMap<>();
@@ -70,7 +102,7 @@ final class UiOnlyTracer {
                 labels.add(effectLabel(effect.kind(), target));
             }
         }
-        String reply = labels.isEmpty() ? "giao diện đã cập nhật" : String.join(", ", new LinkedHashSet<>(labels));
+        String reply = labels.isEmpty() ? NO_EFFECT : String.join(", ", new LinkedHashSet<>(labels));
         EdgeKind replyKind = effects.isEmpty() ? EdgeKind.TRIGGERS : effects.get(effects.size() - 1).kind();
 
         var participants = List.of(
@@ -110,7 +142,7 @@ final class UiOnlyTracer {
     }
 
     /** Nhãn bước người dùng: `Bấm "Thêm mới"`; không có nhãn chữ thì dùng tên hàm xử lý. */
-    private static String userAction(IrNode element) {
+    static String userAction(IrNode element) {
         Object event = element.attrs().get("event");
         String verb = switch (event == null ? "" : event.toString()) {
             case "click" -> "Bấm";
@@ -141,7 +173,7 @@ final class UiOnlyTracer {
         };
     }
 
-    private static String effectLabel(EdgeKind kind, IrNode target) {
+    static String effectLabel(EdgeKind kind, IrNode target) {
         String name = target.displayName() != null && !target.displayName().isBlank() ? target.displayName() : target.name();
         if (kind == EdgeKind.OPENS) {
             return "hộp thoại " + name;

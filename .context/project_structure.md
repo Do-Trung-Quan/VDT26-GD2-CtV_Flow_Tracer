@@ -160,11 +160,13 @@ flowtracer-core/src/main/java/com/ctv/flowtracer/core/
 │   ├── LinkRuleEngine.java          # Áp các luật biến đổi đường dẫn trước khi so sánh (bỏ tiền tố proxy, thêm tiền tố của Backend…)
 │   ├── EndpointMatcher.java         # So một lời gọi API ở Frontend với danh sách API Backend để tìm API khớp nhất
 │   │                                #   (đường dẫn cụ thể được ưu tiên hơn đường dẫn có biến)
+│   ├── CandidateScorer.java         # Trọng số điểm khớp tất định và quy ra mức Cao / Trung bình / Thấp
 │   └── Linker.java                  # Điều phối việc nối: với mỗi lời gọi API, kết luận nối tới đâu và chắc chắn đến mức nào, kèm lý do
 ├── tracer/                          # CỐT LÕI: dò luồng từ đầu tới cuối
-│   ├── Tracer.java                  # Bộ dò luồng chính: xuất phát từ API Backend thì áp liên kết chốt tay rồi giao cho TraceRun; từ phần tử giao diện thì giao cho UiOnlyTracer
+│   ├── Tracer.java                  # Bộ dò luồng chính: áp liên kết chốt tay rồi giao cho TraceRun (từ API Backend, hoặc từ phần tử giao diện có gọi API);
+│   │                                #   phần tử không gọi máy chủ thì giao cho UiOnlyTracer
 │   ├── UiOnlyTracer.java            # Dò luồng CHỈ có giao diện (User ↔ Frontend): bấm nút → mở hộp thoại / chuyển màn hình / cập nhật giao diện, không gọi máy chủ
-│   ├── UnsupportedTraceStartException.java # Điểm xuất phát chưa dò được (vd phần tử gọi API khi chưa có phần nối FE–BE) — thông điệp hiển thị cho người dùng
+│   ├── UnsupportedTraceStartException.java # Điểm xuất phát không dò được bằng bộ dò đã chọn — thông điệp hiển thị cho người dùng
 │   ├── TraceRun.java                # Một lần dò: đi qua các lời gọi theo thứ tự thực thi tới tận bảng dữ liệu; phát bước, khối alt/opt/loop, chiều trả về
 │   ├── TraceItem.java               # Phần tử của dòng sự kiện TraceRun phát ra: một bước, hoặc dấu mở / chuyển nhánh / đóng khối
 │   ├── OverrideApplier.java         # Áp các quyết định chốt tay của người dùng trước khi dò (ghim liên kết đúng, bỏ liên kết sai)
@@ -389,7 +391,7 @@ workspace/
 - **EXTRACT:** Source Spring chạy pha 1 song song, lấy cache với file không đổi. Source Angular gọi sidecar một lần cho cả Source; sidecar tự lo pha 1 và pha 2.
 - **RESOLVE:** chạy pha 2 cho Source Spring.
 - **PERSIST:** `GraphWriteService.replaceSourceGraph` trong một transaction: upsert node theo key, xóa node không còn, thay edge của Source.
-- **LINK:** `LinkingService.relinkWorkspace`.
+- **LINK:** `LinkingService.linkAfterScan` — ghi luật tự phát hiện của lần quét rồi nối lại mọi lời gọi HTTP của Workspace (transaction riêng). Chạy cả khi không có file nào đổi (lúc đó chỉ nối lại với luật hiện tại).
 - **FINALIZE:** cập nhật trạng thái và thống kê.
 
 **Lưu ý:** mỗi Workspace chỉ có một lần quét chạy tại một thời điểm; file lỗi → `PARTIAL`; hủy hoặc lỗi thì giữ nguyên IR của lần quét thành công trước.
@@ -506,8 +508,6 @@ linking/
 │   │                                #   KHÔNG đổi liên kết — người dùng đọc rồi tự chốt tay
 │   ├── AiAdviceRule.java            # Quy tắc kiểm tra câu trả lời của AI: lời giải thích phải gắn với ứng viên có thật; ứng viên AI đề xuất thêm
 │   │                                #   chỉ được giữ khi là thành phần có thật trong bản đồ và hợp lệ về kiểu (đúng interface / đúng phương thức HTTP)
-│   ├── CandidateScorer.java         # Tính mức khớp tất định của từng ứng viên (khớp đường dẫn, phương thức, tham số, luật, @Primary…)
-│   │                                #   rồi quy ra Cao / Trung bình / Thấp
 │   ├── LinkOverrideService.java     # Xử lý liên kết chốt tay (tạo, xóa, liệt kê) — chức năng dò luồng cũng dùng qua đây
 │   ├── LinkRuleService.java         # Xử lý luật nối đường dẫn: gộp luật tool tự tìm và luật người dùng nhập; sửa luật thì nối lại ngay
 │   └── RuntimeVerificationService.java  # (MỞ RỘNG) Xác nhận liên kết bằng dữ liệu lúc ứng dụng chạy thật — chỉ giữ thông tin kỹ thuật, bỏ dữ liệu nghiệp vụ
@@ -519,8 +519,12 @@ linking/
 └── dto/                             # Dữ liệu giao diện gửi lên và Engine trả về
     ├── EdgeDetailResponse.java      # Chi tiết một liên kết: mức tin cậy, lý do, các khả năng, vị trí trong code
     ├── EdgeAdviceRequest.java, EdgeAdviceResponse.java   # Yêu cầu "nhờ AI phân tích" (có bỏ qua kết quả đã lưu hay không) / lời giải thích từng ứng viên
-    ├── LinkOverrideRequest.java, LinkOverrideResponse.java   # Yêu cầu chốt tay một liên kết / thông tin liên kết đã chốt
-    └── LinkRulesRequest.java, LinkRulesResponse.java         # Luật nối đường dẫn gửi lên / trả về
+    ├── CreateLinkOverrideRequest.java, LinkOverrideResponse.java   # Yêu cầu chốt tay một liên kết / thông tin liên kết đã chốt
+    ├── UpdateLinkRulesRequest.java, LinkRuleItemRequest.java       # Luật nối đường dẫn thủ công gửi lên
+    ├── LinkRulesResponse.java, LinkRuleResponse.java, LinkSummaryResponse.java   # Luật trả về; kết quả nối lại sau khi sửa luật
+    └── EdgeNodeResponse.java, EdgeCandidateResponse.java    # Một đầu của liên kết; một ứng viên kèm mức khớp
+model/
+    └── LinkSummary.java             # Kết quả một lần nối (số lời gọi chắc chắn / suy luận / chưa xác định / ra ngoài / thay đổi) — bước LINK báo tiến độ
 ```
 
 #### 4.4.7. `tracing/` — Dò vết & trực quan hóa
@@ -757,15 +761,16 @@ web/
         │   │   ├── generated/schema.d.ts   # Kiểu dữ liệu API TỰ SINH từ /v3/api-docs của Engine (npm run gen:api) — không sửa tay, có commit
         │   │   ├── api-types.ts     # Tên ngắn cho các kiểu sinh ra; vỏ bọc ApiResponse; kiểu sự kiện SSE (không có trong OpenAPI)
         │   │   ├── api-error.ts     # Đọc lỗi từ vỏ bọc (code, message, errors) thành thông báo tiếng Việt
-        │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts, trace.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C / D, lấy data trong vỏ bọc
+        │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts, trace.api.ts, linking.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C / D / E, lấy data trong vỏ bọc
         │   ├── ui/                  # Mảnh giao diện dùng chung: icon SVG, modal (Esc đóng modal trên cùng), hộp xác nhận, toast
         │   ├── explorer-navigation.ts   # Cầu nối bảng Ctrl+K (ở khung ứng dụng) → màn hình chính: "hãy mở thành phần này"
         │   └── workspace-context.ts # Danh sách Workspace, Workspace đang mở, trạng thái mở wizard Import và bảng Ctrl+K
         └── features/                # Mỗi thư mục là một nhóm màn hình
             ├── workspaces/          # Danh sách Workspace (thẻ có trạng thái lần quét gần nhất), wizard Import 3 bước + trình duyệt thư mục,
-            │                        #   trang Cài đặt (tab Nguồn mã, tab Lịch sử quét)
+            │                        #   trang Cài đặt (tab Nguồn mã, Luật liên kết, Bộ lọc nhiễu, Liên kết chốt tay, Lịch sử quét — mỗi tab một
+            │                        #   khối hướng dẫn); link-rules-tab, noise-filters-tab, link-overrides-tab, link-settings-model (thuần, test được)
             ├── scan/                # Quét: ScanTracker (bắt đầu / theo dõi SSE / hủy, tự hỏi lại khi rớt SSE), khung tiến độ góc phải dưới
-            │                        #   (6 giai đoạn, giai đoạn bỏ qua, tóm tắt có căn cứ), hộp danh sách file lỗi, bảng Lịch sử quét
+            │                        #   (7 giai đoạn kể cả "Nối Frontend – Backend", giai đoạn bỏ qua, tóm tắt có căn cứ), hộp danh sách file lỗi, bảng Lịch sử quét
             ├── explorer/            # MÀN HÌNH CHÍNH 3 CỘT
             │   ├── explorer.page.ts            # Bố cục: cột trái (kéo đổi độ rộng, thu gọn), canvas (cụm nút nổi trạng thái quét + Quét lại),
             │   │                               #   cột phải (thông tin endpoint đang chọn, tóm tắt luồng, cảnh báo của luồng); chọn API → dò vết (D1)
@@ -777,8 +782,12 @@ web/
             │   │   ├── sequence-layout.ts      # Dàn cột, mũi tên, khung alt/opt/loop lồng nhau, vạch else, thanh kích hoạt (thuần, test được)
             │   │   ├── sequence-svg.ts         # Vẽ thành chuỗi SVG thuần (dùng cho cả màn hình lẫn xuất file); thoát ký tự nhãn
             │   │   ├── sequence-export.ts      # Đo chữ, tải file, đổi SVG → PNG trên trình duyệt
-            │   │   └── sequence-canvas.ts      # Canvas: zoom / kéo / vừa khung, chú giải, thẻ "n bước chưa xác định", mô tả khi di chuột, tô sáng, xuất
-            │   └── right-panel/                # (Giai đoạn 5–6) Tab Diễn giải, tab Kịch bản, chi tiết liên kết, popup xem code
+            │   │   ├── sequence-canvas.ts      # Canvas: zoom / kéo / vừa khung, chú giải, thẻ "n bước chưa xác định", mô tả khi di chuột, tô sáng, xuất;
+            │   │   │                           #   bấm mũi tên chưa chắc chắn / đã chốt tay → popover liên kết
+            │   │   ├── edge-popover.ts         # Popover liên kết (Giai đoạn 5): lý do, ứng viên + mức khớp Cao / Trung bình / Thấp (E1), chọn API khác
+            │   │   │                           #   qua ô tìm (C3), Chốt tay (E4) / Bỏ chốt tay (E5); "Nhờ AI phân tích" mờ tới Giai đoạn 7
+            │   │   └── edge-popover-model.ts   # Khi nào mở popover, nhãn mức tin cậy, danh sách ứng viên, giữ popover trọn trong canvas (thuần, test được)
+            │   └── right-panel/                # (Giai đoạn 6) Tab Diễn giải, tab Kịch bản, popup xem code
             ├── search/              # Bảng tìm nhanh Ctrl+K (API C3): gõ → kết quả nhóm theo loại, ↑ ↓ Enter Esc; chọn thì mở đúng thành phần trên cây
             ├── compare/             # (MỞ RỘNG) Màn hình so sánh 2 diagram cạnh nhau và danh sách khác biệt cũ – mới
             └── ai-settings/         # Màn hình cấu hình AI: xem đang dùng AI nào, bật/tắt từng việc, kiểm tra kết nối, hạn mức token, thống kê (lượt gọi, token, trúng cache, lỗi)

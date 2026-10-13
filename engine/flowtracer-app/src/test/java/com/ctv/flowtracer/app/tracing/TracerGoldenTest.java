@@ -8,9 +8,12 @@ import com.ctv.flowtracer.core.diagram.PlantUmlExporter;
 import com.ctv.flowtracer.core.diagram.SequenceViewModelBuilder;
 import com.ctv.flowtracer.core.diagram.SvgExporter;
 import com.ctv.flowtracer.core.graph.Subgraph;
+import com.ctv.flowtracer.core.linker.Linker;
 import com.ctv.flowtracer.core.tracer.TraceRequest;
 import com.ctv.flowtracer.core.tracer.Tracer;
 import com.ctv.flowtracer.ir.Confidence;
+import com.ctv.flowtracer.ir.EdgeKind;
+import com.ctv.flowtracer.ir.IrEdge;
 import com.ctv.flowtracer.ir.IrFragment;
 import com.ctv.flowtracer.ir.IrNode;
 import com.ctv.flowtracer.ir.NodeKind;
@@ -35,8 +38,10 @@ import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Golden trace: phân tích {@code fixtures/spring-flow} bằng adapter Spring thật, dò vết từng API bằng Tracer thật, rồi so
- * với {@code fixtures/golden/spring-flow.trace.*}. Sinh lại bằng {@code -Pgolden-update}.
+ * Golden trace: phân tích {@code fixtures/spring-flow} bằng adapter Spring thật, nối lời gọi HTTP bằng Linker thật (như bước
+ * LINK của lần quét), dò vết từng API bằng Tracer thật, rồi so với {@code fixtures/golden/spring-flow.trace.*}. Luồng End-to-End
+ * ghép thêm IR Frontend của {@code fixtures/angular-mini} (golden của sidecar) và luật proxy của nó:
+ * {@code fixtures/golden/e2e.trace.*}. Sinh lại bằng {@code -Pgolden-update}.
  */
 class TracerGoldenTest {
 
@@ -48,7 +53,7 @@ class TracerGoldenTest {
             .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
             .build();
     private final SpringStackAdapter adapter = new SpringStackAdapter();
-    private final IrFragment fragment = analyze();
+    private final IrFragment fragment = link(analyze(), null);
     private final Tracer tracer = new Tracer();
 
     @Test
@@ -148,7 +153,7 @@ class TracerGoldenTest {
     void sameInputGivesSameTraceAndDiagram() throws Exception {
         String key = "java:endpoint:POST /api/v1/categories";
         Trace a = trace(key);
-        Trace b = new Tracer().trace(subgraph(analyze()), request(key));
+        Trace b = new Tracer().trace(subgraph(link(analyze(), null)), request(key));
 
         assertThat(json.writeValueAsString(b)).isEqualTo(json.writeValueAsString(a));
         assertThat(new PlantUmlExporter().export(b)).isEqualTo(new PlantUmlExporter().export(a));
@@ -163,6 +168,103 @@ class TracerGoldenTest {
             trace("java:endpoint:POST /api/v1/categories");
         }
         assertThat((System.nanoTime() - start) / 50 / 1_000_000).as("ms/trace").isLessThan(100);
+    }
+
+    // ---------------- End-to-End: Frontend angular-mini + Backend spring-flow ----------------
+
+    private static final String SAVE_BUTTON = "ng:element:admin-app/CategoryFormDialogComponent#app-button.submit";
+
+    @Test
+    void saveButtonInDialogGoesFromUserToDatabase() throws Exception {
+        Trace trace = endToEnd(SAVE_BUTTON);
+
+        assertThat(trace.uiOnly()).isFalse();
+        assertThat(trace.participants()).extracting(p -> p.label()).containsExactly(
+                "User", "Frontend", "Controller Danh mục", "Service Danh mục", "Repository Danh mục", "Bảng category");
+        TraceStep http = trace.steps().get(1);
+        assertThat(http.from() + " -> " + http.to() + " " + http.label()).isEqualTo("fe -> c1 POST /api/v1/categories");
+        assertThat(http.confidence()).isEqualTo(Confidence.INFERRED);
+        assertThat(http.reason()).contains("CATEGORY_BASE").contains("'^/gateway' → ''");
+        assertThat(trace.steps().getFirst().label()).isEqualTo("Gửi biểu mẫu bằng \"Lưu\"");
+        assertThat(trace.steps().getLast().label()).isEqualTo("giao diện đã cập nhật");
+        assertGolden("e2e.trace.category-save.json", json.writeValueAsString(trace) + "\n");
+        assertGolden("e2e.trace.category-save.puml", new PlantUmlExporter().export(trace));
+    }
+
+    @Test
+    void frontendCallsWithoutAMatchingApiStayUnresolved() {
+        IrFragment frontend = frontend();
+        Linker.Result result = new Linker().link(
+                nodesOf(frontend, NodeKind.HTTP_CALL), nodesOf(fragment, NodeKind.API_ENDPOINT), frontend.detectedLinkRules());
+
+        // spring-flow không có API xuất Excel / danh sách đơn hàng: không đoán, ghi rõ lý do
+        assertThat(result.edges()).filteredOn(e -> e.fromKey().endsWith("#exportExcel:0")).singleElement().satisfies(e -> {
+            assertThat(e.confidence()).isEqualTo(Confidence.UNRESOLVED);
+            assertThat(e.reason()).contains("Không có API nào");
+        });
+        assertThat(result.edges()).filteredOn(e -> e.confidence() != Confidence.UNRESOLVED)
+                .extracting(e -> e.fromKey().substring(e.fromKey().lastIndexOf('/') + 1) + " → " + e.toKey())
+                .containsExactly(
+                        "HttpCategoryRepository#create:0 → java:endpoint:POST /api/v1/categories",
+                        "HttpCategoryRepository#list:0 → java:endpoint:GET /api/v1/categories",
+                        "HttpCategoryRepository#remove:0 → java:endpoint:DELETE /api/v1/categories/{id}",
+                        "OrderService#confirm:0 → java:endpoint:PUT /api/v1/orders/{id}/confirm");
+    }
+
+    @Test
+    void backendCallsToOtherServicesAreLinked() {
+        List<IrEdge> links = fragment.edges().stream().filter(e -> e.kind() == EdgeKind.HTTP_REQUEST).toList();
+
+        assertThat(links).extracting(e -> e.fromKey().substring(e.fromKey().lastIndexOf('.') + 1) + " → " + e.toKey() + " " + e.confidence())
+                .containsExactly(
+                        "CatalogGateway#productOptions():0 → java:endpoint:GET /api/v1/products/options CERTAIN",
+                        "OrderService#confirm(Long):0 → ext:system:inventory-service INFERRED",
+                        "PaymentGateway#charge(Long):0 → ext:system:payment.example.com INFERRED");
+        Trace confirm = trace("java:endpoint:PUT /api/v1/orders/{id}/confirm");
+        assertThat(confirm.participants()).extracting(p -> p.label() + ":" + p.role()).contains(
+                "Controller Product:CONTROLLER", "inventory-service:EXTERNAL", "payment.example.com:EXTERNAL");
+        assertThat(confirm.steps()).extracting(TraceStep::label).contains(
+                "GET /api/v1/products/options", "POST /api/v1/inventory/{orderId}/reserve", "POST /api/charges");
+    }
+
+    private Trace endToEnd(String startKey) {
+        IrFragment frontend = frontend();
+        IrFragment linked = link(fragment, frontend);
+        return tracer.trace(subgraph(linked), request(startKey));
+    }
+
+    private IrFragment frontend() {
+        try {
+            return json.readValue(GOLDEN.resolve("angular-mini.ir.json").toFile(), IrFragment.class);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Như bước LINK: nối mọi lời gọi HTTP (Backend, và Frontend nếu có) với API của Backend bằng luật tự phát hiện. Bỏ liên
+     * kết cũ của Backend rồi nối lại, để ghép thêm Frontend vẫn ra cùng kết quả.
+     */
+    private static IrFragment link(IrFragment backend, IrFragment frontend) {
+        var nodes = new java.util.ArrayList<IrNode>(backend.nodes().stream().filter(n -> n.kind() != NodeKind.EXTERNAL).toList());
+        var edges = new java.util.ArrayList<IrEdge>(backend.edges().stream().filter(e -> e.kind() != EdgeKind.HTTP_REQUEST).toList());
+        var rules = new java.util.ArrayList<>(backend.detectedLinkRules());
+        if (frontend != null) {
+            nodes.addAll(frontend.nodes());
+            edges.addAll(frontend.edges());
+            rules.addAll(frontend.detectedLinkRules());
+        }
+        Linker.Result result = new Linker().link(
+                nodes.stream().filter(n -> n.kind() == NodeKind.HTTP_CALL).toList(),
+                nodes.stream().filter(n -> n.kind() == NodeKind.API_ENDPOINT).toList(),
+                rules);
+        nodes.addAll(result.externals());
+        edges.addAll(result.edges());
+        return new IrFragment(backend.adapterId(), nodes, edges, rules, backend.diagnostics());
+    }
+
+    private static List<IrNode> nodesOf(IrFragment fragment, NodeKind kind) {
+        return fragment.nodes().stream().filter(n -> n.kind() == kind).toList();
     }
 
     // ---------------- tiện ích ----------------

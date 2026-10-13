@@ -1,6 +1,7 @@
 package com.ctv.flowtracer.adapter.spring.resolve;
 
 import com.ctv.flowtracer.adapter.spring.config.QuerySinkRules;
+import com.ctv.flowtracer.adapter.spring.extract.MappingExtractor;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts.CallSiteFact;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts.MethodFact;
@@ -37,6 +38,10 @@ import java.util.TreeMap;
 /**
  * Dựng phần xử lý Backend của IR từ các endpoint: {@code HANDLED_BY} → method controller, rồi theo từng lời gọi
  * ({@code CALLS}) tới service / repository, và thao tác dữ liệu ({@code EXECUTES} → {@code READS}/{@code WRITES}).
+ *
+ * <p>Lời gọi HTTP sang service khác — {@code RestTemplate} / {@code RestOperations}, {@code WebClient} / {@code RestClient}
+ * ({@code .get().uri(…)}), interface {@code @FeignClient} — thành node {@code HTTP_CALL} ({@code origin = BE}) với cạnh
+ * {@code SENDS}; Linker nối nó với API trong Workspace (BE → BE) hoặc hệ thống ngoài.
  *
  * <p>Chỉ dựng phần ĐI ĐƯỢC TỪ ENDPOINT (kể cả các ứng viên của một lời gọi chưa xác định, để người dùng chốt tay rồi dò
  * tiếp được). Mọi thứ đều suy từ mã nguồn: lời gọi không tìm được hàm đích thì bị bỏ và chỉ đếm vào một chẩn đoán tổng
@@ -102,6 +107,9 @@ final class FlowResolver {
     private final Map<String, IrNode> methodNodes = new TreeMap<>();
     private final Map<String, IrNode> queryNodes = new TreeMap<>();
     private final Map<String, IrNode> tableNodes = new TreeMap<>();
+    private final Map<String, IrNode> httpNodes = new TreeMap<>();
+    private final Map<String, Integer> httpCounters = new TreeMap<>();
+    private final ConstantTable constants;
     private final List<IrEdge> edges = new ArrayList<>();
     private final Set<String> seen = new HashSet<>();
     private final Deque<Target> queue = new ArrayDeque<>();
@@ -115,7 +123,7 @@ final class FlowResolver {
         this.names = new BusinessNames(index, layers);
         this.injections = new InjectionResolver(index);
         this.implementations = new ImplementationResolver(index);
-        var constants = new ConstantTable(facts);
+        this.constants = new ConstantTable(facts);
         this.dataAccess = new DataAccessResolver(index, new EntityTableResolver(index, constants), constants);
         this.sinkRules = sinkRules;
         for (JavaFileFacts f : facts) {
@@ -142,6 +150,7 @@ final class FlowResolver {
         var nodes = new ArrayList<IrNode>(methodNodes.values());
         nodes.addAll(queryNodes.values());
         nodes.addAll(tableNodes.values());
+        nodes.addAll(httpNodes.values());
         return new Result(nodes, edges, diagnostics());
     }
 
@@ -174,8 +183,12 @@ final class FlowResolver {
         }
         String callerKey = target.type().fqn() + "#" + target.fact().signature();
         Map<Integer, TypeRef> results = new HashMap<>();
+        Map<Integer, CallSiteFact> byOrder = new HashMap<>();
         for (CallSiteFact site : callsByMethod.getOrDefault(callerKey, List.of())) {
-            resolveCall(target, site, results);
+            byOrder.put(site.callOrder(), site);
+            if (!chainedHttpCall(target, site, byOrder, results)) {
+                resolveCall(target, site, results);
+            }
         }
         if (layers.isSpringData(target.type().fqn())) {
             attachRepositoryQuery(target);
@@ -196,6 +209,9 @@ final class FlowResolver {
             return;
         }
         if (receiver.projectType() == null) {
+            if (restTemplateCall(caller, site, receiver)) {
+                return;
+            }
             if (OPTIONAL_UNWRAP.contains(site.methodName())
                     && TypeNames.simple(receiver.externalName()).equals("Optional")
                     && receiver.declared() != null) {
@@ -208,6 +224,10 @@ final class FlowResolver {
             return;
         }
         TypeInfo declared = index.typeInfo(receiver.projectType()).orElseThrow();
+        if (declared.hasAnnotation(MappingExtractor.FEIGN_CLIENT)) {
+            feignCall(caller, site, declared);
+            return;
+        }
         boolean springData = layers.isSpringData(declared.fqn());
         ImplementationResolver.Choice choice = null;
         String targetType = declared.fqn();
@@ -391,6 +411,184 @@ final class FlowResolver {
         return index.resolveSimpleName(raw, type.file())
                 .map(t -> Receiver.project(t, beanName, null, false, type))
                 .orElseGet(() -> Receiver.external(index.qualifiedOrSimple(raw, type.file()), beanName, false, type));
+    }
+
+    // ---------------- lời gọi HTTP sang service khác ----------------
+
+    /** Phương thức HTTP của từng hàm {@code RestTemplate} có đối số đầu là URL ({@code exchange}/{@code execute}: theo đối số). */
+    private static final Map<String, String> REST_TEMPLATE_METHODS = Map.ofEntries(
+            Map.entry("getForObject", "GET"),
+            Map.entry("getForEntity", "GET"),
+            Map.entry("headForHeaders", "HEAD"),
+            Map.entry("optionsForAllow", "OPTIONS"),
+            Map.entry("postForObject", "POST"),
+            Map.entry("postForEntity", "POST"),
+            Map.entry("postForLocation", "POST"),
+            Map.entry("put", "PUT"),
+            Map.entry("patchForObject", "PATCH"),
+            Map.entry("delete", "DELETE"),
+            Map.entry("exchange", ""),
+            Map.entry("execute", ""));
+    private static final Set<String> REST_TEMPLATE_TYPES = Set.of("RestTemplate", "RestOperations", "TestRestTemplate");
+    private static final Set<String> FLUENT_CLIENT_TYPES = Set.of("WebClient", "RestClient");
+    private static final Set<String> FLUENT_METHODS = Set.of("get", "post", "put", "patch", "delete", "head", "options");
+    private static final java.util.regex.Pattern CONST_MARKER =
+            java.util.regex.Pattern.compile("\\{" + java.util.regex.Pattern.quote(JavaFileFacts.CONSTANT_REF_PREFIX) + "([^}]+)}");
+
+    /** {@code restTemplate.getForObject(url, …)}: lời gọi HTTP; trả true nếu đã xử lý. */
+    private boolean restTemplateCall(Target caller, CallSiteFact site, Receiver receiver) {
+        String method = REST_TEMPLATE_METHODS.get(site.methodName());
+        if (method == null || site.http() == null || !REST_TEMPLATE_TYPES.contains(TypeNames.simple(receiver.externalName()))) {
+            return false;
+        }
+        String httpMethod = method.isEmpty() ? site.http().httpMethod() : method;
+        addHttpCall(caller, site, httpMethod, site.http().urlTemplate(), site.http().urlText(), null);
+        return true;
+    }
+
+    /**
+     * {@code webClient.get().uri(url)} / {@code restClient.method(HttpMethod.POST).uri(url)}: lời gọi {@code uri} có receiver
+     * là kết quả của {@code get()} / {@code method(…)} trên một {@code WebClient} / {@code RestClient}.
+     *
+     * @return true nếu đã xử lý
+     */
+    private boolean chainedHttpCall(Target caller, CallSiteFact site, Map<Integer, CallSiteFact> byOrder, Map<Integer, TypeRef> results) {
+        if (!site.methodName().equals("uri") || site.receiverCall() == null || site.http() == null) {
+            return false;
+        }
+        CallSiteFact verb = byOrder.get(site.receiverCall());
+        if (verb == null || !FLUENT_METHODS.contains(verb.methodName()) && !verb.methodName().equals("method")) {
+            return false;
+        }
+        Receiver client = receiverOf(caller, verb, results);
+        if (client == null || client.projectType() != null || !FLUENT_CLIENT_TYPES.contains(TypeNames.simple(client.externalName()))) {
+            return false;
+        }
+        String httpMethod = verb.methodName().equals("method")
+                ? verb.http() == null ? null : verb.http().httpMethod()
+                : verb.methodName().toUpperCase(java.util.Locale.ROOT);
+        addHttpCall(caller, site, httpMethod, site.http().urlTemplate(), site.http().urlText(), null);
+        return true;
+    }
+
+    /** Gọi hàm của interface {@code @FeignClient}: URL = path của client + mapping của interface + mapping của hàm. */
+    private void feignCall(Target caller, CallSiteFact site, TypeInfo client) {
+        List<MethodMatch> matches = index.findMethods(client.fqn(), site.methodName(), site.argCount());
+        if (matches.size() != 1) {
+            skippedCalls++;
+            return;
+        }
+        MethodFact method = matches.getFirst().method();
+        TypeInfo owner = matches.getFirst().declaringType();
+        JavaFileFacts.MappingFact mapping = owner.file().mappings().stream()
+                .filter(m -> owner.fqn().equals(m.declaringType()) && method.signature().equals(m.method()))
+                .findFirst()
+                .orElse(null);
+        if (mapping == null) {
+            skippedCalls++; // hàm default / không có mapping: không phải lời gọi HTTP
+            return;
+        }
+        String classPath = owner.file().mappings().stream()
+                .filter(m -> owner.fqn().equals(m.declaringType()) && m.method() == null)
+                .flatMap(m -> m.paths().stream())
+                .findFirst()
+                .orElse("");
+        Map<String, String> values = client.type().annotationValues();
+        String base = feignValue(values, "path", client);
+        String name = feignValue(values, "name", client);
+        if (name.isEmpty()) {
+            name = feignValue(values, "value", client);
+        }
+        String url = feignValue(values, "url", client);
+        String host = !url.isEmpty() && !url.contains("${") ? url.replaceFirst("^(?i)https?://", "").replaceFirst("/.*$", "") : name;
+        String template = joinPath(base, constantOrLiteral(classPath, owner), constantOrLiteral(mapping.paths().isEmpty() ? "" : mapping.paths().getFirst(), owner));
+        String httpMethod = mapping.httpMethods().isEmpty() ? null : mapping.httpMethods().getFirst();
+        // đường dẫn của Feign là hằng trong annotation: hiện như một chuỗi hằng
+        addHttpCall(caller, site, httpMethod, template, "\"" + template + "\"", host.isEmpty() ? null : host);
+    }
+
+    private String feignValue(Map<String, String> values, String attr, TypeInfo client) {
+        String raw = values.get(MappingExtractor.FEIGN_CLIENT + "." + attr);
+        return raw == null ? "" : constants.resolve(raw, client.file(), client.fqn()).orElse("").strip();
+    }
+
+    private String constantOrLiteral(String path, TypeInfo owner) {
+        return path.startsWith(JavaFileFacts.CONSTANT_REF_PREFIX)
+                ? constants.resolve(path, owner.file(), owner.fqn()).orElse("{" + path.substring(path.lastIndexOf('.') + 1) + "}")
+                : path;
+    }
+
+    private static String joinPath(String... parts) {
+        var out = new StringBuilder();
+        for (String p : parts) {
+            String v = p == null ? "" : p.strip();
+            if (v.isEmpty()) {
+                continue;
+            }
+            out.append(v.startsWith("/") ? "" : "/").append(v.endsWith("/") ? v.substring(0, v.length() - 1) : v);
+        }
+        return out.toString();
+    }
+
+    /**
+     * Node {@code HTTP_CALL} ({@code origin = BE}) + cạnh {@code SENDS}. URL: thay {@code {@const:TÊN}} bằng giá trị hằng
+     * số (không có thì giữ {@code {TÊN}} và ghi lý do), tách host của URL tuyệt đối, bỏ query string.
+     *
+     * @param host tên service / host đã biết (Feign); null thì lấy từ URL tuyệt đối nếu có
+     */
+    private void addHttpCall(Target caller, CallSiteFact site, String httpMethod, String template, String urlText, String host) {
+        var issues = new java.util.LinkedHashSet<String>();
+        String raw = template == null ? "{?}" : template;
+        var matcher = CONST_MARKER.matcher(raw);
+        var resolved = new StringBuilder();
+        while (matcher.find()) {
+            String ref = matcher.group(1);
+            String value = constants.resolve(JavaFileFacts.CONSTANT_REF_PREFIX + ref, caller.type().file(), caller.type().fqn()).orElse(null);
+            if (value == null) {
+                issues.add("Không tìm thấy giá trị của " + ref);
+                value = "{" + ref.substring(ref.lastIndexOf('.') + 1) + "}";
+            }
+            matcher.appendReplacement(resolved, java.util.regex.Matcher.quoteReplacement(value));
+        }
+        matcher.appendTail(resolved);
+        String url = resolved.toString().strip();
+        if (url.contains("{?}")) {
+            issues.add("Biểu thức URL không tính được: " + urlText);
+        }
+        var absolute = java.util.regex.Pattern.compile("^(?i)(?:https?:)?//([^/?#{]+)(.*)$").matcher(url);
+        if (absolute.matches()) {
+            host = host != null ? host : absolute.group(1);
+            url = absolute.group(2);
+        }
+        url = url.replaceFirst("[?#].*$", "").replaceAll("/{2,}", "/");
+        if (!url.isEmpty() && !url.startsWith("/") && !url.startsWith("{")) {
+            url = "/" + url;
+        }
+        boolean onlyUnknown = url.replace("{?}", "").replace("/", "").isEmpty();
+        String methodKey = caller.key();
+        int index = httpCounters.merge(methodKey, 1, Integer::sum) - 1;
+        String key = NodeKeys.javaHttpCall(methodKey, index);
+        String method = httpMethod == null ? "GET" : httpMethod;
+        if (httpMethod == null) {
+            issues.add("Không rõ phương thức HTTP, coi là GET");
+        }
+        var attrs = new TreeMap<String, Object>();
+        attrs.put("httpMethod", method);
+        attrs.put("urlExpr", urlText == null ? url : urlText);
+        if (!onlyUnknown) {
+            attrs.put("urlPattern", url);
+        }
+        attrs.put("urlResolved", issues.isEmpty() && !onlyUnknown);
+        if (!issues.isEmpty()) {
+            attrs.put("urlIssue", String.join("; ", issues));
+        }
+        if (host != null && !host.isBlank()) {
+            attrs.put("urlHost", host);
+        }
+        attrs.put("origin", "BE");
+        SourceLocation location = SourceLocation.of(caller.type().file().relativePath(), site.line());
+        httpNodes.put(key, new IrNode(key, NodeKind.HTTP_CALL, method + " " + (onlyUnknown ? attrs.get("urlExpr") : url), null, location, attrs));
+        edges.add(new IrEdge(caller.key(), key, EdgeKind.SENDS, Confidence.CERTAIN, null, site.callOrder(), site.guard(), List.of(), location));
     }
 
     // ---------------- truy vấn dữ liệu ----------------

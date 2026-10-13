@@ -1060,7 +1060,12 @@
       "endLine" : 34
     }
   } ],
-  "detectedLinkRules" : [ ],
+  "detectedLinkRules" : [ {
+    "type" : "CONTEXT_PATH",
+    "pattern" : "/shop-api",
+    "origin" : "AUTO",
+    "description" : "server.servlet.context-path trong cấu hình Spring (đã cộng vào đường dẫn API)"
+  } ],
   "diagnostics" : [ {
     "severity" : "WARNING",
     "filePath" : "src/main/java/com/example/shop/order/OrderController.java",

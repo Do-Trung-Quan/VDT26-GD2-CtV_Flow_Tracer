@@ -25,11 +25,11 @@ describe('ScanToast', () => {
   it('đang chạy: giai đoạn hiện tại theo sự kiện SSE, có nút hủy', () => {
     const el = render(
       { id: 'r1', status: 'RUNNING' },
-      { stage: 'EXTRACT', stageIndex: 3, stageCount: 6, processed: 5, total: 10, message: 'Đã xử lý 5/10 file' }
+      { stage: 'EXTRACT', stageIndex: 3, stageCount: 7, processed: 5, total: 10, message: 'Đã xử lý 5/10 file' }
     );
     expect(el.querySelector('.ttl')?.textContent).toContain('Đang quét Shop');
     expect([...el.querySelectorAll('.stg')].map((s) => state(s))).toEqual([
-      'done', 'done', 'cur', 'todo', 'todo', 'todo'
+      'done', 'done', 'cur', 'todo', 'todo', 'todo', 'todo'
     ]);
     expect(el.textContent).toContain('5/10');
     expect(el.textContent).toContain('Hủy quét');
@@ -46,12 +46,13 @@ describe('ScanToast', () => {
         stageDurations: [
           { stage: 'DISCOVER', durationMs: 2900 },
           { stage: 'DIFF', durationMs: 40 },
+          { stage: 'LINK', durationMs: 300 },
           { stage: 'FINALIZE', durationMs: 12 }
         ]
       }
     });
     const stages = [...el.querySelectorAll('.stg')];
-    expect(stages.map((s) => state(s))).toEqual(['done', 'done', 'skipped', 'skipped', 'skipped', 'done']);
+    expect(stages.map((s) => state(s))).toEqual(['done', 'done', 'skipped', 'skipped', 'skipped', 'done', 'done']);
     expect(stages[2].textContent).toContain('bỏ qua');
     expect(stages[0].textContent).toContain('2,9 giây');
     expect(el.textContent).toContain('Không có file nào thay đổi');

@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/link-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_1"];
+        put: operations["update_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces": {
         parameters: {
             query?: never;
@@ -84,6 +100,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/link-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_1"];
+        put?: never;
+        post: operations["create_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scans/{scanRunId}/cancel": {
         parameters: {
             query?: never;
@@ -123,13 +155,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_1"];
+        get: operations["get_2"];
         put?: never;
         post?: never;
         delete: operations["delete"];
         options?: never;
         head?: never;
-        patch: operations["update_1"];
+        patch: operations["update_2"];
         trace?: never;
     };
     "/api/workspaces/{id}/sources/{sourceId}": {
@@ -145,7 +177,7 @@ export interface paths {
         delete: operations["delete_1"];
         options?: never;
         head?: never;
-        patch: operations["update_2"];
+        patch: operations["update_3"];
         trace?: never;
     };
     "/api/workspaces/{id}/trees/frontend": {
@@ -212,6 +244,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/edges/{edgeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scans/{scanRunId}": {
         parameters: {
             query?: never;
@@ -219,7 +267,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_2"];
+        get: operations["get_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -276,6 +324,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/link-overrides/{overrideId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_2"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -304,6 +368,54 @@ export interface components {
         NoiseFiltersResponse: {
             defaults?: components["schemas"]["NoiseFilterResponse"][];
             manual?: components["schemas"]["NoiseFilterResponse"][];
+        };
+        LinkRuleItemRequest: {
+            /** @enum {string} */
+            type: "PREFIX" | "REWRITE" | "CONTEXT_PATH" | "QUERY_SINK";
+            pattern: string;
+            replacement?: string;
+            description?: string;
+        };
+        UpdateLinkRulesRequest: {
+            manual: components["schemas"]["LinkRuleItemRequest"][];
+        };
+        ApiResponseLinkRulesResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["LinkRulesResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        LinkRuleResponse: {
+            /** @enum {string} */
+            type?: "PREFIX" | "REWRITE" | "CONTEXT_PATH" | "QUERY_SINK";
+            pattern?: string;
+            replacement?: string;
+            /** @enum {string} */
+            origin?: "AUTO" | "MANUAL";
+            description?: string;
+        };
+        LinkRulesResponse: {
+            detected?: components["schemas"]["LinkRuleResponse"][];
+            manual?: components["schemas"]["LinkRuleResponse"][];
+            relink?: components["schemas"]["LinkSummaryResponse"];
+        };
+        LinkSummaryResponse: {
+            /** Format: int32 */
+            calls?: number;
+            /** Format: int32 */
+            certain?: number;
+            /** Format: int32 */
+            inferred?: number;
+            /** Format: int32 */
+            unresolved?: number;
+            /** Format: int32 */
+            external?: number;
+            /** Format: int32 */
+            changed?: number;
         };
         CreateSourceRequest: {
             rootPath: string;
@@ -546,10 +658,45 @@ export interface components {
         };
         StageDurationResponse: {
             /** @enum {string} */
-            stage?: "DISCOVER" | "DIFF" | "EXTRACT" | "RESOLVE" | "PERSIST" | "FINALIZE";
+            stage?: "DISCOVER" | "DIFF" | "EXTRACT" | "RESOLVE" | "PERSIST" | "LINK" | "FINALIZE";
             label?: string;
             /** Format: int64 */
             durationMs?: number;
+        };
+        CreateLinkOverrideRequest: {
+            fromNodeKey: string;
+            toNodeKey?: string;
+            /** @enum {string} */
+            edgeKind: "CONTAINS" | "TRIGGERS" | "CALLS" | "OPENS" | "NAVIGATES" | "SENDS" | "HTTP_REQUEST" | "HANDLED_BY" | "EXECUTES" | "READS" | "WRITES" | "USES_TYPE";
+            /** @enum {string} */
+            decision: "PIN" | "REJECT";
+            note?: string;
+        };
+        ApiResponseLinkOverrideResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["LinkOverrideResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        LinkOverrideResponse: {
+            /** Format: uuid */
+            id?: string;
+            fromNodeKey?: string;
+            fromName?: string;
+            toNodeKey?: string;
+            toName?: string;
+            /** @enum {string} */
+            edgeKind?: "CONTAINS" | "TRIGGERS" | "CALLS" | "OPENS" | "NAVIGATES" | "SENDS" | "HTTP_REQUEST" | "HANDLED_BY" | "EXECUTES" | "READS" | "WRITES" | "USES_TYPE";
+            /** @enum {string} */
+            decision?: "PIN" | "REJECT";
+            note?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            stale?: boolean;
         };
         DetectFolderRequest: {
             rootPath: string;
@@ -763,6 +910,61 @@ export interface components {
             /** Format: int32 */
             limit?: number;
         };
+        ApiResponseListLinkOverrideResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["LinkOverrideResponse"][];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        ApiResponseEdgeDetailResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["EdgeDetailResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        EdgeCandidateResponse: {
+            node?: components["schemas"]["EdgeNodeResponse"];
+            nodeKey?: string;
+            /** @enum {string} */
+            level?: "HIGH" | "MEDIUM" | "LOW";
+            levelLabel?: string;
+            reason?: string;
+            current?: boolean;
+        };
+        EdgeDetailResponse: {
+            edgeId?: string;
+            /** @enum {string} */
+            kind?: "CONTAINS" | "TRIGGERS" | "CALLS" | "OPENS" | "NAVIGATES" | "SENDS" | "HTTP_REQUEST" | "HANDLED_BY" | "EXECUTES" | "READS" | "WRITES" | "USES_TYPE";
+            /** @enum {string} */
+            confidence?: "CERTAIN" | "INFERRED" | "UNRESOLVED" | "RUNTIME_VERIFIED";
+            reason?: string;
+            from?: components["schemas"]["EdgeNodeResponse"];
+            to?: components["schemas"]["EdgeNodeResponse"];
+            candidates?: components["schemas"]["EdgeCandidateResponse"][];
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+            override?: components["schemas"]["LinkOverrideResponse"];
+            overridable?: boolean;
+        };
+        EdgeNodeResponse: {
+            nodeKey?: string;
+            /** @enum {string} */
+            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
+            name?: string;
+            displayName?: string;
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+        };
         SseEmitter: {
             /** Format: int64 */
             timeout?: number;
@@ -877,6 +1079,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseNoiseFiltersResponse"];
+                };
+            };
+        };
+    };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseLinkRulesResponse"];
+                };
+            };
+        };
+    };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLinkRulesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseLinkRulesResponse"];
                 };
             };
         };
@@ -1028,6 +1278,54 @@ export interface operations {
             };
         };
     };
+    list_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListLinkOverrideResponse"];
+                };
+            };
+        };
+    };
+    create_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLinkOverrideRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseLinkOverrideResponse"];
+                };
+            };
+        };
+    };
     cancel: {
         parameters: {
             query?: never;
@@ -1074,7 +1372,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    get_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1118,7 +1416,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1167,7 +1465,7 @@ export interface operations {
             };
         };
     };
-    update_2: {
+    update_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1289,7 +1587,30 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                edgeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseEdgeDetailResponse"];
+                };
+            };
+        };
+    };
+    get_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1376,6 +1697,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseFolderBrowseResponse"];
+                };
+            };
+        };
+    };
+    delete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                overrideId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
                 };
             };
         };

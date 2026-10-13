@@ -16,6 +16,7 @@ import com.ctv.flowtracer.app.graph.repository.IrNodeRepository;
 import com.ctv.flowtracer.app.workspace.model.SourceScanTarget;
 import com.ctv.flowtracer.app.workspace.service.WorkspaceService;
 import com.ctv.flowtracer.core.graph.Subgraph;
+import com.ctv.flowtracer.ir.EdgeKind;
 import com.ctv.flowtracer.ir.IrEdge;
 import com.ctv.flowtracer.ir.IrNode;
 import com.ctv.flowtracer.ir.NodeKind;
@@ -143,22 +144,49 @@ public class GraphQueryService {
         return value == null ? null : value.toString();
     }
 
+    /** Như {@link #subgraphFrom(UUID, String, int, Map)} khi không có liên kết chốt tay. */
+    @Transactional(readOnly = true)
+    public Subgraph subgraphFrom(UUID workspaceId, String startKey, int maxDepth) {
+        return subgraphFrom(workspaceId, startKey, maxDepth, Map.of());
+    }
+
     /**
      * Đồ thị con để dò vết: node xuất phát, mọi node đi tới được trong tối đa {@code maxDepth} bước, các edge xuất phát từ
-     * chúng, và (chỉ để hiển thị) node của các ứng viên. Mỗi edge kèm id CSDL làm {@code edgeRef}.
+     * chúng, và (chỉ để hiển thị) node của các ứng viên. Mỗi edge kèm id CSDL làm {@code edgeRef}. Đích của liên kết chốt
+     * tay xuất phát từ một node đã nạp cũng được nạp cùng phần đi tới được từ nó — để Tracer đi tiếp sau khi áp chốt tay.
      *
+     * @param pinTargets key node đi → các key đích đã chốt tay (PIN)
      * @throws AppException {@code NODE_NOT_FOUND} nếu Workspace chưa quét hoặc không có node này
      */
     @Transactional(readOnly = true)
-    public Subgraph subgraphFrom(UUID workspaceId, String startKey, int maxDepth) {
+    public Subgraph subgraphFrom(UUID workspaceId, String startKey, int maxDepth, Map<String, Set<String>> pinTargets) {
         IrNodeRow start = nodes.findByKey(workspaceId, startKey)
                 .orElseThrow(() -> new AppException(ErrorCode.NODE_NOT_FOUND, "Không tìm thấy thành phần cần dò vết trong kết quả quét"));
-        // Mỗi bước đi qua method thêm tối đa 1 cạnh; cộng 3 cho cạnh xử lý, truy vấn và bảng ở hai đầu
-        List<UUID> reachable = edges.reachableNodeIds(start.id(), maxDepth + 3);
-        List<IrEdgeRow> edgeRows = edges.findByFromNodes(workspaceId, reachable);
-
+        // Mỗi bước đi qua method thêm tối đa 1 cạnh; cộng 3 cho cạnh xử lý, truy vấn và bảng ở hai đầu. Từ phần tử giao diện
+        // còn thêm chuỗi hàm phía Frontend (hàm xử lý → facade → repository → lời gọi HTTP → API) trước khi tới Backend.
+        int depth = maxDepth + 3 + (start.node().kind() == NodeKind.UI_ELEMENT ? FRONTEND_EXTRA_DEPTH : 0);
+        Set<UUID> reachable = new java.util.TreeSet<>(edges.reachableNodeIds(start.id(), depth));
         Map<String, IrNode> byKey = new TreeMap<>();
         nodes.findByIds(workspaceId, reachable).forEach(r -> byKey.put(r.node().key(), r.node()));
+        // Đích chốt tay chưa nằm trong phần đã nạp: nạp thêm (lặp vì đích mới có thể dẫn tới chốt tay khác)
+        for (int round = 0; round < MAX_PIN_ROUNDS && !pinTargets.isEmpty(); round++) {
+            Set<String> missing = new java.util.TreeSet<>();
+            pinTargets.forEach((from, targets) -> {
+                if (byKey.containsKey(from)) {
+                    targets.stream().filter(t -> !byKey.containsKey(t)).forEach(missing::add);
+                }
+            });
+            if (missing.isEmpty()) {
+                break;
+            }
+            for (IrNodeRow target : nodes.findByKeys(workspaceId, missing)) {
+                List<UUID> more = edges.reachableNodeIds(target.id(), maxDepth + 3);
+                reachable.addAll(more);
+                nodes.findByIds(workspaceId, more).forEach(r -> byKey.put(r.node().key(), r.node()));
+            }
+        }
+        List<IrEdgeRow> edgeRows = edges.findByFromNodes(workspaceId, reachable);
+
         Set<String> candidateKeys = new LinkedHashSet<>();
         edgeRows.forEach(r -> r.edge().candidates().forEach(c -> candidateKeys.add(c.nodeKey())));
         candidateKeys.removeAll(byKey.keySet());
@@ -171,6 +199,31 @@ public class GraphQueryService {
             refs.put(Subgraph.edgeId(row.edge()), row.id().toString());
         }
         return new Subgraph(List.copyOf(byKey.values()), edgeList, refs, Set.of());
+    }
+
+    /** Số cạnh thêm khi dò từ phần tử giao diện (chuỗi hàm phía Frontend). */
+    private static final int FRONTEND_EXTRA_DEPTH = 12;
+    /** Số vòng nạp thêm đích chốt tay tối đa. */
+    private static final int MAX_PIN_ROUNDS = 5;
+
+    /** Mọi thành phần một loại của Workspace (vd lời gọi HTTP, endpoint cho Linker), sắp theo key. */
+    public List<IrNodeRow> nodesOfKind(UUID workspaceId, NodeKind kind) {
+        return nodes.findAllByKind(workspaceId, kind);
+    }
+
+    /** Thành phần theo key (bỏ qua key không có). */
+    public List<IrNodeRow> nodesByKeys(UUID workspaceId, java.util.Collection<String> keys) {
+        return nodes.findByKeys(workspaceId, keys);
+    }
+
+    /** Một edge theo id. */
+    public java.util.Optional<IrEdgeRow> edge(UUID workspaceId, UUID edgeId) {
+        return edges.findById(workspaceId, edgeId);
+    }
+
+    /** Mọi edge một loại của Workspace (vd liên kết HTTP_REQUEST để thống kê). */
+    public List<IrEdgeRow> edgesOfKind(UUID workspaceId, EdgeKind kind) {
+        return edges.findByKind(workspaceId, kind);
     }
 
     public long countNodes(UUID workspaceId) {

@@ -37,7 +37,8 @@ public final class Tracer {
 
     /** Như {@link #trace(Subgraph, TraceRequest)} với giới hạn số bước khác (dùng để đo mức rút gọn). */
     public Trace trace(Subgraph graph, TraceRequest request, int maxSteps) {
-        if (graph.nodes().stream().anyMatch(n -> n.key().equals(request.startKey()) && n.kind() == NodeKind.UI_ELEMENT)) {
+        boolean element = graph.nodes().stream().anyMatch(n -> n.key().equals(request.startKey()) && n.kind() == NodeKind.UI_ELEMENT);
+        if (element && !UiOnlyTracer.callsServer(graph, request.startKey())) {
             return new UiOnlyTracer().trace(graph, request);
         }
         Subgraph applied = overrides.apply(graph, request.overrides());

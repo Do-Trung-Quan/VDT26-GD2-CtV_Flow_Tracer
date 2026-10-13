@@ -1,5 +1,12 @@
 package com.ctv.flowtracer.app.tracing.service;
 
+import com.ctv.flowtracer.app.linking.service.LinkOverrideService;
+import com.ctv.flowtracer.core.tracer.OverrideRule;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import com.ctv.flowtracer.app.common.error.AppException;
 import com.ctv.flowtracer.app.common.error.ErrorCode;
 import com.ctv.flowtracer.app.graph.service.GraphQueryService;
@@ -34,30 +41,39 @@ public class TracingService {
 
     private final WorkspaceService workspaceService;
     private final GraphQueryService graphQueryService;
+    private final LinkOverrideService overrideService;
     private final TraceCache cache;
     private final Tracer tracer = new Tracer();
 
-    public TracingService(WorkspaceService workspaceService, GraphQueryService graphQueryService, TraceCache cache) {
+    public TracingService(
+            WorkspaceService workspaceService,
+            GraphQueryService graphQueryService,
+            LinkOverrideService overrideService,
+            TraceCache cache) {
         this.workspaceService = workspaceService;
         this.graphQueryService = graphQueryService;
+        this.overrideService = overrideService;
         this.cache = cache;
     }
 
     /**
-     * D1 — dò vết từ một API Backend hoặc từ một phần tử giao diện không gọi máy chủ.
+     * D1 — dò vết từ một API Backend hoặc từ một phần tử giao diện (End-to-End nếu có gọi API, chỉ giao diện nếu không). Áp
+     * liên kết chốt tay và bộ lọc nhiễu của Workspace.
      *
      * @throws AppException {@code WORKSPACE_NOT_FOUND}; {@code NODE_NOT_FOUND} nếu chưa quét hoặc không có node;
-     *     {@code TRACE_START_UNSUPPORTED} nếu node xuất phát không phải API Backend / phần tử giao diện, hoặc phần tử gọi API
-     *     (cần nối Frontend với Backend — giai đoạn sau)
+     *     {@code TRACE_START_UNSUPPORTED} nếu node xuất phát không phải API Backend / phần tử giao diện
      */
     public TraceResponse trace(UUID workspaceId, CreateTraceRequest request) {
         TraceSettings settings = workspaceService.traceSettings(workspaceId);
         int maxDepth = request.maxDepth() != null
                 ? request.maxDepth()
                 : settings.defaultMaxDepth() != null ? settings.defaultMaxDepth() : TraceRequest.DEFAULT_MAX_DEPTH;
-        // Chốt tay (Giai đoạn 5) sẽ được nạp ở đây rồi truyền vào TraceRequest; hiện chưa có liên kết nào để áp
-        var traceRequest = new TraceRequest(
-                request.startKey(), maxDepth, String.valueOf(settings.lastScanRunId()), settings.noiseFilters(), List.of());
+        List<OverrideRule> overrides = overrideService.rules(workspaceId);
+        // Liên kết đổi khi quét lại (lần quét mới) hoặc khi sửa luật (nối lại ngay, không quét): cả hai nằm trong khóa
+        String linkState = settings.lastScanRunId() + "/" + workspaceService.linkRules(workspaceId).effective().stream()
+                .map(r -> r.type() + ":" + r.pattern() + ">" + r.replacement())
+                .collect(Collectors.joining(","));
+        var traceRequest = new TraceRequest(request.startKey(), maxDepth, linkState, settings.noiseFilters(), overrides);
         String traceId = TraceIds.of(traceRequest);
 
         CachedTrace cached = cache.get(workspaceId, traceId).orElse(null);
@@ -69,7 +85,11 @@ public class TracingService {
     }
 
     private CachedTrace compute(UUID workspaceId, TraceRequest traceRequest) {
-        Subgraph graph = graphQueryService.subgraphFrom(workspaceId, traceRequest.startKey(), traceRequest.maxDepth());
+        Map<String, Set<String>> pinTargets = new HashMap<>();
+        traceRequest.overrides().stream()
+                .filter(o -> o.decision() == OverrideRule.Decision.PIN)
+                .forEach(o -> pinTargets.computeIfAbsent(o.fromKey(), k -> new HashSet<>()).add(o.toKey()));
+        Subgraph graph = graphQueryService.subgraphFrom(workspaceId, traceRequest.startKey(), traceRequest.maxDepth(), pinTargets);
         IrNode start = graph.nodes().stream()
                 .filter(n -> n.key().equals(traceRequest.startKey()))
                 .findFirst()

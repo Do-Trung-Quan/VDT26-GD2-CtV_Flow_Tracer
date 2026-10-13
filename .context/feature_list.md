@@ -151,6 +151,8 @@
 - **Mức khớp của ứng viên:** điểm tất định cộng từ các đặc trưng có trọng số: khớp từng đoạn đường dẫn, khớp phương thức HTTP, số tham số, luật đã dùng, `@Primary` / `@Qualifier`, khoảng cách package. Điểm này **không phải xác suất đúng**, nên giao diện hiện 3 mức **Cao / Trung bình / Thấp** thay vì con số %. Trọng số được hiệu chỉnh bằng script đo độ chính xác.
 - **Nhờ AI phân tích:** AI giải thích vì sao nên hoặc không nên chọn từng ứng viên, dẫn chứng từ code. AI được đề xuất thêm **một** ứng viên ngoài danh sách; ứng viên này chỉ hiển thị (nhãn "AI đề xuất") khi là thành phần **có thật** trong kết quả quét và **hợp lệ về kiểu** (lớp đúng là hiện thực của interface, hoặc endpoint khớp phương thức HTTP). AI **không bao giờ** tự đổi liên kết hay tạo thành phần mới; chỉ người dùng chốt tay mới đổi diagram.
 - **Thiếu một phía:** chỉ có Frontend thì đích là "API bên ngoài"; chỉ có Backend thì điểm bắt đầu là "Client".
+- **Luật liên kết:** `PREFIX` (thay tiền tố URL phía Frontend, kể cả phần không tính được như `{apiBase}`), `REWRITE` (biểu thức chính quy, như `pathRewrite` của proxy — tự phát hiện từ `proxy.conf.json`), `CONTEXT_PATH` (tiền tố của Backend — tự phát hiện từ cấu hình Spring, đã cộng sẵn vào đường dẫn API; luật thủ công áp cho API chưa có context-path). Luật không áp nối tiếp mà thử từng phương án (gốc, một luật, luật thủ công + luật tự phát hiện); phương án ít luật hơn được ưu tiên. Chi tiết thuật toán và điểm: §2.2.5 của overview.
+- **Gọi giữa các Backend:** `RestTemplate`, `WebClient` / `RestClient`, `@FeignClient` thành lời gọi HTTP phía Backend; khớp API trong Workspace thì nối Backend → Backend, không khớp thì thành hệ thống ngoài theo host / tên service.
 
 ---
 

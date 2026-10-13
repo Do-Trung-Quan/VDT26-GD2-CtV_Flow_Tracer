@@ -11,14 +11,29 @@ import { WorkspaceContext } from '../../core/workspace-context';
 import { ROLE_LABEL, ROLE_PILL, stackText } from './detection-message';
 import { ScanHistory } from '../scan/scan-history';
 import { FolderBrowser } from './folder-browser';
+import { LinkOverridesTab } from './link-overrides-tab';
+import { LinkRulesTab } from './link-rules-tab';
+import { NoiseFiltersTab } from './noise-filters-tab';
+
+type SettingsTab = 'sources' | 'rules' | 'noise' | 'overrides' | 'history';
+
+/** Các tab theo bản vẽ giao diện; "Đối chiếu OpenAPI" (Nên có) chưa làm. */
+const TABS: readonly { id: SettingsTab; label: string }[] = [
+  { id: 'sources', label: 'Nguồn mã' },
+  { id: 'rules', label: 'Luật liên kết' },
+  { id: 'noise', label: 'Bộ lọc nhiễu' },
+  { id: 'overrides', label: 'Liên kết chốt tay' },
+  { id: 'history', label: 'Lịch sử quét' }
+];
 
 /**
- * Cài đặt Workspace › tab Nguồn mã và tab Lịch sử quét (B5). Tab Nguồn mã: thông tin Workspace (A3, A4), thêm / sửa tên và thư mục loại trừ / gỡ nguồn mã
- * (A7–A9), vùng nguy hiểm xóa Workspace (A5). Các tab khác (luật liên kết, bộ lọc nhiễu…) làm ở giai đoạn sau.
+ * Cài đặt Workspace: Nguồn mã — thông tin Workspace (A3, A4), thêm / sửa tên và thư mục loại trừ / gỡ nguồn mã (A7–A9), vùng nguy
+ * hiểm xóa Workspace (A5); Luật liên kết (E6–E7); Bộ lọc nhiễu (I4–I5); Liên kết chốt tay (E3, E5); Lịch sử quét (B5). Mỗi tab có
+ * một khối hướng dẫn ngắn như bản vẽ giao diện.
  */
 @Component({
   selector: 'app-workspace-settings',
-  imports: [Icon, Modal, ConfirmDialog, FolderBrowser, ScanHistory],
+  imports: [Icon, Modal, ConfirmDialog, FolderBrowser, ScanHistory, LinkRulesTab, NoiseFiltersTab, LinkOverridesTab],
   template: `
     <section class="page">
       @if (loading() && !ws()) {
@@ -30,12 +45,20 @@ import { FolderBrowser } from './folder-browser';
         <h1>Cài đặt · {{ w.name }}</h1>
         <div class="sub">Thư mục mã nguồn và thông tin của Workspace.</div>
         <div class="tabs" role="tablist">
-          <button class="tab" type="button" role="tab" [class.on]="tab() === 'sources'" (click)="tab.set('sources')">Nguồn mã</button>
-          <button class="tab" type="button" role="tab" [class.on]="tab() === 'history'" (click)="tab.set('history')">Lịch sử quét</button>
+          @for (t of tabs; track t.id) {
+            <button class="tab" type="button" role="tab" [class.on]="tab() === t.id" (click)="tab.set(t.id)">{{ t.label }}</button>
+          }
         </div>
+        <div class="info help"><app-icon name="info" [small]="true" /><div [innerHTML]="help[tab()]"></div></div>
 
         @if (tab() === 'history') {
           <app-scan-history [workspaceId]="w.id!" />
+        } @else if (tab() === 'rules') {
+          <app-link-rules-tab [workspaceId]="w.id!" />
+        } @else if (tab() === 'noise') {
+          <app-noise-filters-tab [workspaceId]="w.id!" />
+        } @else if (tab() === 'overrides') {
+          <app-link-overrides-tab [workspaceId]="w.id!" />
         } @else {
 
         <div class="card pad block">
@@ -159,6 +182,7 @@ import { FolderBrowser } from './folder-browser';
     .danger-zone { box-shadow: inset 0 0 0 1px #fecaca; }
     .w40 { width: 40%; height: 22px; }
     .m0 { margin: 0; }
+    .help { margin-bottom: 14px; }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -190,7 +214,21 @@ export class WorkspaceSettingsPage {
   protected readonly editExcludes = signal('');
   protected readonly removing = signal<SourceDto | null>(null);
   protected readonly deletingWs = signal(false);
-  protected readonly tab = signal<'sources' | 'history'>('sources');
+  protected readonly tab = signal<SettingsTab>('sources');
+  protected readonly tabs = TABS;
+  /** Hướng dẫn của từng tab — câu chữ theo bản vẽ giao diện (HTML tĩnh, không chứa dữ liệu người dùng). */
+  protected readonly help: Record<SettingsTab, string> = {
+    sources:
+      'Danh sách thư mục mã nguồn của dự án. Vai trò (Backend/Frontend) và công nghệ do tool <b>tự nhận diện</b>; bạn chỉ cần thêm thư mục loại trừ khi muốn bỏ qua một phần code (vd code sinh tự động, dữ liệu test).',
+    rules:
+      'Frontend thường gọi API bằng URL ghép từ biến (ví dụ <span class="mono">${apiUrl}/categories</span>). Luật liên kết cho tool biết biến đó nghĩa là gì để nối đúng tới API ở Backend. Tool tự phát hiện một số luật; bạn thêm luật tay khi nối sai hoặc thiếu.',
+    noise:
+      'Những lời gọi vô nghĩa với người đọc (ghi log, hàm tiện ích, chuyển đổi DTO…) bị ẩn khỏi diagram để luồng gọn. Danh sách mặc định không xóa được; bạn có thể thêm bộ lọc riêng.',
+    overrides:
+      'Mỗi lần bạn bấm "Chốt tay" trên diagram, lựa chọn được lưu ở đây. Liên kết chốt tay <b>luôn thắng</b> kết quả tự động và được giữ qua mọi lần quét lại. Bỏ chốt ở đây để trả về kết quả tự động.',
+    history:
+      'Các lần quét trước: kết quả, số file thay đổi và file lỗi. Lần quét thất bại hoặc bị hủy không làm mất dữ liệu của lần quét thành công trước đó.'
+  };
 
   constructor() {
     effect(() => {

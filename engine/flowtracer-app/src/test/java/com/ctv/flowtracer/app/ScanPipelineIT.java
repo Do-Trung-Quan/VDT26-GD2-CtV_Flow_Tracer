@@ -137,7 +137,7 @@ class ScanPipelineIT {
                 .containsEntry("fromCache", 0).containsEntry("errors", 0);
         assertThat(stats.get("endpoints").asLong()).isEqualTo(4);
         assertThat(stats.get("noChanges").asBoolean()).isFalse();
-        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "FINALIZE");
+        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "LINK", "FINALIZE");
         assertThat(stats.get("sources").get(0).get("endpoints").asInt()).isEqualTo(4);
 
         JsonNode tree = tree();
@@ -173,7 +173,7 @@ class ScanPipelineIT {
         JsonNode stats = run.get("stats");
         assertThat(stats.get("noChanges").asBoolean()).isTrue();
         assertThat(files(stats)).containsEntry("total", 3).containsEntry("unchanged", 3).containsEntry("extracted", 0);
-        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "FINALIZE");
+        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "LINK", "FINALIZE");
         assertThat(stats.get("endpoints").asLong()).isEqualTo(5);
     }
 
@@ -190,7 +190,7 @@ class ScanPipelineIT {
         assertThat(stats.get("configChanges").asInt()).isEqualTo(1);
         assertThat(files(stats)).containsEntry("total", 3).containsEntry("added", 0).containsEntry("modified", 0)
                 .containsEntry("unchanged", 3).containsEntry("extracted", 0).containsEntry("fromCache", 3);
-        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "FINALIZE");
+        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "LINK", "FINALIZE");
         assertThat(tree().get("modules").get(0).get("name").asString()).isEqualTo("Renamed");
 
         // lần quét kế tiếp không còn thay đổi nào
@@ -224,7 +224,7 @@ class ScanPipelineIT {
         JsonNode stats = run.get("stats");
         assertThat(stats.get("noChanges").asBoolean()).isFalse();
         assertThat(files(stats)).containsEntry("unchanged", 3).containsEntry("extracted", 3).containsEntry("fromCache", 0);
-        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "FINALIZE");
+        assertThat(stages(stats)).containsExactly("DISCOVER", "DIFF", "EXTRACT", "RESOLVE", "PERSIST", "LINK", "FINALIZE");
 
         // đã dựng lại bằng phiên bản mới: lần quét kế tiếp không còn gì để làm
         assertThat(scanAndWait("RESCAN").get("stats").get("noChanges").asBoolean()).isTrue();

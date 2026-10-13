@@ -26,7 +26,7 @@ public final class JavaFileExtractor {
      * Dữ kiện cache với phiên bản cũ bị bỏ, và "Quét lại" phân tích lại toàn bộ dù không file nào đổi — nếu không IR đã lưu
      * sẽ thiếu những gì bản mới biết.
      */
-    public static final String VERSION = "4";
+    public static final String VERSION = "5";
 
     private static final int MAX_REPORTED_PROBLEMS = 5;
 

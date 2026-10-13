@@ -11,12 +11,22 @@
     "role" : "CONTROLLER",
     "nodeKey" : "java:method:com.example.flow.order.OrderController#confirm(Long)"
   }, {
+    "id" : "c2",
+    "label" : "Controller Product",
+    "role" : "CONTROLLER",
+    "nodeKey" : "java:method:com.example.flow.product.ProductController#options()"
+  }, {
     "id" : "s1",
     "label" : "Service Order",
     "role" : "SERVICE",
     "nodeKey" : "java:method:com.example.flow.order.OrderService#confirm(Long)"
   }, {
     "id" : "s2",
+    "label" : "Service Product",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.product.ProductService#getOptions()"
+  }, {
+    "id" : "s3",
     "label" : "Service Audit",
     "role" : "SERVICE",
     "nodeKey" : "java:method:com.example.flow.common.AuditService#record(?)"
@@ -26,10 +36,35 @@
     "role" : "REPOSITORY",
     "nodeKey" : "java:method:com.example.flow.order.OrderRepository#findById(ID)"
   }, {
+    "id" : "r2",
+    "label" : "Repository ProductSearch",
+    "role" : "REPOSITORY",
+    "nodeKey" : "java:method:com.example.flow.product.ProductSearchDao#search(String,boolean)"
+  }, {
     "id" : "t1",
     "label" : "Bảng shop_order",
     "role" : "DATABASE",
     "nodeKey" : "java:table:shop_order"
+  }, {
+    "id" : "t2",
+    "label" : "Bảng product",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:product"
+  }, {
+    "id" : "t3",
+    "label" : "Bảng product_brand",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:product_brand"
+  }, {
+    "id" : "x1",
+    "label" : "inventory-service",
+    "role" : "EXTERNAL",
+    "nodeKey" : "ext:system:inventory-service"
+  }, {
+    "id" : "x2",
+    "label" : "payment.example.com",
+    "role" : "EXTERNAL",
+    "nodeKey" : "ext:system:payment.example.com"
   } ],
   "steps" : [ {
     "index" : 1,
@@ -128,7 +163,159 @@
   }, {
     "index" : 10,
     "from" : "s1",
+    "to" : "c2",
+    "kind" : "HTTP_REQUEST",
+    "label" : "GET /api/v1/products/options",
+    "confidence" : "CERTAIN",
+    "reason" : "URL là chuỗi hằng khớp đúng API GET /api/v1/products/options",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 11,
+    "from" : "c2",
     "to" : "s2",
+    "kind" : "CALLS",
+    "label" : "getOptions()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 12,
+    "from" : "s2",
+    "to" : "r2",
+    "kind" : "CALLS",
+    "label" : "search(keyword, withBrand)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 13,
+    "from" : "r2",
+    "to" : "t2",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "INFERRED",
+    "reason" : "Câu truy vấn ghép từ 3 mảnh chuỗi (1 mảnh có điều kiện); bảng suy ra từ các mảnh này",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 14,
+    "from" : "t2",
+    "to" : "r2",
+    "label" : "kết quả",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 15,
+    "from" : "r2",
+    "to" : "t3",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "INFERRED",
+    "reason" : "Câu truy vấn ghép từ 3 mảnh chuỗi (1 mảnh có điều kiện); bảng suy ra từ các mảnh này",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 16,
+    "from" : "t3",
+    "to" : "r2",
+    "label" : "kết quả",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 17,
+    "from" : "r2",
+    "to" : "s2",
+    "label" : "List<Product>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 18,
+    "from" : "s2",
+    "to" : "c2",
+    "label" : "List<Product>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 19,
+    "from" : "c2",
+    "to" : "s1",
+    "label" : "200 ApiResponse<List<Product>>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 20,
+    "from" : "s1",
+    "to" : "x1",
+    "kind" : "HTTP_REQUEST",
+    "label" : "POST /api/v1/inventory/{orderId}/reserve",
+    "confidence" : "INFERRED",
+    "reason" : "Lời gọi tới địa chỉ tuyệt đối inventory-service, không khớp API nào trong Workspace",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 21,
+    "from" : "x1",
+    "to" : "s1",
+    "label" : "kết quả",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 22,
+    "from" : "s1",
+    "to" : "x2",
+    "kind" : "HTTP_REQUEST",
+    "label" : "POST /api/charges",
+    "confidence" : "INFERRED",
+    "reason" : "Lời gọi tới địa chỉ tuyệt đối payment.example.com, không khớp API nào trong Workspace",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 23,
+    "from" : "x2",
+    "to" : "s1",
+    "label" : "kết quả",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 24,
+    "from" : "s1",
+    "to" : "s3",
     "kind" : "CALLS",
     "label" : "record(…)",
     "confidence" : "UNRESOLVED",
@@ -138,8 +325,8 @@
     "error" : false,
     "self" : false
   }, {
-    "index" : 11,
-    "from" : "s2",
+    "index" : 25,
+    "from" : "s3",
     "to" : "s1",
     "label" : "(chưa xác định)",
     "confidence" : "UNRESOLVED",
@@ -148,7 +335,7 @@
     "error" : false,
     "self" : false
   }, {
-    "index" : 12,
+    "index" : 26,
     "from" : "s1",
     "to" : "c1",
     "label" : "OK",
@@ -158,7 +345,7 @@
     "error" : false,
     "self" : false
   }, {
-    "index" : 13,
+    "index" : 27,
     "from" : "c1",
     "to" : "user",
     "label" : "200 OK",
@@ -172,11 +359,11 @@
     "type" : "ALT",
     "label" : "!order.isPending()",
     "fromStep" : 8,
-    "toStep" : 13,
+    "toStep" : 27,
     "elseBranches" : [ {
       "label" : "ngược lại",
       "fromStep" : 10
     } ]
   } ],
-  "warnings" : [ "1 lời gọi chưa xác định được đích (xem bước 10)" ]
+  "warnings" : [ "1 lời gọi chưa xác định được đích (xem bước 24)" ]
 }

@@ -40,6 +40,16 @@ export type TraceParticipantDto = Schemas['TraceParticipantResponse'];
 export type TraceExportDto = Schemas['TraceExportResponse'];
 export type ExportFormat = 'plantuml' | 'svg';
 
+export type EdgeDetailDto = Schemas['EdgeDetailResponse'];
+export type EdgeNodeDto = Schemas['EdgeNodeResponse'];
+export type EdgeCandidateDto = Schemas['EdgeCandidateResponse'];
+export type LinkOverrideDto = Schemas['LinkOverrideResponse'];
+export type CreateLinkOverrideRequest = Schemas['CreateLinkOverrideRequest'];
+export type LinkRulesDto = Schemas['LinkRulesResponse'];
+export type LinkRuleDto = Schemas['LinkRuleResponse'];
+export type LinkRuleType = NonNullable<LinkRuleDto['type']>;
+export type UpdateLinkRulesRequest = Schemas['UpdateLinkRulesRequest'];
+
 /** Kết quả phân trang dùng chung của Engine. */
 export interface PageDto<T> {
   items: T[];
@@ -49,7 +59,7 @@ export interface PageDto<T> {
 }
 
 /** Giai đoạn quét — khớp enum ScanStage của Engine. */
-export type ScanStage = 'DISCOVER' | 'DIFF' | 'EXTRACT' | 'RESOLVE' | 'PERSIST' | 'FINALIZE';
+export type ScanStage = 'DISCOVER' | 'DIFF' | 'EXTRACT' | 'RESOLVE' | 'PERSIST' | 'LINK' | 'FINALIZE';
 
 /** Sự kiện `progress` của luồng SSE (API B2) — khớp record ScanProgressResponse của Engine (SSE không có trong OpenAPI). */
 export interface ScanProgressDto {

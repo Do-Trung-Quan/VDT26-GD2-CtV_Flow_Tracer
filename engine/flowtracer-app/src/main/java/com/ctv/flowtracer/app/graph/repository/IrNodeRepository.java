@@ -85,6 +85,23 @@ public class IrNodeRepository {
         }
     }
 
+    /** Mọi node một loại của Workspace, sắp theo key. */
+    public List<IrNodeRow> findAllByKind(UUID workspaceId, NodeKind kind) {
+        return jdbc.sql(SELECT + " WHERE n.workspace_id = :ws AND n.kind = :kind ORDER BY n.key")
+                .param("ws", workspaceId)
+                .param("kind", kind.name())
+                .query(this::mapRow)
+                .list();
+    }
+
+    /** Xóa mọi node một loại của Workspace (edge nối tới chúng bị xóa theo khóa ngoại). */
+    public int deleteByWorkspaceAndKind(UUID workspaceId, NodeKind kind) {
+        return jdbc.sql("DELETE FROM ir_nodes WHERE workspace_id = :ws AND kind = :kind")
+                .param("ws", workspaceId)
+                .param("kind", kind.name())
+                .update();
+    }
+
     /** Key của mọi node thuộc một Source. */
     public List<String> findKeysBySource(UUID sourceId) {
         return jdbc.sql("SELECT key FROM ir_nodes WHERE source_id = :source ORDER BY key")

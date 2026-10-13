@@ -80,7 +80,7 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
           </button>
         </div>
         <app-sequence-canvas [workspaceId]="workspaceId()" [trace]="trace()" [loading]="traceLoading()" [error]="traceError()"
-          [emptyTitle]="emptyTitle()" [emptyText]="emptyHint()" />
+          [emptyTitle]="emptyTitle()" [emptyText]="emptyHint()" (linkChanged)="reloadTrace()" />
       </section>
 
       <aside class="right">
@@ -493,6 +493,11 @@ export class ExplorerPage {
     window.addEventListener('pointerup', up);
   }
 
+  /** Dò vết lại thành phần đang chọn (vd sau khi chốt / bỏ chốt một liên kết trên diagram). */
+  protected reloadTrace(): void {
+    void this.loadTrace(this.traceStart());
+  }
+
   private async loadTrace(startKey: string | null): Promise<void> {
     const token = ++this.traceToken;
     this.traceError.set(null);
@@ -513,11 +518,8 @@ export class ExplorerPage {
         this.trace.set(null);
         const error = toApiError(e);
         if (error.code === 'TRACE_START_UNSUPPORTED' && this.selectedUi()) {
-          // Không phải lỗi: phần tử gọi API Backend, luồng đầy đủ cần phần nối Frontend – Backend (Giai đoạn 5)
-          this.traceInfo.set({
-            title: 'Phần tử này gọi API Backend',
-            text: 'Luồng đầy đủ từ giao diện tới cơ sở dữ liệu cần nối Frontend với Backend — có từ Giai đoạn 5. Hiện chỉ dò được phần tử không gọi máy chủ.'
-          });
+          // Không phải lỗi: loại thành phần này không phải điểm xuất phát của một luồng
+          this.traceInfo.set({ title: 'Chưa dò được luồng từ thành phần này', text: error.message });
         } else {
           this.traceError.set(error.message);
         }

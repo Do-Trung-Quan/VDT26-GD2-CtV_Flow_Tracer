@@ -11,6 +11,8 @@ public enum ErrorCode {
     WORKSPACE_NOT_FOUND(HttpStatus.NOT_FOUND),
     NODE_NOT_FOUND(HttpStatus.NOT_FOUND),
     TRACE_NOT_FOUND(HttpStatus.NOT_FOUND),
+    EDGE_NOT_FOUND(HttpStatus.NOT_FOUND),
+    LINK_OVERRIDE_NOT_FOUND(HttpStatus.NOT_FOUND),
     SOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
     SCAN_NOT_FOUND(HttpStatus.NOT_FOUND),
     FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND),

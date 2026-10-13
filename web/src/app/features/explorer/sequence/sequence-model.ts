@@ -24,6 +24,8 @@ export interface Step {
   error: boolean;
   /** Số bước của lần gọi đầu nếu đây là lần gọi lặp lại không vẽ lại phần bên trong. */
   repeatOf: number | null;
+  /** Id của liên kết trong IR (API E1); null với bước không ứng với một liên kết. */
+  edgeRef: string | null;
 }
 
 export interface BlockBranch {
@@ -65,7 +67,8 @@ export function normalizeTrace(dto: TraceDto): SequenceTrace {
     returning: s.returning ?? false,
     pinned: s.pinned ?? false,
     error: s.error ?? false,
-    repeatOf: s.repeatOf ?? null
+    repeatOf: s.repeatOf ?? null,
+    edgeRef: s.edgeRef ?? null
   }));
   const lanes: Lane[] = (dto.participants ?? []).map((p) => ({
     id: p.id ?? '',

@@ -272,7 +272,11 @@ export class GraphBuilder {
       inner = key;
     }
 
-    const handlers = el.events.length > 0 ? el.events : formSubmit && isSubmit(el) ? [formSubmit] : [];
+    const rawHandlers = el.events.length > 0 ? el.events : formSubmit && isSubmit(el) ? [formSubmit] : [];
+    const hasPageChange = rawHandlers.some((e) => e.name === 'pageChange');
+    const handlers = hasPageChange
+      ? rawHandlers.filter((e) => e.name !== 'pageSizeChange')
+      : rawHandlers;
     if (isInteractive(el, w.insideForm) || handlers.length > 0) {
       if (!isFormTag(el) && !isTabTag(el.tag)) {
         const key = NodeKeys.ngElement(w.ctx.app, className, id);
@@ -372,6 +376,7 @@ export class GraphBuilder {
 
   private wire(elementKey: string, events: readonly TplEvent[], w: Walk, viaFormSubmit: boolean): void {
     let order = 0;
+    const wiredTargets = new Set<string>();
     for (const event of events) {
       for (const call of event.calls) {
         const target = this.deps.calls.resolve(w.ref, 'this', call.path, call.method, -1);
@@ -382,10 +387,21 @@ export class GraphBuilder {
         const baseReason = viaFormSubmit ? 'Nút gửi của form: sự kiện ngSubmit chạy khi bấm nút này' : undefined;
         if (target.kind === 'method') {
           const methodKey = this.ensureMethod(target.ref, target.method, w.ctx);
+          if (wiredTargets.has(methodKey)) {
+            continue;
+          }
+          wiredTargets.add(methodKey);
           w.acc.methods.push(methodKey);
           this.edge(elementKey, methodKey, 'TRIGGERS', target.confidence, joinReasons(baseReason, target.reason), order++, location);
         } else {
           const candidates = this.candidatesOf(target, w.ctx);
+          const candKey = candidates.map((c) => c.nodeKey).sort().join(',');
+          if (candKey && wiredTargets.has(candKey)) {
+            continue;
+          }
+          if (candKey) {
+            wiredTargets.add(candKey);
+          }
           this.edge(elementKey, undefined, 'TRIGGERS', 'UNRESOLVED', joinReasons(baseReason, target.reason), order++, location, candidates);
         }
       }

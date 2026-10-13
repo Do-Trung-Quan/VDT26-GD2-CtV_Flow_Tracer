@@ -1,5 +1,6 @@
 package com.ctv.flowtracer.adapter.spring.extract;
 
+import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts.CallSiteFact;
 import com.ctv.flowtracer.adapter.spring.facts.JavaFileFacts.ThrowFact;
 import com.github.javaparser.ast.CompilationUnit;
@@ -44,6 +45,11 @@ import java.util.regex.Pattern;
 public final class CallSiteExtractor {
 
     private static final Pattern CONSTANT_NAME = Pattern.compile("[A-Z][A-Z0-9_]+");
+    /** Tên hàm mà đối số đầu là URL: {@code RestTemplate} / {@code RestOperations}, và {@code uri(…)} của WebClient / RestClient. */
+    private static final java.util.Set<String> URL_METHODS = java.util.Set.of(
+            "getForObject", "getForEntity", "postForObject", "postForEntity", "postForLocation", "put", "delete",
+            "patchForObject", "exchange", "execute", "headForHeaders", "optionsForAllow", "uri");
+    private static final Pattern HTTP_METHOD = Pattern.compile("(?:HttpMethod\\.)?(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)");
     private static final int MAX_KEY_LENGTH = 80;
 
     /** Kết quả duyệt một file. */
@@ -105,6 +111,54 @@ public final class CallSiteExtractor {
             n.getScope().ifPresent(s -> s.accept(this, arg));
             n.getArguments().forEach(a -> a.accept(this, arg));
             record(n.getScope().orElse(null), n.getNameAsString(), n.getArguments().size(), n);
+        }
+
+        /** Đối số HTTP của lời gọi (xem {@link JavaFileFacts.HttpArgs}); null nếu không phải dạng đó. */
+        private static JavaFileFacts.HttpArgs httpArgs(Node at, String methodName) {
+            if (!(at instanceof MethodCallExpr call) || call.getArguments().isEmpty()) {
+                return null;
+            }
+            List<Expression> args = call.getArguments();
+            if (methodName.equals("method")) {
+                String method = httpMethodOf(args.get(0));
+                return method == null ? null : new JavaFileFacts.HttpArgs(null, null, method);
+            }
+            if (!URL_METHODS.contains(methodName)) {
+                return null;
+            }
+            Expression url = args.get(0);
+            String method = args.size() > 1 && (methodName.equals("exchange") || methodName.equals("execute")) ? httpMethodOf(args.get(1)) : null;
+            return new JavaFileFacts.HttpArgs(urlTemplate(url), AstSupport.snippet(url), method);
+        }
+
+        private static String httpMethodOf(Expression expr) {
+            var m = HTTP_METHOD.matcher(expr.toString().strip());
+            return m.matches() ? m.group(1) : null;
+        }
+
+        /** URL dựng từ biểu thức: literal giữ nguyên, tên biến / hằng thành {@code {@const:tên}}, phần khác thành {@code {?}}. */
+        static String urlTemplate(Expression expr) {
+            if (expr instanceof StringLiteralExpr s) {
+                return s.asString();
+            }
+            if (expr instanceof com.github.javaparser.ast.expr.TextBlockLiteralExpr t) {
+                return t.asString().strip();
+            }
+            if (expr instanceof com.github.javaparser.ast.expr.EnclosedExpr e) {
+                return urlTemplate(e.getInner());
+            }
+            if (expr instanceof com.github.javaparser.ast.expr.BinaryExpr b
+                    && b.getOperator() == com.github.javaparser.ast.expr.BinaryExpr.Operator.PLUS) {
+                return urlTemplate(b.getLeft()) + urlTemplate(b.getRight());
+            }
+            if (expr instanceof NameExpr n) {
+                return "{" + JavaFileFacts.CONSTANT_REF_PREFIX + n.getNameAsString() + "}";
+            }
+            if (expr instanceof FieldAccessExpr f) {
+                String ref = f.getScope() instanceof ThisExpr ? f.getNameAsString() : f.toString();
+                return "{" + JavaFileFacts.CONSTANT_REF_PREFIX + ref + "}";
+            }
+            return "{?}";
         }
 
         private static final String CALL_PREFIX = "@call:";
@@ -217,7 +271,8 @@ public final class CallSiteExtractor {
                     argCount,
                     order++,
                     GuardResolver.guardOf(at),
-                    AstSupport.line(at)));
+                    AstSupport.line(at),
+                    httpArgs(at, methodName)));
         }
 
         /** Đối số đầu tiên (trong 2 đối số đầu) là chuỗi literal hoặc tên hằng {@code UPPER_SNAKE}; null nếu không có. */

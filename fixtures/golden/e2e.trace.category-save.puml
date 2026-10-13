@@ -1,0 +1,65 @@
+@startuml admin_app_CategoryFormDialogComponent_app_button_submit
+autonumber
+skinparam style strictuml
+skinparam responseMessageBelowArrow true
+actor "User" as User
+participant "Frontend" as FE
+participant "Controller Danh mục" as C1
+participant "Service Danh mục" as S1
+participant "Repository Danh mục" as R1
+database "Bảng category" as T1
+
+User -> FE: Gửi biểu mẫu bằng 'Lưu'
+activate FE
+FE -> C1: POST /api/v1/categories
+activate C1
+C1 -> S1: create(request)
+activate S1
+S1 -> S1: checkPermission(), normalize()
+S1 -> R1: existsByCode(code)
+activate R1
+R1 -> T1: SELECT
+activate T1
+T1 --> R1: kết quả
+deactivate T1
+R1 --> S1: true / false
+deactivate R1
+alt categoryRepository.existsByCode(code)
+  S1 --> C1: CATEGORY_CODE_EXISTS
+  C1 --> FE: BusinessException
+  FE --> User: BusinessException
+else ngược lại
+  S1 -> R1: save(entity)
+  activate R1
+  R1 -> T1: INSERT/UPDATE
+  activate T1
+  T1 --> R1: OK
+  deactivate T1
+  R1 --> S1: Category
+  deactivate R1
+  S1 -> S1: toResponse()
+  S1 --> C1: CategoryResponse
+  deactivate S1
+  C1 --> FE: 200 ApiResponse<CategoryResponse>
+  deactivate C1
+  FE -> C1: GET /api/v1/categories
+  activate C1
+  C1 -> S1: search(keyword)
+  activate S1
+  S1 -> R1: search(keyword)
+  activate R1
+  R1 -> T1: SELECT
+  activate T1
+  T1 --> R1: kết quả
+  deactivate T1
+  R1 --> S1: List<Category>
+  deactivate R1
+  S1 -> S1: toResponse()
+  S1 --> C1: List<CategoryResponse>
+  deactivate S1
+  C1 --> FE: 200 ApiResponse<List<CategoryResponse>>
+  deactivate C1
+  FE --> User: giao diện đã cập nhật
+  deactivate FE
+end
+@enduml

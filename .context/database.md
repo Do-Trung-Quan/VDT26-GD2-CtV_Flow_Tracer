@@ -30,7 +30,7 @@ Mỗi bản ghi là một **dự án đang được phân tích** trong tool, v�
 | id | UUID | Khóa chính, định danh duy nhất của Workspace |
 | name | VARCHAR(200) | Tên Workspace do người dùng đặt, không được trùng với Workspace khác |
 | description | TEXT (nullable) | Mô tả ngắn về dự án |
-| settings | JSONB | Các thiết lập riêng của Workspace: luật liên kết Frontend – Backend nhập tay, bộ lọc nhiễu, độ sâu dò vết mặc định. Mặc định là `{}` |
+| settings | JSONB | Các thiết lập riêng của Workspace: luật liên kết Frontend – Backend nhập tay (`manualLinkRules`) và luật tự phát hiện ở lần quét gần nhất (`detectedLinkRules`, ghi ở bước LINK), bộ lọc nhiễu, độ sâu dò vết mặc định. Mặc định là `{}` |
 | last_scan_run_id | UUID (FK, nullable) | Lần quét gần nhất, tham chiếu ScanRun.id. NULL nếu chưa quét lần nào |
 | created_at | TIMESTAMPTZ | Thời điểm tạo |
 | updated_at | TIMESTAMPTZ | Thời điểm cập nhật gần nhất |

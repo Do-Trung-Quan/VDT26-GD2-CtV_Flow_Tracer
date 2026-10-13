@@ -7,6 +7,7 @@ public enum ScanStage {
     EXTRACT("Đọc & trích xuất"),
     RESOLVE("Ghép kết quả"),
     PERSIST("Lưu dữ liệu"),
+    LINK("Nối Frontend – Backend"),
     FINALIZE("Hoàn tất");
 
     private final String label;

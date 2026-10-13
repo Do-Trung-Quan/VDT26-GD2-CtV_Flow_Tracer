@@ -191,6 +191,8 @@ public record JavaFileFacts(
      *     null nếu không có
      * @param argCount số đối số; -1 với tham chiếu hàm ({@code mapper::toResponse}) không rõ số đối số
      * @param callOrder thứ tự trong method, chung dãy số với {@link ThrowFact#order()}
+     * @param http đối số của lời gọi có thể là lời gọi HTTP ({@code RestTemplate.getForObject(url…)}, {@code .uri(url)},
+     *     {@code .method(HttpMethod.POST)}); null với lời gọi khác
      */
     public record CallSiteFact(
             String callerMethod,
@@ -201,7 +203,33 @@ public record JavaFileFacts(
             int argCount,
             int callOrder,
             Guard guard,
-            int line) {}
+            int line,
+            HttpArgs http) {
+
+        public CallSiteFact(
+                String callerMethod,
+                String receiverType,
+                String receiverExpr,
+                Integer receiverCall,
+                String methodName,
+                int argCount,
+                int callOrder,
+                Guard guard,
+                int line) {
+            this(callerMethod, receiverType, receiverExpr, receiverCall, methodName, argCount, callOrder, guard, line, null);
+        }
+    }
+
+    /**
+     * Đối số liên quan tới HTTP của một lời gọi.
+     *
+     * @param urlTemplate URL dựng từ đối số: phần literal giữ nguyên, tham chiếu tên {@code {@const:TÊN}} (pha 2 tra bảng
+     *     hằng), phần không tính được {@code {?}}; null nếu lời gọi không có đối số URL
+     * @param urlText văn bản rút gọn của biểu thức URL (để hiển thị)
+     * @param httpMethod phương thức lấy từ đối số {@code HttpMethod.X} (vd {@code exchange(url, HttpMethod.GET, …)}); null
+     *     nếu không có
+     */
+    public record HttpArgs(String urlTemplate, String urlText, String httpMethod) {}
 
     /**
      * Câu lệnh throw.

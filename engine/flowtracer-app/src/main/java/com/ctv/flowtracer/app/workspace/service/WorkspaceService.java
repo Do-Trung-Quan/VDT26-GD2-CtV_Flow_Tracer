@@ -18,10 +18,12 @@ import com.ctv.flowtracer.app.workspace.dto.response.WorkspaceResponse;
 import com.ctv.flowtracer.app.workspace.entity.Source;
 import com.ctv.flowtracer.app.workspace.entity.Workspace;
 import com.ctv.flowtracer.app.workspace.entity.WorkspaceSettings;
+import com.ctv.flowtracer.app.workspace.model.LinkRuleSettings;
 import com.ctv.flowtracer.app.workspace.model.SourceScanTarget;
 import com.ctv.flowtracer.app.workspace.model.TraceSettings;
 import com.ctv.flowtracer.app.workspace.repository.SourceRepository;
 import com.ctv.flowtracer.app.workspace.repository.WorkspaceRepository;
+import com.ctv.flowtracer.ir.LinkRule;
 import com.ctv.flowtracer.ir.NoiseFilter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -196,6 +198,44 @@ public class WorkspaceService {
                 s.manualLinkRules(), s.detectedLinkRules(), List.copyOf(manual.values()), s.defaultMaxDepth(), s.specDocGlobs()));
         workspaces.flush();
         return toNoiseFiltersResponse(ws);
+    }
+
+    /**
+     * Luật liên kết của Workspace — cho package {@code linking}.
+     *
+     * @throws AppException {@link ErrorCode#WORKSPACE_NOT_FOUND}
+     */
+    @Transactional(readOnly = true)
+    public LinkRuleSettings linkRules(UUID id) {
+        WorkspaceSettings s = require(id).getSettings();
+        return new LinkRuleSettings(s.manualLinkRules(), s.detectedLinkRules());
+    }
+
+    /** Thay toàn bộ luật liên kết thủ công — package {@code linking} gọi sau khi đã kiểm tra luật. */
+    @Transactional
+    public LinkRuleSettings updateManualLinkRules(UUID id, List<LinkRule> manual) {
+        Workspace ws = require(id);
+        WorkspaceSettings s = ws.getSettings();
+        ws.setSettings(new WorkspaceSettings(manual, s.detectedLinkRules(), s.noiseFilters(), s.defaultMaxDepth(), s.specDocGlobs()));
+        workspaces.flush();
+        return new LinkRuleSettings(manual, s.detectedLinkRules());
+    }
+
+    /** Workspace đang có lần quét chạy không — cho package {@code linking} (sửa luật khi đang quét thì để lần quét tự nối). */
+    public boolean scanRunning(UUID id) {
+        return runningScans.isRunning(id);
+    }
+
+    /** Ghi luật tự phát hiện của lần quét vừa xong — package {@code linking} gọi ở bước LINK. */
+    @Transactional
+    public void updateDetectedLinkRules(UUID id, List<LinkRule> detected) {
+        Workspace ws = require(id);
+        WorkspaceSettings s = ws.getSettings();
+        if (s.detectedLinkRules().equals(detected)) {
+            return;
+        }
+        ws.setSettings(new WorkspaceSettings(s.manualLinkRules(), detected, s.noiseFilters(), s.defaultMaxDepth(), s.specDocGlobs()));
+        workspaces.flush();
     }
 
     private NoiseFiltersResponse toNoiseFiltersResponse(Workspace ws) {

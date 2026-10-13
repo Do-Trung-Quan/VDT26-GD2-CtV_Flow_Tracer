@@ -109,7 +109,7 @@ class UiOnlyTracerTest {
     }
 
     @Test
-    void flowThatSendsHttpIsRejectedBecauseItNeedsTheBackendLink() {
+    void flowThatSendsHttpIsNotUiOnly() {
         IrNode button = element("e:delete", "Xóa", "click");
         IrNode handler = node("m:onDelete", NodeKind.FE_METHOD, "List.onDelete", null, Map.of());
         IrNode facade = node("m:remove", NodeKind.FE_METHOD, "Facade.remove", null, Map.of());
@@ -118,9 +118,14 @@ class UiOnlyTracerTest {
         edge(handler, facade, EdgeKind.CALLS, 0);
         edge(facade, http, EdgeKind.SENDS, 0);
 
-        assertThatThrownBy(() -> trace(button))
-                .isInstanceOf(UnsupportedTraceStartException.class)
-                .hasMessageContaining("gọi API Backend");
+        assertThat(UiOnlyTracer.callsServer(new Subgraph(nodes, edges), button.key())).isTrue();
+        assertThatThrownBy(() -> new UiOnlyTracer().trace(
+                        new Subgraph(nodes, edges), new TraceRequest(button.key(), 12, "scan-1", List.of(), List.of())))
+                .isInstanceOf(UnsupportedTraceStartException.class);
+        // Tracer chuyển sang luồng End-to-End (chưa nối được API nên tới cột "API chưa xác định")
+        Trace trace = trace(button);
+        assertThat(trace.uiOnly()).isFalse();
+        assertThat(trace.participants()).extracting(Participant::label).containsExactly("User", "Frontend", "API chưa xác định");
     }
 
     @Test

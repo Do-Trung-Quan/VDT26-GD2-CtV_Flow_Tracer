@@ -4,10 +4,17 @@ skinparam style strictuml
 skinparam responseMessageBelowArrow true
 actor "Client" as User
 participant "Controller Order" as C1
+participant "Controller Product" as C2
 participant "Service Order" as S1
-participant "Service Audit" as S2
+participant "Service Product" as S2
+participant "Service Audit" as S3
 participant "Repository Order" as R1
+participant "Repository ProductSearch" as R2
 database "Bảng shop_order" as T1
+database "Bảng product" as T2
+database "Bảng product_brand" as T3
+participant "inventory-service" as X1
+participant "payment.example.com" as X2
 
 User -> C1: PUT /api/v1/orders/{id}/confirm
 activate C1
@@ -26,10 +33,38 @@ alt !order.isPending()
   S1 --> C1: ORDER_NOT_PENDING
   C1 --> User: BusinessException
 else ngược lại
-  S1 -> S2: record(…)
+  S1 -> C2: GET /api/v1/products/options
+  activate C2
+  C2 -> S2: getOptions()
   activate S2
-  S2 --> S1: (chưa xác định)
+  S2 -> R2: search(keyword, withBrand)
+  activate R2
+  R2 -> T2: SELECT
+  activate T2
+  T2 --> R2: kết quả
+  deactivate T2
+  R2 -> T3: SELECT
+  activate T3
+  T3 --> R2: kết quả
+  deactivate T3
+  R2 --> S2: List<Product>
+  deactivate R2
+  S2 --> C2: List<Product>
   deactivate S2
+  C2 --> S1: 200 ApiResponse<List<Product>>
+  deactivate C2
+  S1 -> X1: POST /api/v1/inventory/{orderId}/reserve
+  activate X1
+  X1 --> S1: kết quả
+  deactivate X1
+  S1 -> X2: POST /api/charges
+  activate X2
+  X2 --> S1: kết quả
+  deactivate X2
+  S1 -> S3: record(…)
+  activate S3
+  S3 --> S1: (chưa xác định)
+  deactivate S3
   S1 --> C1: OK
   deactivate S1
   C1 --> User: 200 OK

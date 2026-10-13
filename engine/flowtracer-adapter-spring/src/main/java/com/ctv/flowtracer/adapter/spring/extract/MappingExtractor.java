@@ -19,6 +19,8 @@ public final class MappingExtractor {
 
     /** Annotation đánh dấu lớp xử lý request HTTP. */
     public static final List<String> CONTROLLER_ANNOTATIONS = List.of("RestController", "Controller");
+    /** Annotation của interface gọi HTTP sang service khác (Spring Cloud OpenFeign). */
+    public static final String FEIGN_CLIENT = "FeignClient";
 
     private static final Map<String, String> SHORTCUT_MAPPINGS = Map.of(
             "GetMapping", "GET",
@@ -33,8 +35,10 @@ public final class MappingExtractor {
                 .map(t -> (TypeDeclaration<?>) t)
                 .toList()) {
             boolean controller = AstSupport.annotation(type, CONTROLLER_ANNOTATIONS.toArray(String[]::new)).isPresent();
+            // Interface @FeignClient: mapping của nó là lời gọi HTTP sang service khác (không phải endpoint)
+            boolean feign = AstSupport.annotation(type, FEIGN_CLIENT).isPresent();
             Optional<AnnotationExpr> classMapping = AstSupport.annotation(type, "RequestMapping");
-            if (!controller && classMapping.isEmpty()) {
+            if (!controller && !feign && classMapping.isEmpty()) {
                 continue;
             }
             result.add(classLevel(type, classMapping));

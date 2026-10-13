@@ -15,6 +15,8 @@ public final class NodeKeys {
     public static final String JAVA = "java";
     public static final String ANGULAR = "ng";
     public static final String PHP = "php";
+    /** Node do Linker tạo (không thuộc adapter nào). */
+    public static final String EXTERNAL = "ext";
 
     private NodeKeys() {}
 
@@ -36,6 +38,16 @@ public final class NodeKeys {
     /** {@code java:query:<method key>:<thứ tự>} */
     public static String javaQuery(String methodKey, int index) {
         return join(JAVA, "query", methodKey + ":" + index);
+    }
+
+    /**
+     * {@code java:http:<FQN>#<tên>(<kiểu tham số>):<thứ tự>} — lời gọi HTTP sang service khác (RestTemplate, WebClient,
+     * Feign) trong method {@code methodKey} ({@link #javaMethod}).
+     */
+    public static String javaHttpCall(String methodKey, int index) {
+        String prefix = JAVA + ":method:";
+        String method = methodKey.startsWith(prefix) ? methodKey.substring(prefix.length()) : methodKey;
+        return join(JAVA, "http", method + ":" + index);
     }
 
     /** {@code java:table:<tên bảng>} — tên bảng viết thường. */
@@ -87,6 +99,17 @@ public final class NodeKeys {
     public static String ngHttpCall(String app, String className, String methodName, int index) {
         return join(ANGULAR, "http", app + "/" + className + "#" + methodName + ":" + index);
     }
+
+    /**
+     * {@code ext:system:<tên>} — hệ thống ngoài Workspace do Linker tạo: tên host / service của URL tuyệt đối, hoặc
+     * {@link #EXTERNAL_API} khi Workspace không có Backend.
+     */
+    public static String external(String name) {
+        return join(EXTERNAL, "system", name);
+    }
+
+    /** Tên hệ thống ngoài khi Workspace chỉ có Frontend. */
+    public static final String EXTERNAL_API = "api";
 
     /** Tách key thành 3 phần; ném lỗi nếu sai định dạng. */
     public static Parts parse(String key) {

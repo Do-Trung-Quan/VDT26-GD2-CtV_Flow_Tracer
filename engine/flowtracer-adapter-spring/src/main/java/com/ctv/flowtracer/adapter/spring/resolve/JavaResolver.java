@@ -1,5 +1,6 @@
 package com.ctv.flowtracer.adapter.spring.resolve;
 
+import com.ctv.flowtracer.adapter.spring.SpringLinkRules;
 import com.ctv.flowtracer.adapter.spring.SpringStackAdapter;
 import com.ctv.flowtracer.adapter.spring.config.ApplicationConfigReader;
 import com.ctv.flowtracer.adapter.spring.config.PropertyLookup;
@@ -48,6 +49,7 @@ public final class JavaResolver {
         var nodes = new ArrayList<>(endpoints.endpoints());
         nodes.addAll(flow.nodes());
         diagnostics.sort(DIAGNOSTIC_ORDER);
-        return new IrFragment(SpringStackAdapter.ID, nodes, flow.edges(), List.of(), diagnostics).sorted();
+        var linkRules = new SpringLinkRules().detect(endpoints.endpoints());
+        return new IrFragment(SpringStackAdapter.ID, nodes, flow.edges(), linkRules, diagnostics).sorted();
     }
 }

@@ -61,7 +61,8 @@ npm --prefix web start                                                          
 | 2 | Quét & cây API Backend — nhật ký: `docs/progress/0910_gd2_quet_cay_api.md` | ✅ Xong, chờ người dùng review |
 | 3 | Luồng Backend & sequence diagram (Task 3.1–3.3) — nhật ký: `docs/progress/1210_gd3_be_luong_xu_ly.md` | ✅ Xong, chờ người dùng review |
 | 4 | Frontend Angular & tìm kiếm nhanh — phần BE (Task 4.1, BE của 4.2) — nhật ký: `docs/progress/1210_gd4_be_frontend_angular.md` | ✅ Xong (BE + FE), chờ người dùng review |
-| 5 → 11 | Xem bên dưới | ⏳ Chưa làm |
+| 5 | Liên kết Frontend ↔ Backend & End-to-End (Task 5.1–5.2, đã tinh chỉnh khử trùng lặp & bỏ khung `opt [try]`) — nhật ký: `docs/progress/1310_gd5_lien_ket_fe_be.md` | ✅ Xong (BE + FE), đã kiểm chứng UI |
+| 6 → 11 | Xem bên dưới | ⏳ Chưa làm |
 
 ---
 
@@ -358,6 +359,8 @@ Tôi sẽ làm:
 | 2 | Bấm mũi tên "Suy luận" FE → BE | Popover hiện lý do (luật proxy / hằng số) |
 | 3 | Chốt tay một liên kết chưa xác định, rồi Quét lại | Chốt tay vẫn áp dụng; xuất hiện trong tab Liên kết chốt tay |
 | 4 | Thêm luật liên kết thủ công | Báo "Đã nối lại N liên kết", cảnh báo giảm |
+| 5 | Bấm thành phần tìm kiếm / bảng (ô `Tên loại sách`, bảng `onSelectionChange`) | Luồng nạp danh sách không lặp đúp (12 bước chuẩn xác, không nhân đôi lên 22) |
+| 6 | Kiểm tra các hàm có khối `try...catch` phòng vệ runtime | Diagram không hiện khung bao `opt [try]`, luồng gọi phương thức chạy phẳng trực quan |
 
 ---
 

@@ -1,6 +1,8 @@
 package com.ctv.flowtracer.app.scan.pipeline;
 
 import com.ctv.flowtracer.app.graph.service.GraphQueryService;
+import com.ctv.flowtracer.app.linking.model.LinkSummary;
+import com.ctv.flowtracer.app.linking.service.LinkingService;
 import com.ctv.flowtracer.app.scan.dto.response.ScanRunResponse;
 import com.ctv.flowtracer.app.scan.entity.ParseStatus;
 import com.ctv.flowtracer.app.scan.entity.ScanRun;
@@ -18,12 +20,14 @@ import com.ctv.flowtracer.app.scan.repository.SourceFileRepository;
 import com.ctv.flowtracer.app.scan.service.ScanQueryService;
 import com.ctv.flowtracer.app.workspace.model.SourceScanTarget;
 import com.ctv.flowtracer.ir.Diagnostic;
+import com.ctv.flowtracer.ir.LinkRule;
 import com.ctv.flowtracer.ir.NodeKind;
 import com.ctv.flowtracer.ir.spi.StackAdapter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -32,16 +36,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Người điều phối một lần quét: DISCOVER → DIFF → EXTRACT → RESOLVE → PERSIST → FINALIZE. Đo thời gian thật từng giai
+ * Người điều phối một lần quét: DISCOVER → DIFF → EXTRACT → RESOLVE → PERSIST → LINK → FINALIZE. Đo thời gian thật từng giai
  * đoạn, dừng khi bị hủy, ghi trạng thái cuối và báo {@code done} qua SSE.
  *
  * <ul>
  *   <li>Hủy hoặc lỗi trước/trong PERSIST: IR và danh sách file của lần quét trước được giữ nguyên.
  *   <li>Có file lỗi: {@code PARTIAL}; các phần khác vẫn được lưu.
  *   <li>RESCAN không có file nào đổi: bỏ qua EXTRACT/RESOLVE/PERSIST, {@code noChanges = true}.
+ *   <li>LINK luôn chạy (kể cả khi không có thay đổi — IR quét từ phiên bản cũ chưa có liên kết vẫn được nối): nối lời gọi
+ *       HTTP với API đích trong một transaction riêng; luật tự phát hiện của lần quét được ghi lại trước khi nối.
  * </ul>
- *
- * <p>TODO (Giai đoạn 5): bước LINK nối Frontend ↔ Backend sau PERSIST.
  */
 @Component
 public class ScanPipeline {
@@ -54,6 +58,7 @@ public class ScanPipeline {
     private final ExtractStep extract;
     private final ResolveStep resolve;
     private final PersistStep persist;
+    private final LinkingService linking;
     private final ProgressReporter reporter;
     private final ScanRunRepository scanRuns;
     private final SourceFileRepository sourceFiles;
@@ -66,6 +71,7 @@ public class ScanPipeline {
             ExtractStep extract,
             ResolveStep resolve,
             PersistStep persist,
+            LinkingService linking,
             ProgressReporter reporter,
             ScanRunRepository scanRuns,
             SourceFileRepository sourceFiles,
@@ -76,6 +82,7 @@ public class ScanPipeline {
         this.extract = extract;
         this.resolve = resolve;
         this.persist = persist;
+        this.linking = linking;
         this.reporter = reporter;
         this.scanRuns = scanRuns;
         this.sourceFiles = sourceFiles;
@@ -112,6 +119,7 @@ public class ScanPipeline {
                 timed(ctx, ScanStage.RESOLVE, () -> resolve.run(ctx, reporter));
                 timed(ctx, ScanStage.PERSIST, () -> persist.run(ctx, reporter));
             }
+            timed(ctx, ScanStage.LINK, () -> link(ctx, noChanges));
             long start = System.nanoTime();
             reporter.stage(ctx.scanRunId(), ScanStage.FINALIZE, 0, "Đang tính thống kê");
             ScanStats stats = stats(ctx, noChanges);
@@ -130,6 +138,30 @@ public class ScanPipeline {
             log.error("Lần quét {} thất bại", ctx.scanRunId(), e);
             return finish(ctx, ScanStatus.FAILED, summarize(e), null);
         }
+    }
+
+    /** LINK: ghi luật tự phát hiện (chỉ khi vừa phân tích lại) rồi nối mọi lời gọi HTTP với API đích. */
+    private void link(ScanContext ctx, boolean noChanges) {
+        reporter.stage(ctx.scanRunId(), ScanStage.LINK, 1, "Đang nối Frontend với Backend");
+        LinkSummary summary = noChanges ? linking.relink(ctx.workspaceId()) : linking.linkAfterScan(ctx.workspaceId(), detectedRules(ctx));
+        reporter.progress(ctx.scanRunId(), ScanStage.LINK, 1, 1, summary.calls() + " lời gọi HTTP: " + summary.certain()
+                + " chắc chắn, " + summary.inferred() + " suy luận, " + summary.unresolved() + " chưa xác định");
+    }
+
+    /** Luật tự phát hiện của mọi Source (proxy, context-path…), bỏ trùng, giữ thứ tự Source. */
+    private static List<LinkRule> detectedRules(ScanContext ctx) {
+        Map<String, LinkRule> rules = new LinkedHashMap<>();
+        for (SourceWork w : ctx.sources()) {
+            if (w.fragment == null) {
+                continue;
+            }
+            for (LinkRule r : w.fragment.detectedLinkRules()) {
+                if (r.type() != LinkRule.Type.QUERY_SINK) {
+                    rules.putIfAbsent(r.type() + "|" + r.pattern() + "|" + r.replacement(), r);
+                }
+            }
+        }
+        return List.copyOf(rules.values());
     }
 
     private void timed(ScanContext ctx, ScanStage stage, Runnable step) {

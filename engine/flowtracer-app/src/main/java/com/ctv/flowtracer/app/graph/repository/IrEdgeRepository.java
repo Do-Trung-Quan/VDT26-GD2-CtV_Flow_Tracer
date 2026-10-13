@@ -64,6 +64,37 @@ public class IrEdgeRepository {
         jdbc.sql("DELETE FROM ir_edges WHERE from_node_id IN (SELECT id FROM ir_nodes WHERE source_id = :source)")
                 .param("source", sourceId)
                 .update();
+        insertAll(rows);
+    }
+
+    /** Xóa mọi edge một loại của Workspace (vd {@code HTTP_REQUEST} trước khi liên kết lại). */
+    public int deleteByWorkspaceAndKind(UUID workspaceId, EdgeKind kind) {
+        return jdbc.sql("DELETE FROM ir_edges WHERE workspace_id = :ws AND kind = :kind")
+                .param("ws", workspaceId)
+                .param("kind", kind.name())
+                .update();
+    }
+
+    /** Một edge theo id (kèm key hai đầu). */
+    public java.util.Optional<IrEdgeRow> findById(UUID workspaceId, UUID edgeId) {
+        return jdbc.sql(SELECT + " WHERE e.workspace_id = :ws AND e.id = :id")
+                .param("ws", workspaceId)
+                .param("id", edgeId)
+                .query(this::mapRow)
+                .optional();
+    }
+
+    /** Mọi edge một loại của Workspace, sắp theo key node đi. */
+    public List<IrEdgeRow> findByKind(UUID workspaceId, EdgeKind kind) {
+        return jdbc.sql(SELECT + " WHERE e.workspace_id = :ws AND e.kind = :kind ORDER BY f.key, t.key")
+                .param("ws", workspaceId)
+                .param("kind", kind.name())
+                .query(this::mapRow)
+                .list();
+    }
+
+    /** Thêm edge theo lô. */
+    public void insertAll(List<IrEdgeRow> rows) {
         for (int from = 0; from < rows.size(); from += BATCH_SIZE) {
             List<Object[]> batch = new ArrayList<>();
             for (IrEdgeRow row : rows.subList(from, Math.min(rows.size(), from + BATCH_SIZE))) {
@@ -92,7 +123,9 @@ public class IrEdgeRepository {
     /**
      * Id của node xuất phát và mọi node đi tới được qua {@code to_node_id} trong tối đa {@code maxDepth} bước. Ứng viên của
      * edge chưa xác định (nằm trong cột {@code candidates}) KHÔNG được đi theo — chỉ liên kết chốt tay mới đưa chúng vào luồng.
-     * Cạnh {@code CONTAINS} (cây giao diện) cũng không đi theo: đó là quan hệ chứa-trong, không phải luồng thực thi.
+     * Cạnh {@code CONTAINS} (cây giao diện) cũng không đi theo: đó là quan hệ chứa-trong, không phải luồng thực thi. Không đi
+     * vào bên trong hộp thoại / màn hình / ứng dụng (trừ node xuất phát): mở hộp thoại hay chuyển trang chỉ là hiệu ứng của
+     * luồng, thao tác bên trong là luồng khác.
      */
     public List<UUID> reachableNodeIds(UUID startNodeId, int maxDepth) {
         return jdbc.sql("""
@@ -100,8 +133,11 @@ public class IrEdgeRepository {
                             SELECT CAST(:start AS uuid), 0
                             UNION
                             SELECT e.to_node_id, r.depth + 1
-                            FROM ir_edges e JOIN reach r ON e.from_node_id = r.id
+                            FROM ir_edges e
+                            JOIN reach r ON e.from_node_id = r.id
+                            JOIN ir_nodes n ON n.id = e.from_node_id
                             WHERE e.to_node_id IS NOT NULL AND e.kind <> 'CONTAINS' AND r.depth < :maxDepth
+                              AND (r.depth = 0 OR n.kind NOT IN ('UI_SCREEN', 'UI_DIALOG', 'UI_APP'))
                         )
                         SELECT DISTINCT id FROM reach ORDER BY id
                         """)

@@ -8,7 +8,7 @@ import { ScanTracker } from './scan-tracker';
 type StageState = 'done' | 'cur' | 'todo' | 'skipped';
 
 /**
- * Khung tiến độ quét ở góc phải dưới: 6 giai đoạn, thanh tiến độ theo số mục thật đã xử lý, thu nhỏ, hủy (B4); khi xong
+ * Khung tiến độ quét ở góc phải dưới: 7 giai đoạn, thanh tiến độ theo số mục thật đã xử lý, thu nhỏ, hủy (B4); khi xong
  * hiện tóm tắt có căn cứ (số file, thời gian đo được) và mở danh sách file lỗi (B6).
  */
 @Component({

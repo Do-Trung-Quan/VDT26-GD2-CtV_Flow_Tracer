@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Một lần dò vết từ một API: đi theo {@code HANDLED_BY} → các lời gọi ({@code CALLS}) và truy vấn ({@code EXECUTES}) của
+ * Một lần dò vết từ một API hoặc từ một phần tử giao diện có gọi API. Từ API: đi theo {@code HANDLED_BY} → các lời gọi ({@code CALLS}) và truy vấn ({@code EXECUTES}) của
  * từng method theo thứ tự thực thi, phát ra dòng bước + dấu khối rồi giao {@link BlockBuilder} đánh số.
  *
  * <p>Quy tắc dựng bước (§2.2.4 của overview):
@@ -39,6 +40,13 @@ import java.util.Set;
  *       {@code alt} (nhánh còn lại là phần chạy tiếp);
  *   <li>lời gọi chưa xác định đích → bước nét đỏ + trả về "(chưa xác định)", KHÔNG đi sâu và KHÔNG chọn hộ.
  * </ul>
+ *
+ * <p>Từ phần tử giao diện (luồng End-to-End): bước người dùng thao tác (User → Frontend), rồi đi theo hàm xử lý
+ * ({@code TRIGGERS}) và các hàm phía Frontend — tất cả gộp trong cột Frontend, không vẽ bước tự xử lý. Mỗi lời gọi HTTP
+ * ({@code SENDS}) đi theo liên kết {@code HTTP_REQUEST} do Linker tạo: tới API thì vẽ bước {@code METHOD path} sang Controller
+ * và dò tiếp như luồng bắt đầu từ API; tới hệ thống ngoài thì một cột cho hệ thống đó; liên kết chưa xác định thì bước
+ * "chưa xác định", không chọn hộ. Lời gọi chạy khi hộp thoại đóng ({@code guard.branch = afterClosed}) không thuộc luồng của
+ * lần bấm. Bước cuối là giao diện phản hồi người dùng (hộp thoại / màn hình được mở, hoặc "giao diện đã cập nhật").
  */
 final class TraceRun {
 
@@ -46,6 +54,8 @@ final class TraceRun {
     private static final java.util.regex.Pattern VALIDATION_EXCEPTION =
             java.util.regex.Pattern.compile("(?i)validation|invalid|illegalargument|constraintviolation|badrequest");
     static final String UNRESOLVED_RETURN = "(chưa xác định)";
+    /** Nhãn cột đích của lời gọi HTTP chưa nối được với API nào. */
+    static final String UNKNOWN_API = "API chưa xác định";
 
     private sealed interface Event permits CallEvent, ThrowEvent {
         int order();
@@ -92,6 +102,8 @@ final class TraceRun {
     record Options(boolean errors, boolean selfSteps, boolean collapseRepeats, int depth) {}
 
     private final Options options;
+    /** Hiệu ứng trên giao diện (mở hộp thoại, chuyển màn hình) gặp khi dò từ phần tử, theo thứ tự xảy ra. */
+    private final List<IrEdge> uiEffects = new ArrayList<>();
 
     TraceRun(Subgraph subgraph, TraceRequest request, Options options) {
         this.options = options;
@@ -104,8 +116,11 @@ final class TraceRun {
     Trace run() {
         IrNode start = graph.node(request.startKey())
                 .orElseThrow(() -> new IllegalArgumentException("Không có node xuất phát: " + request.startKey()));
+        if (start.kind() == NodeKind.UI_ELEMENT) {
+            return runFromElement(start);
+        }
         if (start.kind() != NodeKind.API_ENDPOINT) {
-            throw new IllegalArgumentException("Dò vết chỉ hỗ trợ node xuất phát là API_ENDPOINT, nhận " + start.kind());
+            throw new IllegalArgumentException("Dò vết chỉ hỗ trợ node xuất phát là API_ENDPOINT hoặc UI_ELEMENT, nhận " + start.kind());
         }
         String client = participants.client();
         Optional<IrEdge> handledBy = graph.outgoing(start.key()).stream()
@@ -125,6 +140,50 @@ final class TraceRun {
         }
         closeTo(0);
         return finish(start);
+    }
+
+    /** Luồng End-to-End từ một phần tử giao diện có gọi API. */
+    private Trace runFromElement(IrNode start) {
+        String user = participants.user();
+        String fe = participants.frontend();
+        List<IrEdge> triggers = graph.outgoing(start.key()).stream()
+                .filter(e -> e.kind() == EdgeKind.TRIGGERS && e.toKey() != null)
+                .toList();
+        String firstRef = triggers.isEmpty() ? null : subgraph.edgeRef(triggers.get(0));
+        step(user, fe, EdgeKind.TRIGGERS, UiOnlyTracer.userAction(start), Confidence.CERTAIN, null, firstRef, false, false, false, 0);
+        graph.outgoing(start.key()).stream()
+                .filter(e -> e.kind() == EdgeKind.NAVIGATES && e.toKey() != null)
+                .forEach(uiEffects::add);
+        stack.push(new Frame(fe, user));
+        Set<String> seenTargets = new HashSet<>();
+        try {
+            for (IrEdge trigger : triggers) {
+                if (trigger.toKey() != null && !seenTargets.add(trigger.toKey())) {
+                    continue;
+                }
+                Optional<IrNode> handler = graph.node(trigger.toKey());
+                if (handler.isPresent() && !aborted) {
+                    emitMethod(handler.get(), fe, fe, false);
+                }
+            }
+        } finally {
+            stack.pop();
+        }
+        if (!aborted) {
+            flushSelf();
+            step(fe, user, null, reply(), Confidence.CERTAIN, null, null, true, false, false, 0);
+        }
+        closeTo(0);
+        return finish(start);
+    }
+
+    /** Giao diện phản hồi người dùng: các hộp thoại / màn hình được mở, hoặc "giao diện đã cập nhật". */
+    private String reply() {
+        var labels = new LinkedHashSet<String>();
+        for (IrEdge effect : uiEffects) {
+            graph.node(effect.toKey()).ifPresent(target -> labels.add(UiOnlyTracer.effectLabel(effect.kind(), target)));
+        }
+        return labels.isEmpty() ? UiOnlyTracer.NO_EFFECT : String.join(", ", labels);
     }
 
     private Trace finish(IrNode start) {
@@ -184,7 +243,13 @@ final class TraceRun {
     private List<Event> eventsOf(IrNode method) {
         var events = new ArrayList<Event>();
         for (IrEdge e : graph.outgoing(method.key())) {
-            if (e.kind() == EdgeKind.CALLS || e.kind() == EdgeKind.EXECUTES) {
+            if (e.guard() != null && UiOnlyTracer.AFTER_CLOSED.equals(e.guard().branch())) {
+                continue; // chạy khi hộp thoại đóng, không thuộc luồng của lần bấm
+            }
+            if ((e.kind() == EdgeKind.OPENS || e.kind() == EdgeKind.NAVIGATES) && e.toKey() != null) {
+                uiEffects.add(e);
+            }
+            if (e.kind() == EdgeKind.CALLS || e.kind() == EdgeKind.EXECUTES || e.kind() == EdgeKind.SENDS) {
                 events.add(new CallEvent(e.callOrder() == null ? Integer.MAX_VALUE : e.callOrder(), e.guard(), e));
             }
         }
@@ -251,8 +316,17 @@ final class TraceRun {
             case ELSE -> emitSimple(events, from, TraceBlock.Type.OPT, OTHERWISE + ": " + guard.text());
             case CATCH -> emitSimple(events, from, TraceBlock.Type.OPT, "catch " + guard.text());
             case LOOP -> emitSimple(events, from, TraceBlock.Type.LOOP, guard.text());
-            case TRY -> emitSimple(events, from, TraceBlock.Type.OPT, "try");
+            case TRY -> emitPlain(events, from);
         };
+    }
+
+    private int emitPlain(List<Event> events, int from) {
+        int end = groupEnd(events, from);
+        List<Event> group = visible(events, from, end, events.get(from).guard());
+        if (!group.isEmpty()) {
+            emitList(group);
+        }
+        return end;
     }
 
     private int emitSimple(List<Event> events, int from, TraceBlock.Type type, String label) {
@@ -388,7 +462,11 @@ final class TraceRun {
     private void handle(Event event) {
         switch (event) {
             case CallEvent c -> {
-                boolean cross = c.edge().kind() == EdgeKind.EXECUTES ? handleQuery(c.edge()) : handleCall(c.edge());
+                boolean cross = switch (c.edge().kind()) {
+                    case EXECUTES -> handleQuery(c.edge());
+                    case SENDS -> handleHttp(c.edge());
+                    default -> handleCall(c.edge());
+                };
                 if (cross) {
                     crossed.add(c);
                 }
@@ -411,6 +489,9 @@ final class TraceRun {
             return false;
         }
         Frame current = stack.peek();
+        if (target.kind() == NodeKind.FE_METHOD && edge.confidence() == Confidence.UNRESOLVED) {
+            warnings.add("Lời gọi " + simpleName(target) + "() phía Frontend chưa xác định được hàm đích nên luồng có thể thiếu bước");
+        }
         String targetId = participants.forMethod(target);
         boolean unresolved = edge.confidence() == Confidence.UNRESOLVED;
         if (targetId == null || targetId.equals(current.participantId())) {
@@ -459,6 +540,77 @@ final class TraceRun {
             return graph.node(edge.toKey());
         }
         return edge.candidates().stream().findFirst().flatMap(c -> graph.node(c.nodeKey()));
+    }
+
+    /**
+     * Lời gọi HTTP: đi theo liên kết {@code HTTP_REQUEST} của Linker (đã áp chốt tay). Tới API → bước {@code METHOD path}
+     * sang Controller, dò tiếp hàm xử lý, rồi chiều trả về {@code 200 <kiểu>}; tới hệ thống ngoài → bước sang cột của hệ
+     * thống đó; chưa nối được → bước "chưa xác định" tới cột "API chưa xác định", không chọn hộ ứng viên.
+     *
+     * @return true nếu đã phát bước sang cột khác
+     */
+    private boolean handleHttp(IrEdge sends) {
+        Optional<IrNode> found = graph.node(sends.toKey());
+        if (found.isEmpty()) {
+            return false;
+        }
+        IrNode http = found.get();
+        String pid = stack.peek().participantId();
+        flushSelf();
+        Optional<IrEdge> link = graph.outgoing(http.key()).stream().filter(e -> e.kind() == EdgeKind.HTTP_REQUEST).findFirst();
+        if (link.isEmpty() || link.get().toKey() == null) {
+            String lane = participants.external(UNKNOWN_API, null);
+            if (link.isEmpty()) {
+                step(pid, lane, EdgeKind.HTTP_REQUEST, http.name(), Confidence.UNRESOLVED,
+                        "Lời gọi chưa được nối với API nào (chưa chạy bước liên kết, hoặc liên kết đã bị loại bỏ)",
+                        null, false, false, false, 0);
+            } else {
+                step(pid, lane, EdgeKind.HTTP_REQUEST, http.name(), link.get(), false, false, 0);
+            }
+            step(lane, pid, null, UNRESOLVED_RETURN, Confidence.UNRESOLVED, null, null, true, false, false, 0);
+            return true;
+        }
+        IrEdge edge = link.get();
+        Optional<IrNode> target = graph.node(edge.toKey());
+        if (target.isEmpty()) {
+            warnings.add("Lời gọi " + http.name() + " trỏ tới thành phần không có trong đồ thị nên bị bỏ qua");
+            return false;
+        }
+        IrNode endpoint = target.get();
+        boolean pinned = subgraph.isPinned(edge);
+        if (endpoint.kind() != NodeKind.API_ENDPOINT) {
+            String name = endpoint.displayName() != null ? endpoint.displayName() : endpoint.name();
+            String lane = participants.external(name, endpoint.key());
+            step(pid, lane, EdgeKind.HTTP_REQUEST, http.name(), edge, pinned, false, 0);
+            step(lane, pid, null, "kết quả", edge.confidence(), null, null, true, false, false, 0);
+            return true;
+        }
+        Optional<IrNode> handler = graph.outgoing(endpoint.key()).stream()
+                .filter(e -> e.kind() == EdgeKind.HANDLED_BY && e.toKey() != null)
+                .findFirst()
+                .flatMap(e -> graph.node(e.toKey()));
+        if (handler.isEmpty()) {
+            String lane = participants.external("API " + endpoint.name(), endpoint.key());
+            step(pid, lane, EdgeKind.HTTP_REQUEST, endpoint.name(), edge, pinned, false, 0);
+            step(lane, pid, null, responseLabel(endpoint), edge.confidence(), null, null, true, false, false, 0);
+            warnings.add("API " + endpoint.name() + " chưa có hàm xử lý trong mã nguồn nên không dò tiếp được");
+            return true;
+        }
+        String controller = participants.controller(handler.get());
+        Integer first = (options.collapseRepeats() || firstCall.containsKey(handler.get().key()))
+                ? firstCall.get(handler.get().key())
+                : null;
+        int callId = step(pid, controller, EdgeKind.HTTP_REQUEST, endpoint.name(), edge, pinned, false, first == null ? 0 : first);
+        if (first == null) {
+            firstCall.put(handler.get().key(), callId);
+            emitMethod(handler.get(), controller, pid, true);
+        }
+        if (aborted) {
+            return true;
+        }
+        flushSelf();
+        step(controller, pid, null, responseLabel(endpoint), edge.confidence(), null, null, true, false, false, 0);
+        return true;
     }
 
     /**

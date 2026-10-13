@@ -1,0 +1,340 @@
+{
+  "traceId" : "195fe91eefffdd885cee2babf6f5d9f7",
+  "startKey" : "ng:element:admin-app/CategoryFormDialogComponent#app-button.submit",
+  "participants" : [ {
+    "id" : "user",
+    "label" : "User",
+    "role" : "USER"
+  }, {
+    "id" : "fe",
+    "label" : "Frontend",
+    "role" : "FRONTEND"
+  }, {
+    "id" : "c1",
+    "label" : "Controller Danh mục",
+    "role" : "CONTROLLER",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryController#create(CategoryRequest)"
+  }, {
+    "id" : "s1",
+    "label" : "Service Danh mục",
+    "role" : "SERVICE",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryServiceImpl#create(CategoryRequest)"
+  }, {
+    "id" : "r1",
+    "label" : "Repository Danh mục",
+    "role" : "REPOSITORY",
+    "nodeKey" : "java:method:com.example.flow.category.CategoryRepository#existsByCode(String)"
+  }, {
+    "id" : "t1",
+    "label" : "Bảng category",
+    "role" : "DATABASE",
+    "nodeKey" : "java:table:category"
+  } ],
+  "steps" : [ {
+    "index" : 1,
+    "from" : "user",
+    "to" : "fe",
+    "kind" : "TRIGGERS",
+    "label" : "Gửi biểu mẫu bằng \"Lưu\"",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 2,
+    "from" : "fe",
+    "to" : "c1",
+    "kind" : "HTTP_REQUEST",
+    "label" : "POST /api/v1/categories",
+    "confidence" : "INFERRED",
+    "reason" : "URL ghép từ CATEGORY_BASE; áp luật '^/gateway' → '' (projects/admin-app/proxy.conf.json: proxy \"/gateway\" của ứng dụng admin-app)",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 3,
+    "from" : "c1",
+    "to" : "s1",
+    "kind" : "CALLS",
+    "label" : "create(request)",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 4,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "checkPermission(), normalize()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 5,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "existsByCode(code)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 6,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 7,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 8,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "true / false",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 9,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "CATEGORY_CODE_EXISTS",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 10,
+    "from" : "c1",
+    "to" : "fe",
+    "label" : "BusinessException",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 11,
+    "from" : "fe",
+    "to" : "user",
+    "label" : "BusinessException",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : true,
+    "self" : false
+  }, {
+    "index" : 12,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "save(entity)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 13,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "WRITES",
+    "label" : "INSERT/UPDATE",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 14,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "OK",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 15,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "Category",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 16,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "toResponse()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 17,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "CategoryResponse",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 18,
+    "from" : "c1",
+    "to" : "fe",
+    "label" : "200 ApiResponse<CategoryResponse>",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 19,
+    "from" : "fe",
+    "to" : "c1",
+    "kind" : "HTTP_REQUEST",
+    "label" : "GET /api/v1/categories",
+    "confidence" : "INFERRED",
+    "reason" : "URL ghép từ CATEGORY_BASE; áp luật '^/gateway' → '' (projects/admin-app/proxy.conf.json: proxy \"/gateway\" của ứng dụng admin-app)",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 20,
+    "from" : "c1",
+    "to" : "s1",
+    "kind" : "CALLS",
+    "label" : "search(keyword)",
+    "confidence" : "CERTAIN",
+    "reason" : "CategoryService chỉ có một lớp hiện thực là bean: CategoryServiceImpl",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 21,
+    "from" : "s1",
+    "to" : "r1",
+    "kind" : "CALLS",
+    "label" : "search(keyword)",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 22,
+    "from" : "r1",
+    "to" : "t1",
+    "kind" : "READS",
+    "label" : "SELECT",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 23,
+    "from" : "t1",
+    "to" : "r1",
+    "label" : "kết quả",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 24,
+    "from" : "r1",
+    "to" : "s1",
+    "label" : "List<Category>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 25,
+    "from" : "s1",
+    "to" : "s1",
+    "label" : "toResponse()",
+    "confidence" : "CERTAIN",
+    "returning" : false,
+    "pinned" : false,
+    "error" : false,
+    "self" : true
+  }, {
+    "index" : 26,
+    "from" : "s1",
+    "to" : "c1",
+    "label" : "List<CategoryResponse>",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 27,
+    "from" : "c1",
+    "to" : "fe",
+    "label" : "200 ApiResponse<List<CategoryResponse>>",
+    "confidence" : "INFERRED",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  }, {
+    "index" : 28,
+    "from" : "fe",
+    "to" : "user",
+    "label" : "giao diện đã cập nhật",
+    "confidence" : "CERTAIN",
+    "returning" : true,
+    "pinned" : false,
+    "error" : false,
+    "self" : false
+  } ],
+  "blocks" : [ {
+    "type" : "ALT",
+    "label" : "categoryRepository.existsByCode(code)",
+    "fromStep" : 9,
+    "toStep" : 28,
+    "elseBranches" : [ {
+      "label" : "ngược lại",
+      "fromStep" : 12
+    } ]
+  } ],
+  "warnings" : [ ]
+}
