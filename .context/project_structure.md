@@ -113,7 +113,7 @@ flowtracer-ir/src/main/java/com/ctv/flowtracer/ir/
 ├── SourceLocation.java, Guard.java, Candidate.java   # Ba kiểu dữ liệu phụ: vị trí trong code (file + dòng); điều kiện bao quanh lời gọi
 │                                    #   (vd "nếu mã đã tồn tại"); một "ứng viên" khi tool chưa chắc quan hệ trỏ tới đâu
 ├── NodeKeys.java                    # Quy tắc đặt "mã định danh" cố định cho mỗi thành phần, để nhận ra nó qua các lần quét
-│                                    #   → ĐỔI QUY TẮC sẽ làm mất liên kết chốt tay, nhóm chức năng và dữ liệu AI đã lưu
+│                                    #   → ĐỔI QUY TẮC sẽ làm mất liên kết chốt tay và dữ liệu AI đã lưu
 ├── IrFragment.java                  # Kiểu dữ liệu chứa TOÀN BỘ KẾT QUẢ phân tích một thư mục code (mọi thành phần + quan hệ + cảnh báo)
 ├── LinkRule.java, NoiseFilter.java, Diagnostic.java   # Ba kiểu dữ liệu phụ: luật giúp nối URL Frontend với API Backend; mẫu thành phần
 │                                    #   cần ẩn khỏi diagram cho gọn (ghi log, hàm tiện ích…); một cảnh báo/lỗi khi phân tích (vd file lỗi cú pháp)
@@ -279,7 +279,6 @@ flowtracer-app/
     │   ├── tracing/                 # Chức năng nhóm 4: dò luồng và xuất diagram
     │   ├── explanation/             # Chức năng nhóm 6: nội dung tab Diễn giải, Kịch bản, dữ liệu mẫu
     │   ├── ai/                      # Chức năng nhóm 9: cổng gọi AI duy nhất và cấu hình AI
-    │   ├── feature/                 # (MỞ RỘNG) Chức năng nhóm 7: nhóm chức năng
     │   └── comparison/              # (MỞ RỘNG — TẠM HOÃN, chưa làm) Chức năng nhóm 8: so sánh hệ thống cũ – mới
     │
     │   # Mỗi thư mục chức năng (workspace … comparison) đều có cùng bố cục chuẩn:
@@ -643,28 +642,12 @@ main/resources/prompts/              # Câu lệnh mẫu gửi cho AI — mỗi 
 ├── mock-data.v1.st                  # Lệnh nhờ AI sinh dữ liệu mẫu đúng cấu trúc dữ liệu cho trước (không dùng dữ liệu thật)
 ├── element-naming.v1.st             # Lệnh nhờ AI đặt tên tiếng Việt chuẩn cho các phần tử của một màn hình từ chữ trên giao diện, tên hàm và API mà phần tử gọi
 ├── edge-resolution.v2.st            # Lệnh nhờ AI phân tích các ứng viên của một liên kết chưa chắc chắn (kèm chuỗi gọi, từ khớp tên, bằng chứng): giải thích từng ứng viên, có thể đề xuất thêm một
-└── (mở rộng) feature-summary.v1.st · legacy-match.v1.st   # Lệnh cho tóm tắt nhóm chức năng và ghép luồng cũ–mới
+└── (mở rộng, chưa làm) legacy-match.v1.st   # Lệnh cho ghép luồng cũ–mới
 ```
 
-#### 4.4.10. `feature/` và `comparison/` — MỞ RỘNG
+#### 4.4.10. `comparison/` — MỞ RỘNG (tạm hoãn)
 
 ```text
-feature/                             # (MỞ RỘNG) Chức năng nhóm 7: gom nhiều API/nút bấm liên quan thành một "nhóm chức năng" để xem tổng thể
-├── controller/
-│   └── FeatureController.java       # Nhận yêu cầu tạo/sửa/xóa/xem nhóm chức năng, lấy gợi ý nhóm, xem diagram và diễn giải cả nhóm (API G1–G9)
-├── service/
-│   ├── FeatureService.java          # Xử lý nghiệp vụ nhóm chức năng
-│   ├── FeatureSuggester.java        # Tự gợi ý nhóm chức năng (không dùng AI): gom các API mà cùng một màn hình gọi, cùng module, cùng bảng dữ liệu
-│   └── FeatureTraceService.java     # Ghép luồng của từng thành viên thành một diagram lớn cho cả nhóm chức năng
-├── repository/
-│   ├── FeatureRepository.java       # Nơi đọc/ghi bảng features trong CSDL
-│   └── FeatureMemberRepository.java # Nơi đọc/ghi bảng feature_members trong CSDL
-├── entity/
-│   ├── Feature.java                 # Một dòng của bảng features — một nhóm chức năng
-│   ├── FeatureMember.java           # Một dòng của bảng feature_members — một thành phần thuộc nhóm, kèm thứ tự trong quy trình
-│   └── FeatureOrigin.java           # Nhóm do người dùng tự tạo hay lấy từ gợi ý
-└── dto/                             # Dữ liệu giao diện gửi lên và Engine trả về cho chức năng này
-
 comparison/                          # (MỞ RỘNG — TẠM HOÃN, chưa làm) Chức năng nhóm 8: so sánh luồng hệ thống cũ (PHP) với hệ thống mới — không có bảng riêng
 ├── controller/
 │   └── ComparisonController.java    # Nhận yêu cầu gợi ý thành phần để so sánh, so hai luồng, tìm luồng cũ tương ứng (API H1–H3)
@@ -860,7 +843,7 @@ docs/
 | 4. Dò vết & trực quan hóa | `tracing` (+ core tracer, diagram) | — | D | explorer/canvas |
 | 5. Liên kết FE–BE & độ tin cậy | `linking` (+ core linker) | `link_override` | E | explorer/right-panel, workspace settings |
 | 6. Diễn giải & dữ liệu mẫu | `explanation` (+ core scenario, explain, mock) | — | F | explorer/right-panel |
-| 7. Nhóm chức năng *(mở rộng)* | `feature` | `feature`, `feature_member` | G | explorer/left-panel |
+| 7. Nhóm chức năng *(đã loại khỏi kế hoạch)* | — (đã gỡ package `feature`) | — | G | — |
 | 8. So sánh cũ – mới *(mở rộng, tạm hoãn)* | `comparison` (+ analyzer-node php-legacy) | — | H | features/compare |
 | 9. Cấu hình AI & hệ thống | `ai` (+ actuator health) | `ai_artifact`, `llm_call_log`, `app_setting` | I | features/ai-settings |
 

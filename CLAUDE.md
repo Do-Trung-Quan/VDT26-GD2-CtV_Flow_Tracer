@@ -14,7 +14,7 @@ Mọi phạm vi, chức năng, API, thiết kế CSDL và cấu trúc mã nguồ
 - **Tổng quan dự án:** `.context/overview.md` (bài toán, phạm vi, yêu cầu phi chức năng, kiến trúc §2.1, mô hình IR §2.2, kịch bản hoạt động §2.4, **chính sách dùng AI §2.7**).
 - **Bảng chức năng:** `.context/feature_list.md` (72 chức năng, 9 nhóm, ưu tiên MVP / Nên có / Mở rộng, quy tắc xử lý từng nhóm).
 - **Đặc tả API:** `.context/API_list.md` (9 nhóm A–I, ứng với 9 nhóm chức năng).
-- **Thiết kế CSDL:** `.context/database.md` (ý nghĩa từng bảng, từng cột) và `docs/diagrams/database.dbml` (kiểu, khóa, ràng buộc của 12 bảng).
+- **Thiết kế CSDL:** `.context/database.md` (ý nghĩa từng bảng, từng cột) và `docs/diagrams/database.dbml` (kiểu, khóa, ràng buộc của 10 bảng).
 - **Cấu trúc mã nguồn:** `.context/project_structure.md` (engine Maven multi-module, sidecar analyzer-node, web, contracts).
 - **Hợp đồng dữ liệu Engine ↔ sidecar:** `contracts/` (JSON Schema + `sidecar-protocol.md`).
 - **Lộ trình:** `.context/roadmap.md`. **Nhật ký thực hiện:** `docs/progress/` (mỗi phase một file).
@@ -134,7 +134,7 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 - Logic riêng của một công nghệ chỉ nằm trong adapter tương ứng (`flowtracer-adapter-spring`, `analyzer-node/src/adapters/*`).
 
 **b) Trong `flowtracer-app` — monolith, package-by-feature:**
-- Mỗi package chức năng (`workspace`, `scan`, `graph`, `linking`, `tracing`, `explanation`, `ai`, `feature`, `comparison`) có bố cục chuẩn: `controller/` · `service/` · `repository/` · `entity/` · `dto/` (+ `pipeline/`, `adapter/`, `provider/`, `model/` khi đặc thù). Class mới phải đặt đúng thư mục con; **không** để file lẻ ở gốc package chức năng.
+- Mỗi package chức năng (`workspace`, `scan`, `graph`, `linking`, `tracing`, `explanation`, `ai`, `comparison`) có bố cục chuẩn: `controller/` · `service/` · `repository/` · `entity/` · `dto/` (+ `pipeline/`, `adapter/`, `provider/`, `model/` khi đặc thù). Class mới phải đặt đúng thư mục con; **không** để file lẻ ở gốc package chức năng.
 - Phụ thuộc trong một chức năng: `controller → service → repository → entity`. **Controller mỏng:** chỉ nhận/validate request và gọi Service, **không** gọi thẳng Repository. **Repository:** chỉ truy cập dữ liệu, không gọi Service/Controller. **Entity** không phụ thuộc Service/Controller/DTO. Logic nằm ở Service.
 - **Giữa các package:** chỉ gọi **service công khai** (Phụ lục B của `project_structure.md`). **CẤM** dùng Repository hay Entity của package khác.
 - **Chỉ 3 interface** được phép tồn tại để thay thế: `SourceReader`, `LlmProvider`, `StackAdapter`. Không tạo interface cho Service chỉ có một hiện thực.
@@ -242,7 +242,6 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 | `tracing` | Dò vết (không lưu CSDL, cache theo `trace_id`), xuất diagram, flowchart (mở rộng) | — | 4 · D |
 | `explanation` | Tab Diễn giải, dữ liệu mẫu, tab Kịch bản, đoạn code "Xem code" (C5, đặt ở đây để dùng cùng liên kết chốt tay với diagram), sinh lại nội dung AI | — | 6 · F |
 | `ai` | **Cổng AI duy nhất**: bật/tắt mục đích → cache → hạn mức → che secret → provider → kiểm tra → lưu & log | `ai_artifact`, `llm_call_log`, `app_setting` | 9 · I1–I3, I6 |
-| `feature` *(mở rộng)* | Nhóm chức năng | `feature`, `feature_member` | 7 · G |
 | `comparison` *(mở rộng, tạm hoãn)* | So sánh & đối chiếu cũ – mới | — | 8 · H |
 
 Health (API I7) dùng Spring Boot Actuator, phục vụ tại `/api/health`.

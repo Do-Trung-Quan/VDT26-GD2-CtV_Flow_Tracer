@@ -190,6 +190,8 @@
 
 ## Nhóm 7: Nhóm chức năng (Feature)
 
+> **Đã loại khỏi kế hoạch.** Không còn bảng CSDL (`features`, `feature_members` đã gỡ ở migration V6), package hay API tương ứng. Nội dung dưới đây chỉ giữ để tham khảo nếu sau này làm lại (khi đó cần thêm migration mới).
+
 > **Feature** là một nhóm các endpoint/thành phần liên quan, ví dụ "Quản lý danh mục" gồm: tải danh sách, tìm kiếm, thêm, sửa, xóa, xuất Excel. Cột trái có thêm tab **"Chức năng"** bên cạnh "Backend" và "Frontend".
 
 | Tên chức năng | Ưu tiên | Input | Output | Mô tả chức năng |

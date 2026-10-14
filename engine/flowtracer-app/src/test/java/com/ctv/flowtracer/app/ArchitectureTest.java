@@ -15,7 +15,7 @@ class ArchitectureTest {
 
     private static final String APP = "com.ctv.flowtracer.app";
     private static final List<String> FEATURES =
-            List.of("workspace", "scan", "graph", "linking", "tracing", "explanation", "ai", "feature", "comparison");
+            List.of("workspace", "scan", "graph", "linking", "tracing", "explanation", "ai", "comparison");
 
     /** Lõi phân tích (ir, core, adapter-*) là Java thuần. */
     @ArchTest

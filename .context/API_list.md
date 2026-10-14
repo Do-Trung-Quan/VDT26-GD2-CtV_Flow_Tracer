@@ -102,6 +102,8 @@
 
 ## Nhóm G: Nhóm chức năng (Feature) *(Mở rộng)*
 
+> **Đã loại khỏi kế hoạch — chưa có API nào được triển khai**, không còn bảng CSDL (gỡ ở migration V6). Chỉ giữ để tham khảo nếu sau này làm lại.
+
 | STT | Tên API | URL / URI | Input | Output | Mô tả chức năng |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Lấy danh sách nhóm chức năng** | `GET /api/workspaces/:id/features` | workspace_id (param) | Danh sách Feature: id, name, số thành viên, nguồn gốc (tự tạo / từ gợi ý) | Dữ liệu cho tab "Chức năng" ở cột trái. |

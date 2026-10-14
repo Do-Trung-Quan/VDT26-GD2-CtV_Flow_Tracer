@@ -38,7 +38,7 @@ Tài liệu này là **nguồn sự thật (source of truth)** về bài toán, 
 - **Vấn đề:** Muốn hiểu một luồng nghiệp vụ (bấm nút này thì chuyện gì xảy ra, đi qua những lớp nào, ghi vào bảng nào), dev phải lần qua hàng chục file ở hai repo FE và BE. Tài liệu thường thiếu hoặc lỗi thời. Dự án migrate từ hệ thống cũ còn khó hơn vì phải đối chiếu logic cũ và mới.
 - **Giải pháp:** Một **Web UI** kết nối vào mã nguồn dự án. Tool **phân tích tĩnh** (đọc code, không chạy code) để dựng **cây API Backend**, **cây thành phần Frontend** và **sequence diagram End-to-End** cho từng endpoint hoặc từng nút bấm. Tool cũng sinh **phần diễn giải dễ hiểu** kèm **dữ liệu mẫu**.
 - **Giao diện 3 cột:** trái là cây BE/FE, giữa là canvas diagram, phải là panel 2 tab "Diễn giải" và "Kịch bản".
-- **Lõi (MVP):** Java Spring Boot + Angular. **Mở rộng:** PHP (hệ thống cũ) dùng cho split view so sánh cũ và mới, Flowchart, nhóm chức năng, xác minh runtime — hiện **chưa nằm trong lộ trình**; phần đối chiếu hệ thống cũ (PHP + so sánh cũ – mới) đã tạm hoãn vì thời hạn gấp.
+- **Lõi (MVP):** Java Spring Boot + Angular. **Mở rộng:** PHP (hệ thống cũ) dùng cho split view so sánh cũ và mới, Flowchart, xác minh runtime — hiện **chưa nằm trong lộ trình** (nhóm chức năng đã loại khỏi kế hoạch, không còn bảng CSDL); phần đối chiếu hệ thống cũ (PHP + so sánh cũ – mới) đã tạm hoãn vì thời hạn gấp.
 - **Nguyên tắc vàng:** diagram luôn do **phân tích tĩnh sinh ra một cách tất định**. **AI chỉ dùng khi bắt buộc**: diễn giải mục đích, làm mượt câu kịch bản, chọn giữa các ứng viên khi phân tích tĩnh không chắc chắn.
 - **Kiến trúc:** `Analysis Engine` (Java 21 + Spring Boot) + `Node Analyzer` (sidecar Node.js để phân tích Angular) + `Web UI` (Angular) + `PostgreSQL`, đóng gói bằng Docker Compose. Đây là **tool cá nhân**: mỗi người tự chạy trên máy của mình.
 - **AI:** qua lớp Provider trừu tượng. Mặc định dùng **Gemini**, có thể đổi sang Claude, API tương thích OpenAI, hoặc tắt hẳn AI.
@@ -100,7 +100,7 @@ Giá trị: rút ngắn thời gian onboarding, giảm sai sót khi sửa code (
 | **Trace** | Kết quả của Tracer: danh sách participant và các bước có thứ tự. Trace là đầu vào để vẽ diagram và sinh kịch bản. |
 | **Confidence (mức tin cậy)** | Nhãn trên mỗi Edge: `CERTAIN`, `INFERRED`, `UNRESOLVED` (và `RUNTIME_VERIFIED` ở bản mở rộng). Liên kết người dùng đã chốt tay hiển thị riêng là "Chốt tay". |
 | **Link override** | Quyết định chốt tay của người dùng cho một liên kết (ghim hoặc loại bỏ). Được lưu lại và áp dụng cho các lần quét sau. |
-| **Feature (Nhóm chức năng)** | *(Mở rộng)* Nhóm các endpoint/thành phần liên quan, được lưu lại để xem diagram và diễn giải ở cấp chức năng. |
+| **Feature (Nhóm chức năng)** | *(Đã loại khỏi kế hoạch)* Nhóm các endpoint/thành phần liên quan, lưu lại để xem diagram và diễn giải ở cấp chức năng. Hiện không có bảng CSDL, package hay API; nếu làm lại sẽ thêm migration mới. |
 | **Scenario (Kịch bản)** | Lời kể từng bước của sequence diagram, dạng "Bước n: A làm gì tới B". Bước n khớp đúng mũi tên số n trên diagram. |
 
 ## 1.2 Yêu cầu chức năng
@@ -117,7 +117,7 @@ Tổng quan các nhóm:
 | 4. Dò vết & trực quan hóa luồng | Dò luồng End-to-End và vẽ sequence diagram tương tác | 5 | 1 | 1 |
 | 5. Liên kết Frontend – Backend & độ tin cậy | Nối FE với BE, thể hiện mức tin cậy, chốt tay, xác minh runtime | 6 | 0 | 2 |
 | 6. Diễn giải & dữ liệu mẫu | Panel phải: tab Diễn giải và tab Kịch bản; đặt tên phần tử bằng AI | 11 | 0 | 0 |
-| 7. Nhóm chức năng (Feature) | Gom nhiều thành phần thành một chức năng để xem tổng thể | 0 | 0 | 8 |
+| 7. Nhóm chức năng (Feature) *(đã loại khỏi kế hoạch)* | Gom nhiều thành phần thành một chức năng để xem tổng thể | 0 | 0 | 8 |
 | 8. So sánh & đối chiếu hệ thống cũ – mới | Split view, ghép luồng cũ/mới, danh sách khác biệt khi migrate | 0 | 0 | 4 |
 | 9. Cấu hình AI & hệ thống | Cấu hình AI, bộ lọc nhiễu, theo dõi sử dụng AI | 4 | 1 | 0 |
 | **Tổng** | | **47** | **4** | **22** |
@@ -502,11 +502,11 @@ Thiết kế chi tiết nằm ở **[database.md](database.md)** (mô tả từn
 
 Tóm tắt:
 - **Mã nguồn dự án** giữ nguyên tại chỗ, tool chỉ đọc. Mọi thứ còn lại nằm trong **PostgreSQL của tool**, không phải CSDL của dự án được phân tích.
-- **12 bảng** (tên số nhiều trong CSDL: `workspaces`, `sources`, `scan_runs`, `source_files`, `ir_nodes`, `ir_edges`, `link_overrides`, `ai_artifacts`, `llm_call_logs`, `app_settings`, `features`, `feature_members`; migration Flyway V1–V5), chia làm 4 nhóm:
+- **10 bảng** (tên số nhiều trong CSDL: `workspaces`, `sources`, `scan_runs`, `source_files`, `ir_nodes`, `ir_edges`, `link_overrides`, `ai_artifacts`, `llm_call_logs`, `app_settings`; migration Flyway V1–V6), chia làm 4 nhóm:
   - *Cấu hình phân tích:* `workspace`, `source`.
   - *Kết quả phân tích:* `scan_run`, `source_file`, `ir_node`, `ir_edge`. Sinh lại được bằng cách quét lại.
   - *AI:* `ai_artifact` (bộ nhớ đệm nội dung AI), `llm_call_log` (nhật ký gọi AI, không lưu nội dung prompt).
-  - *Dữ liệu người dùng:* `link_override`, `app_setting`, `feature`, `feature_member`. Không sinh lại được.
+  - *Dữ liệu người dùng:* `link_override`, `app_setting`. Không sinh lại được.
 - Dữ liệu người dùng và cache AI trỏ tới thành phần bằng **`key` ổn định** (không dùng khóa ngoại tới `ir_node.id`), để không bị mất khi quét lại.
 
 ## 2.4 Kịch bản hoạt động của hệ thống
@@ -568,7 +568,7 @@ Tên gọi các bộ phận trong kịch bản:
    - 3a. *Nếu không có thay đổi:* **Bộ quét** báo "Không có thay đổi" và kết thúc.
 4. **Bộ quét** xóa khỏi **CSDL** các thành phần và quan hệ thuộc file đã sửa hoặc đã xóa.
 5. **Bộ phân tích** đọc lại các file mới và file đã sửa; **Bộ quét** lưu kết quả mới vào **CSDL**.
-6. **Bộ liên kết** nối lại phần Frontend – Backend bị ảnh hưởng. Liên kết chốt tay và nhóm chức năng của người dùng vẫn giữ nguyên.
+6. **Bộ liên kết** nối lại phần Frontend – Backend bị ảnh hưởng. Liên kết chốt tay của người dùng vẫn giữ nguyên.
 7. **Bộ quét** báo hoàn tất cho **Giao diện**, kèm số file thêm, sửa, xóa.
    - Nội dung AI của phần code không đổi vẫn được dùng lại.
    - Phần code đã đổi sẽ được sinh nội dung AI mới khi người dùng mở tới.
@@ -590,7 +590,6 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 **Cột trái (có thể thu gọn, kéo được độ rộng):**
 - Tab **Backend**: cây `Module → Endpoint` (badge method, path, cảnh báo nếu có node không xác định).
 - Tab **Frontend**: cây `Ứng dụng → Màn hình → Tab → Dialog/Form → Phần tử` (icon theo loại; badge "API" hoặc "UI"; dòng thống kê "N ứng dụng · M màn hình · K phần tử giao diện"). Phần tử do AI đặt tên có dấu ✦.
-- Tab **Chức năng** *(mở rộng)*: danh sách nhóm chức năng đã lưu và gợi ý.
 - Ô tìm ở đầu mỗi tab. Tab Backend lọc ngay trên cây. Tab Frontend trả danh sách gợi ý hai nhóm "Màn hình" / "Phần tử giao diện" (không phân biệt dấu và hoa thường, khớp cả tên do AI đặt); bấm một kết quả thì quay về cây đầy đủ với mục đó được mở và chọn. Node đang mở được highlight.
 
 **Canvas giữa** (chỉ đặt nổi trên canvas những gì dành riêng cho canvas):
@@ -632,7 +631,7 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 | `EDGE_RESOLUTION` | Người dùng bấm "Nhờ AI phân tích" trên một liên kết chưa chắc chắn | Chuỗi gọi từ thao tác của người dùng tới điểm gọi (tên hàm, dòng mã truyền chuỗi hằng), code tại điểm gọi, danh sách ứng viên, các từ khớp tên giữa chuỗi gọi và từng ứng viên | `{analyses: [{candidate, advice, reason, evidence}], extra?: {nodeKey, reason}}`. `SHOULD` phải kèm `evidence` có thật trong chuỗi gọi / mã, nhiều `SHOULD` thì chỉ giữ ứng viên khớp tên nhiều nhất (khi duy nhất). Chỉ là gợi ý, **không đổi liên kết** | Bật |
 | `MOCK_DATA` | Người dùng bấm "Sinh bằng AI" / "Sinh lại" ở mục Dữ liệu mẫu | Cấu trúc DTO: tên trường, kiểu, ràng buộc (không có dữ liệu thật) | JSON request/response mẫu thỏa cấu trúc; sinh **một lần** rồi lưu cache | Bật |
 | `ELEMENT_NAMING` | Người dùng bấm "Sinh lại tên thành phần bằng AI" ở một màn hình / hộp thoại / tab / form (áp dụng cho mọi phần tử bên dưới, kể cả hộp thoại lồng nhau; chỉ phần tử đáng đặt tên, 30 phần tử mỗi lượt gọi) | Với mỗi phần tử tương tác: loại, chữ trên giao diện (nhãn / i18n), tên control, tên hàm xử lý, màn hình / hộp thoại chứa nó, API nó gọi (method, đường dẫn, mô tả, tên Controller + hàm), hộp thoại / màn hình nó mở | `{names: [{id, label}]}`: tên tiếng Việt ngắn (≤ 6 từ, ≤ 60 ký tự) cho từng phần tử, vd "Xuất danh sách ra Excel". Chỉ đổi cách hiển thị tên, **không** đổi cây, liên kết hay diagram; mỗi `id` phải thuộc đầu vào, tên không phải mã định danh | Bật |
-| `FEATURE_SUMMARY` *(mở rộng)* | Mở nhóm chức năng | Mục đích của các thành viên | Đoạn tóm tắt | Bật |
+| `FEATURE_SUMMARY` *(đã loại khỏi kế hoạch; chỉ còn là giá trị enum)* | Mở nhóm chức năng | Mục đích của các thành viên | Đoạn tóm tắt | Bật |
 | `LEGACY_MATCH` *(mở rộng)* | Không ghép được cũ/mới bằng tài liệu hay độ tương đồng | Chữ ký, trace rút gọn hai phía | Xếp hạng ứng viên | Bật |
 
 **Quy tắc:**

@@ -12,12 +12,12 @@
 | Mã nguồn dự án                                                                             | Giữ nguyên tại chỗ trên máy, tool **chỉ đọc** | Tool không bao giờ sửa hay sao chép code.                                    |
 | Kết quả phân tích ("bản đồ" thành phần và quan hệ, trạng thái từng file)                   | CSDL của tool                                 | Sinh lại được bất cứ lúc nào bằng cách quét lại.                             |
 | Nội dung do AI sinh (bộ nhớ đệm)                                                           | CSDL của tool                                 | Không phải gọi AI lại khi code không đổi: tiết kiệm chi phí, phản hồi nhanh. |
-| Dữ liệu do người dùng tạo (Workspace, Source, liên kết chốt tay, nhóm chức năng, cấu hình) | CSDL của tool; xuất/nhập được ra file JSON    | Không sinh lại được nên phải giữ cẩn thận.                                   |
+| Dữ liệu do người dùng tạo (Workspace, Source, liên kết chốt tay, cấu hình) | CSDL của tool; xuất/nhập được ra file JSON    | Không sinh lại được nên phải giữ cẩn thận.                                   |
 
 ## Hai khái niệm cần biết trước khi đọc
 
 - **Node và Edge:** khi quét, tool biến mã nguồn thành một **bản đồ**. Mỗi thành phần (nút bấm, màn hình, hàm, endpoint, bảng dữ liệu…) là một **node**. Mỗi quan hệ giữa hai thành phần ("nút này gọi hàm kia", "hàm này ghi vào bảng kia") là một **edge**. Sequence diagram được vẽ bằng cách đi theo các edge.
-- **Key ổn định:** mỗi node có một `key` được tạo từ vị trí logic trong code, ví dụ `java:method:com.acme.CategoryService#create(CategoryReq)`. Mỗi lần quét lại, `id` của node có thể đổi nhưng `key` thì giữ nguyên. Vì vậy dữ liệu người dùng (liên kết chốt tay, nhóm chức năng, bộ nhớ đệm AI) luôn trỏ tới node **bằng `key`**, để không bị mất sau khi quét lại.
+- **Key ổn định:** mỗi node có một `key` được tạo từ vị trí logic trong code, ví dụ `java:method:com.acme.CategoryService#create(CategoryReq)`. Mỗi lần quét lại, `id` của node có thể đổi nhưng `key` thì giữ nguyên. Vì vậy dữ liệu người dùng (liên kết chốt tay, bộ nhớ đệm AI) luôn trỏ tới node **bằng `key`**, để không bị mất sau khi quét lại.
 
 ---
 
@@ -184,30 +184,6 @@ Lưu **cấu hình chung của tool** mà người dùng chỉnh được trên 
 | value | JSONB | Giá trị cấu hình, ví dụ `{"PURPOSE_TEXT":true,"SCENARIO_POLISH":false}` hoặc `{"limit":20,"model":"gemini-2.5-flash"}` |
 | updated_at | TIMESTAMPTZ | Thời điểm cập nhật gần nhất |
 
-## 11. Feature *(Mở rộng)*
-
-Mỗi bản ghi là **một nhóm chức năng** do người dùng lưu lại, ví dụ "Quản lý danh mục" gồm các thao tác tải danh sách, thêm, sửa, xóa. Dùng để xem diagram và diễn giải ở cấp cả chức năng. Bảng được tạo ngay từ MVP để khi làm tính năng này không phải thay đổi cấu trúc CSDL.
-
-| Thuộc tính | Kiểu dữ liệu | Mô tả |
-| :--- | :--- | :--- |
-| id | UUID | Khóa chính |
-| workspace_id | UUID (FK) | Workspace sở hữu, tham chiếu Workspace.id |
-| name | VARCHAR(200) | Tên nhóm chức năng, không trùng trong cùng Workspace |
-| description | TEXT (nullable) | Mô tả nhóm chức năng |
-| origin | ENUM('USER', 'SUGGESTED') | `USER` = người dùng tự tạo; `SUGGESTED` = tạo từ gợi ý của hệ thống và đã được người dùng xác nhận |
-| created_at | TIMESTAMPTZ | Thời điểm tạo |
-| updated_at | TIMESTAMPTZ | Thời điểm cập nhật gần nhất |
-
-## 12. FeatureMember *(Mở rộng)*
-
-Danh sách **thành phần thuộc một nhóm chức năng** và thứ tự của chúng trong quy trình. Thành phần được trỏ tới bằng `key`, nên nhóm chức năng vẫn còn nguyên sau khi quét lại.
-
-| Thuộc tính | Kiểu dữ liệu | Mô tả |
-| :--- | :--- | :--- |
-| feature_id | UUID (PK, FK) | Nhóm chức năng, tham chiếu Feature.id. Cùng với `node_key` tạo thành khóa chính |
-| node_key | TEXT (PK) | Key của thành phần thuộc nhóm (endpoint, nút bấm…) |
-| order_index | INTEGER | Thứ tự của thành phần trong quy trình, ví dụ 1 = Tìm kiếm, 2 = Thêm vào giỏ, 3 = Đặt hàng |
-
 ---
 
 ## Lịch sử migration (Flyway)
@@ -219,6 +195,7 @@ Danh sách **thành phần thuộc một nhóm chức năng** và thứ tự c�
 | V3 | Thêm mục đích AI `ELEMENT_NAMING` |
 | V4 | Thêm giá trị `CACHE_HIT` cho `llm_call_status` và bỏ hai cột `hit_count`, `last_hit_at` (thử nghiệm thống kê "trúng cache", đã gỡ) |
 | V5 | Hoàn tác phần bỏ cột của V4: thêm lại `hit_count`, `last_hit_at`; xóa các dòng nhật ký `CACHE_HIT` |
+| V6 | Gỡ hẳn nhóm chức năng: xóa bảng `feature_members`, `features` và kiểu `feature_origin` (chức năng Mở rộng đã loại khỏi lộ trình; hai bảng chưa từng được dùng). Giá trị `FEATURE_SUMMARY` của `ai_purpose` còn lại trong enum, không dùng |
 
 Không bao giờ sửa migration đã chạy (Flyway kiểm tra mã băm); thay đổi cấu trúc luôn bằng file migration mới. `spring.jpa.hibernate.ddl-auto` luôn là `validate`.
 
@@ -240,6 +217,5 @@ Không bao giờ sửa migration đã chạy (Flyway kiểm tra mã băm); thay 
 | IrNode | IrEdge | 1 – N (chiều đi) | ir_edge.from_node_id | |
 | IrNode | IrEdge | 1 – N (chiều đến) | ir_edge.to_node_id | |
 | SourceFile | IrEdge | 1 – N | ir_edge.file_id | |
-| Workspace | LinkOverride, AiArtifact, LlmCallLog, Feature | 1 – N | *.workspace_id | |
-| Feature | FeatureMember | 1 – N | feature_member.feature_id | |
-| IrNode | LinkOverride, AiArtifact, FeatureMember | Liên kết mềm qua `key` | *(không dùng khóa ngoại)* | Cố ý không ràng buộc khóa ngoại để dữ liệu người dùng không bị mất khi quét lại |
+| Workspace | LinkOverride, AiArtifact, LlmCallLog | 1 – N | *.workspace_id | |
+| IrNode | LinkOverride, AiArtifact | Liên kết mềm qua `key` | *(không dùng khóa ngoại)* | Cố ý không ràng buộc khóa ngoại để dữ liệu người dùng không bị mất khi quét lại |
