@@ -4,6 +4,7 @@ import type { LinkRuleDto, LinkRuleType, LinkRulesDto } from '../../core/api/api
 import { LinkingApi } from '../../core/api/linking.api';
 import { Icon } from '../../core/ui/icon';
 import { Modal } from '../../core/ui/modal';
+import { SelectMenu, SelectOption } from '../../core/ui/select-menu';
 import { ToastService } from '../../core/ui/toast.service';
 import { RULE_TYPES, RuleItem, needsReplacement, patternError, ruleTypeLabel, withRule, withoutRule } from './link-settings-model';
 
@@ -18,7 +19,7 @@ interface Editing {
  */
 @Component({
   selector: 'app-link-rules-tab',
-  imports: [Icon, Modal],
+  imports: [Icon, Modal, SelectMenu],
   template: `
     <div class="row bar">
       <div class="sp1"></div>
@@ -65,12 +66,8 @@ interface Editing {
     @if (editing(); as ed) {
       <app-modal [title]="ed.index === null ? 'Thêm luật liên kết' : 'Sửa luật liên kết'" (closed)="editing.set(null)">
         <div class="fld">
-          <label class="lb" for="ruleType">Loại</label>
-          <select id="ruleType" class="in" [value]="type()" (change)="setType($event)">
-            @for (t of types; track t.type) {
-              <option [value]="t.type">{{ t.label }}</option>
-            }
-          </select>
+          <span class="lb" id="ruleTypeLb">Loại</span>
+          <app-select-menu class="block" ariaLabel="Loại luật liên kết" [options]="typeOptions" [value]="type()" (changed)="setType($event)" />
           <div class="hint">{{ typeInfo().help }}</div>
         </div>
         <div class="fld">
@@ -115,6 +112,7 @@ export class LinkRulesTab {
   readonly workspaceId = input.required<string>();
 
   protected readonly types = RULE_TYPES;
+  protected readonly typeOptions: SelectOption[] = RULE_TYPES.map((t) => ({ value: t.type ?? '', label: t.label ?? '' }));
   protected readonly rules = signal<LinkRulesDto | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -165,8 +163,8 @@ export class LinkRulesTab {
     }
   }
 
-  protected setType(e: Event): void {
-    this.type.set((e.target as HTMLSelectElement).value as LinkRuleType);
+  protected setType(value: string): void {
+    this.type.set(value as LinkRuleType);
   }
 
   protected startEdit(index: number | null): void {

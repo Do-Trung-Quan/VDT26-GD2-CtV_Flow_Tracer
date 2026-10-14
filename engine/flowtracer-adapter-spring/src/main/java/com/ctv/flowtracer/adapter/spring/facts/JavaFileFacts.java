@@ -214,7 +214,13 @@ public record JavaFileFacts(
             int callOrder,
             Guard guard,
             int line,
-            HttpArgs http) {
+            HttpArgs http,
+            List<String> argTypes) {
+
+        /** @param argTypes kiểu đã biết của từng đối số (tên ngắn, bỏ generic); phần tử null nếu chưa biết kiểu — dùng chọn hàm nạp chồng */
+        public CallSiteFact {
+            argTypes = argTypes == null ? List.of() : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(argTypes));
+        }
 
         public CallSiteFact(
                 String callerMethod,
@@ -226,7 +232,7 @@ public record JavaFileFacts(
                 int callOrder,
                 Guard guard,
                 int line) {
-            this(callerMethod, receiverType, receiverExpr, receiverCall, methodName, argCount, callOrder, guard, line, null);
+            this(callerMethod, receiverType, receiverExpr, receiverCall, methodName, argCount, callOrder, guard, line, null, null);
         }
     }
 

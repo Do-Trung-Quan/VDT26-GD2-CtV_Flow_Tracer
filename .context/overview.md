@@ -105,7 +105,7 @@ Giá trị: rút ngắn thời gian onboarding, giảm sai sót khi sửa code (
 
 ## 1.2 Yêu cầu chức năng
 
-Toàn bộ chức năng (72 chức năng, 9 nhóm) được mô tả chi tiết trong **[feature_list.md](feature_list.md)**: tên, mức ưu tiên, input, output, mô tả, cùng quy tắc xử lý của từng nhóm. API tương ứng nằm trong **[API_list.md](API_list.md)**.
+Toàn bộ chức năng (73 chức năng, 9 nhóm) được mô tả chi tiết trong **[feature_list.md](feature_list.md)**: tên, mức ưu tiên, input, output, mô tả, cùng quy tắc xử lý của từng nhóm. API tương ứng nằm trong **[API_list.md](API_list.md)**.
 
 Tổng quan các nhóm:
 
@@ -116,11 +116,11 @@ Tổng quan các nhóm:
 | 3. Khám phá cấu trúc dự án | Xem cây API Backend, cây thành phần Frontend, tìm kiếm, xem code | 4 | 2 | 0 |
 | 4. Dò vết & trực quan hóa luồng | Dò luồng End-to-End và vẽ sequence diagram tương tác | 5 | 1 | 1 |
 | 5. Liên kết Frontend – Backend & độ tin cậy | Nối FE với BE, thể hiện mức tin cậy, chốt tay, xác minh runtime | 6 | 0 | 2 |
-| 6. Diễn giải & dữ liệu mẫu | Panel phải: tab Diễn giải và tab Kịch bản | 10 | 0 | 0 |
+| 6. Diễn giải & dữ liệu mẫu | Panel phải: tab Diễn giải và tab Kịch bản; đặt tên phần tử bằng AI | 11 | 0 | 0 |
 | 7. Nhóm chức năng (Feature) | Gom nhiều thành phần thành một chức năng để xem tổng thể | 0 | 0 | 8 |
 | 8. So sánh & đối chiếu hệ thống cũ – mới | Split view, ghép luồng cũ/mới, danh sách khác biệt khi migrate | 0 | 0 | 4 |
 | 9. Cấu hình AI & hệ thống | Cấu hình AI, bộ lọc nhiễu, theo dõi sử dụng AI | 4 | 1 | 0 |
-| **Tổng** | | **46** | **4** | **22** |
+| **Tổng** | | **47** | **4** | **22** |
 
 ## 1.3 Yêu cầu phi chức năng
 
@@ -130,7 +130,7 @@ Tổng quan các nhóm:
 | NFR-02 | Hiệu năng | Quét lại khi ≤ 20 file thay đổi | ≤ 15 giây |
 | NFR-03 | Hiệu năng | Tải cây BE/FE; tìm kiếm | ≤ 1 giây |
 | NFR-04 | Hiệu năng | Dò vết và vẽ trace ≤ 50 bước (không tính AI) | ≤ 2 giây |
-| NFR-05 | Hiệu năng | Diễn giải AI lần đầu / đã cache | Chữ đầu tiên ≤ 5 giây, hoàn tất ≤ 20 giây (có streaming) / ≤ 1 giây |
+| NFR-05 | Hiệu năng | Diễn giải AI (bấm "Sinh bằng AI") lần đầu / đã cache | Hoàn tất ≤ 20 giây / ≤ 1 giây. Không có streaming từ nhà cung cấp: giao diện hiện khung chờ kèm số giây, chữ hiện dần sau khi có kết quả. Gói miễn phí của Gemini có lúc chậm hơn nhiều (xem `docs/evaluation.md`) |
 | NFR-06 | Tài nguyên | RAM của Engine khi quét Workspace khoảng 2.000 file | ≤ 2 GB |
 | NFR-07 | Độ chính xác | Phát hiện endpoint so với OpenAPI | ≥ 98% (mục tiêu 100%) |
 | NFR-08 | Độ chính xác | Liên kết FE → BE so với ground truth | Precision ≥ 95%, recall ≥ 85% |
@@ -140,12 +140,12 @@ Tổng quan các nhóm:
 | NFR-12 | Bảo mật dữ liệu | Không kết nối DB và không đọc dữ liệu thật của dự án. Dữ liệu mẫu chỉ sinh từ DTO | Bắt buộc |
 | NFR-13 | Bảo mật AI | Được gửi **mã nguồn** tới AI bên ngoài (Gemini, Claude…) theo thực tế team đang dùng. **Trước khi gửi phải che secret**: giá trị của khóa chứa `password`, `secret`, `token`, `key`, `credential` trong `application*.yml`/`.properties`/`.env`, chuỗi kết nối DB, private key. Không gửi file `.env`, keystore, file dữ liệu | Bắt buộc |
 | NFR-14 | Bảo mật AI | Chỉ dùng **API chính thức** (trả phí hoặc gói doanh nghiệp) có cam kết không dùng dữ liệu để huấn luyện; không dùng giao diện chat miễn phí | Bắt buộc |
-| NFR-15 | Bảo mật | API key chỉ nằm trong biến môi trường của Engine, không lưu vào DB, không gửi xuống trình duyệt, không ghi log | Bắt buộc |
+| NFR-15 | Bảo mật | API key chỉ nằm trong biến môi trường của Engine, không lưu vào DB, không gửi xuống trình duyệt, không ghi log (log của Engine ghi prompt đã che secret và kết quả của mỗi lời gọi AI để người dùng tự đọc; tắt bằng `LLM_LOG_CONTENT=false`; không bao giờ có khóa API) | Bắt buộc |
 | NFR-16 | Bảo mật | Mặc định Engine chỉ lắng nghe `127.0.0.1`; trình duyệt thư mục bị giới hạn trong `SOURCE_ROOT` và chặn path traversal | Bắt buộc |
-| NFR-17 | Kiểm toán | Ghi log mỗi lần gọi AI: mục đích, provider, model, số token, độ trễ, trạng thái. **Không lưu nội dung prompt** mà chỉ lưu hash | Bắt buộc |
+| NFR-17 | Kiểm toán | Ghi log mỗi lần gọi AI vào CSDL: mục đích, provider, model, số token, độ trễ, trạng thái. **CSDL không lưu nội dung prompt** mà chỉ lưu hash (nội dung đã che secret chỉ nằm ở log của Engine, xem NFR-15) | Bắt buộc |
 | NFR-18 | Độ tin cậy | Tool vẫn hoạt động đầy đủ, trừ phần diễn giải AI, khi AI tắt, hết quota hoặc mất mạng | Bắt buộc |
 | NFR-19 | Độ tin cậy | File lỗi cú pháp không làm hỏng lần quét (trạng thái `PARTIAL` kèm danh sách lỗi) | Bắt buộc |
-| NFR-20 | Chi phí AI | Mỗi node gọi AI tối đa một lần cho mỗi phiên bản code (cache theo hash). Giới hạn token cho mỗi lời gọi; có hạn mức ngày cấu hình được | Bắt buộc |
+| NFR-20 | Chi phí AI | Mỗi node gọi AI tối đa một lần cho mỗi phiên bản code (cache theo hash). Giới hạn token cho mỗi lời gọi; có thể tự đặt giới hạn token mỗi ngày (`LLM_DAILY_TOKEN_LIMIT`, mặc định không đặt — nhà cung cấp như Gemini không công bố hạn mức token theo ngày cho gói miễn phí, chỉ hạn mức lượt gọi); khi nhà cung cấp trả 429 thì ngừng gọi tới giờ họ báo | Bắt buộc |
 | NFR-21 | Mở rộng | Thêm công nghệ mới bằng cách viết Adapter mới, **không sửa phần lõi** | Kiến trúc plugin |
 | NFR-22 | Khả dụng | Giao diện và nội dung diễn giải bằng tiếng Việt (tên định danh trong code giữ nguyên). Hỗ trợ trình duyệt Chrome/Edge/Firefox bản mới | — |
 | NFR-23 | Triển khai | Khởi chạy bằng một lệnh `docker compose up`, cấu hình qua `.env`. Chạy được trên Windows (Docker Desktop) và Linux | — |
@@ -231,9 +231,9 @@ Cấu trúc thư mục chi tiết: [project_structure.md](project_structure.md).
 ### 2.1.2 Mô tả các thành phần
 
 1. **Web UI**
-   - *Công nghệ:* Angular 21 (standalone components, signals), Angular Material + CDK, renderer sequence bằng SVG tự viết. Kiểu dữ liệu API sinh tự động từ OpenAPI của Engine.
+   - *Công nghệ:* Angular 21 (standalone components, signals, OnPush), thành phần giao diện tự viết theo bản vẽ (không dùng Angular Material), renderer sequence bằng SVG tự viết. Kiểu dữ liệu API sinh tự động từ OpenAPI của Engine.
    - *Nhiệm vụ:* bố cục 3 cột, cây BE/FE, canvas diagram, panel Diễn giải/Kịch bản, trang cài đặt. Không chứa logic phân tích.
-   - *Giao tiếp:* REST/JSON với Engine; SSE để nhận tiến độ quét và nội dung AI đang sinh.
+   - *Giao tiếp:* REST/JSON với Engine; SSE để nhận tiến độ quét.
 
 2. **API (Controller trong Engine)**
    - *Công nghệ:* Spring Web MVC, validation bằng Jakarta Bean Validation, tài liệu API bằng springdoc-openapi.
@@ -283,7 +283,7 @@ Cấu trúc thư mục chi tiết: [project_structure.md](project_structure.md).
 | Phân tích Java | JavaParser (giải kiểu bằng `ClassIndex`) | Chịu được file sai cú pháp; kết quả tất định, không cần classpath của dự án phân tích |
 | Phân tích Angular | Node Analyzer (sidecar): TypeScript Compiler API + `@angular/compiler` | Cách duy nhất hiểu chính xác TypeScript và template Angular |
 | Hợp đồng dữ liệu | JSON Schema chung trong `contracts/` | Engine (Java) và sidecar (TypeScript) cùng tuân theo; Engine kiểm tra đầu ra của sidecar |
-| Web UI | Angular 21 + Angular Material/CDK | Cùng stack với dự án thực tế của team |
+| Web UI | Angular 21 (standalone, signals), thành phần tự viết theo bản vẽ `docs/UI/UI_offline.html` | Cùng stack với dự án thực tế của team; không phụ thuộc thư viện giao diện nặng |
 | Diagram | Renderer SVG tự viết (phong cách PlantUML `strictuml`) + xuất PlantUML/SVG/PNG | Kiểm soát hoàn toàn tương tác (highlight, đồng bộ với Kịch bản); mã PlantUML dán thẳng vào tài liệu dự án |
 | CSDL | PostgreSQL 16 + Spring Data JPA + JdbcClient (batch) + Flyway | JSONB cho thuộc tính node, tìm kiếm toàn văn sẵn có; ghi hàng loạt IR nhanh; migration có phiên bản |
 | AI | Spring AI, Gemini mặc định | Một API chung cho nhiều provider; đổi provider chỉ bằng cấu hình |
@@ -489,7 +489,7 @@ Bước có `from` = `to` là bước tự xử lý. `uiOnly = true` khi luồng
 
 Phần này chạy được khi `flowtracer.ai.provider=none`; AI (Giai đoạn 7) chỉ viết lại một số mục và luôn có phương án dự phòng dưới đây.
 
-- **Mục đích:** `@Operation` (`summary`, kèm `description` nếu có) → Javadoc của hàm xử lý → câu khung. Câu khung của API: `API <METHOD path> thuộc nhóm “<module>”: nhận <tham số, dữ liệu X>, trả về <Y>.`; của phần tử giao diện: `Nút “Lưu” dùng để gọi API “…” (POST …)` hoặc `… chỉ thay đổi giao diện: mở hộp thoại …; không gọi máy chủ.`; phần tử có lời gọi HTTP chưa xác định được API đích thì `… gọi máy chủ nhưng 1 lời gọi chưa xác định được API đích (GET …); hãy chốt tay liên kết trên diagram.` — không bao giờ nói "không gọi máy chủ" khi phần tử có lời gọi HTTP. (Bước "tài liệu đặc tả" của chuỗi chưa làm: Workspace chưa có nơi khai báo thư mục tài liệu.) **Thành phần chứa** chỉ có một câu: `Màn hình Danh mục gồm 14 phần tử tương tác, trong đó 6 gọi API; có 1 hộp thoại.`
+- **Mục đích:** `@Operation` (`summary`, kèm `description` nếu có) → Javadoc của hàm xử lý → câu tự sinh (giao diện ghi nhãn "Hệ thống tự sinh"; trong mã gọi là `SKELETON`). Câu tự sinh của API: `API <METHOD path> thuộc nhóm “<module>”: nhận <tham số, dữ liệu X>, trả về <Y>.`; của phần tử giao diện: `Nút “Lưu” dùng để gọi API “…” (POST …)` hoặc `… chỉ thay đổi giao diện: mở hộp thoại …; không gọi máy chủ.`; phần tử có lời gọi HTTP chưa xác định được API đích thì `… gọi máy chủ nhưng 1 lời gọi chưa xác định được API đích (GET …); hãy chốt tay liên kết trên diagram.` — không bao giờ nói "không gọi máy chủ" khi phần tử có lời gọi HTTP. (Bước "tài liệu đặc tả" của chuỗi chưa làm: Workspace chưa có nơi khai báo thư mục tài liệu.) **Thành phần chứa** chỉ có một câu: `Màn hình Danh mục gồm 14 phần tử tương tác, trong đó 6 gọi API; có 1 hộp thoại.`
 - **Đầu vào:** các phần có dữ liệu trong `path`, `query`, `body`; mỗi trường là một câu `kiểu — bắt buộc, tối đa 50 ký tự. Mô tả` (kiểu enum ghi các giá trị; trường lồng nhau thành khối lồng nhau, danh sách thành mảng một phần tử). **Đầu ra:** giữ lớp bọc chung (`ApiResponse<T>`: `errorCode`, `message`, `data`…) nhưng mở `T` thành dữ liệu thật. Lớp bọc nằm trong jar của dự án (không có mã nguồn) vẫn đọc được: bộ phân tích đọc khai báo trong file `.class` của jar nằm trong Source (chỉ tên trường, kiểu, annotation tên JSON / ràng buộc; không nạp lớp, không chạy mã) và dựng mã rút gọn cho các lớp mà mã dự án import; `org.springframework.data.domain.Page<T>` được khai báo sẵn theo dạng JSON của Spring. **Lỗi có thể gặp:** thông báo của các `throw` trong luồng — tra file messages (kể cả `messages-app_vi.properties`) và, với lỗi dựng từ hằng enum (`AppError.X.exception()`), tra khóa thông báo khai báo trong enum; chưa tra được thì ghi "lỗi <mã>" — cộng "thiếu trường bắt buộc hoặc sai định dạng", "không đủ quyền" (có `@PreAuthorize`). Điều kiện trong Ràng buộc được diễn đạt lại ở các dạng đơn giản (`x == null` → "x để trống", …); GĐ7 để AI viết lại cho tự nhiên. Phần tử giao diện lấy theo từng API nó gọi (mỗi API một mục).
 - **Ràng buộc thô** (mỗi ràng buộc một câu, theo thứ tự): quyền (`Cần quyền: hasAuthority('…')`); tham số bắt buộc; ràng buộc từng trường của thân yêu cầu (`Trường code: bắt buộc, tối đa 50 ký tự`, kể cả trường lồng nhau `address.city`); mỗi `throw` kèm điều kiện (`Nếu <điều kiện> thì báo lỗi “<thông báo>” (<KHÓA>)`); cột `unique` của bảng mà luồng ghi vào (`Cột code của bảng category không được trùng`).
 - **Dữ liệu mẫu** (`FallbackMockGenerator`): sinh từ JSON Schema của DTO, chọn giá trị theo kiểu, ràng buộc và TÊN trường (mã → `DT001`, tiêu đề → `Điện thoại`, email, số điện thoại, ngày `2026-10-13`…), UUID cố định theo seed; sau đó kiểm tra lại bằng `SchemaValidator`, chỗ không khớp được báo ở `problems`. Không dùng thời gian hiện tại hay số ngẫu nhiên: cùng schema cho cùng dữ liệu.
@@ -502,7 +502,7 @@ Thiết kế chi tiết nằm ở **[database.md](database.md)** (mô tả từn
 
 Tóm tắt:
 - **Mã nguồn dự án** giữ nguyên tại chỗ, tool chỉ đọc. Mọi thứ còn lại nằm trong **PostgreSQL của tool**, không phải CSDL của dự án được phân tích.
-- **12 bảng**, chia làm 4 nhóm:
+- **12 bảng** (tên số nhiều trong CSDL: `workspaces`, `sources`, `scan_runs`, `source_files`, `ir_nodes`, `ir_edges`, `link_overrides`, `ai_artifacts`, `llm_call_logs`, `app_settings`, `features`, `feature_members`; migration Flyway V1–V5), chia làm 4 nhóm:
   - *Cấu hình phân tích:* `workspace`, `source`.
   - *Kết quả phân tích:* `scan_run`, `source_file`, `ir_node`, `ir_edge`. Sinh lại được bằng cách quét lại.
   - *AI:* `ai_artifact` (bộ nhớ đệm nội dung AI), `llm_call_log` (nhật ký gọi AI, không lưu nội dung prompt).
@@ -577,7 +577,7 @@ Tên gọi các bộ phận trong kịch bản:
 
 Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A–I tương ứng với 9 nhóm chức năng. Quy ước chính:
 - Tiền tố `/api`, dữ liệu JSON, mọi response bọc trong `{ "status", "code", "message", "data", "errors" }` (dữ liệu trong `data`; lỗi có `code` và `errors`), trừ SSE và `/api/health`.
-- Tiến độ quét và nội dung AI đang sinh được đẩy về dạng luồng (SSE).
+- Tiến độ quét được đẩy về dạng luồng (SSE). Nội dung AI chỉ sinh khi người dùng bấm nút (API F4) và trả về một lần; đọc lại bằng F1 / F2 / F3.
 - Không có đăng nhập; Engine chỉ lắng nghe `127.0.0.1`.
 - Thành phần được chỉ định bằng `node_key` ổn định. Kết quả dò vết có `trace_id` tính từ đầu vào nên tính lại được bất cứ lúc nào.
 
@@ -585,13 +585,13 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 
 > Bản vẽ giao diện chạy được (dữ liệu mẫu, sự kiện giả lập): [docs/UI/UI_offline.html](../docs/UI/UI_offline.html). Phần này mô tả bố cục và hành vi để dev dựng khung.
 
-**Thanh trên cùng (chỉ các nút quan trọng):** chọn Workspace (dropdown), ô tìm kiếm nhanh (`Ctrl+K`), chỉ báo AI (bật/tắt/lỗi), nút "Import dự án". Điều hướng các trang (Workspace, Màn hình chính, Cài đặt, Cấu hình AI) nằm ở thanh icon dọc bên trái.
+**Thanh trên cùng (chỉ các nút quan trọng):** nút 3 gạch (mở rộng / thu gọn menu bên trái, nhớ lựa chọn), logo ô trắng "CtV" + tên "Flow Tracer", chọn Workspace (dropdown tự thiết kế theo bản vẽ, có mục "Danh sách Workspace"), ô tìm kiếm nhanh (`Ctrl+K`), chỉ báo AI (đang kiểm tra / sẵn sàng / đạt giới hạn / quá tải / lỗi / tắt), nút "Import dự án". Điều hướng các trang nằm ở menu dọc bên trái, thu gọn chỉ icon hoặc mở rộng có tên: **Danh sách Workspace, Chi tiết Workspace** (khung 3 cột), **Cài đặt Workspace, Cấu hình AI**. Mọi ô chọn / hộp tích đều theo thiết kế riêng của bản vẽ, không dùng giao diện mặc định của trình duyệt. Tab trình duyệt có tiêu đề "Flow Tracer" và biểu tượng (favicon) là logo "CtV".
 
 **Cột trái (có thể thu gọn, kéo được độ rộng):**
 - Tab **Backend**: cây `Module → Endpoint` (badge method, path, cảnh báo nếu có node không xác định).
-- Tab **Frontend**: cây `Ứng dụng → Màn hình → Tab → Dialog/Form → Phần tử` (icon theo loại; badge "API" hoặc "UI").
+- Tab **Frontend**: cây `Ứng dụng → Màn hình → Tab → Dialog/Form → Phần tử` (icon theo loại; badge "API" hoặc "UI"; dòng thống kê "N ứng dụng · M màn hình · K phần tử giao diện"). Phần tử do AI đặt tên có dấu ✦.
 - Tab **Chức năng** *(mở rộng)*: danh sách nhóm chức năng đã lưu và gợi ý.
-- Ô lọc nhanh ở đầu mỗi tab. Node đang mở được highlight.
+- Ô tìm ở đầu mỗi tab. Tab Backend lọc ngay trên cây. Tab Frontend trả danh sách gợi ý hai nhóm "Màn hình" / "Phần tử giao diện" (không phân biệt dấu và hoa thường, khớp cả tên do AI đặt); bấm một kết quả thì quay về cây đầy đủ với mục đó được mở và chọn. Node đang mở được highlight.
 
 **Canvas giữa** (chỉ đặt nổi trên canvas những gì dành riêng cho canvas):
 - Góc trái trên: ẩn/hiện cây, trạng thái quét (kèm số file lỗi), nút "Quét lại".
@@ -602,9 +602,9 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 - Trạng thái rỗng: hướng dẫn "Chọn một endpoint hoặc một phần tử ở cột trái".
 - Tiêu đề cột trên diagram không bấm được; cột phải chỉ đổi khi chọn node ở cây hoặc chọn một bước.
 
-**Cột phải:** tiêu đề là tên node (tên thân thiện kèm loại) và nút "Xem code". Nút này mở popup có tab theo từng lớp trong luồng (API: Controller / Service / Repository / Entity; UI: template / component / facade / kết nối API).
+**Cột phải:** tiêu đề là tên node (tên thân thiện kèm loại) và nút "Xem code". Nút này mở popup có tab, mỗi file một tab, theo từng lớp trong luồng (API: Controller / Service / Repository; UI: template / component / facade / kết nối API); các hàm / khối liên quan được tô sáng, đầy đủ từ dòng đầu tới dòng cuối, hai đoạn xa nhau ngăn bằng dòng `⋯`.
 
-- **Khi chọn thành phần chứa** (module, ứng dụng, màn hình, hộp thoại, form): chỉ hiện tên, loại và một đoạn giải thích ngắn thành phần này dùng để làm gì.
+- **Khi chọn thành phần chứa** (module, ứng dụng, màn hình, hộp thoại, form): chỉ hiện tên, nhãn loại và nút "Sinh lại tên thành phần bằng AI" (đặt tên mọi phần tử bên dưới, kể cả trong hộp thoại lồng nhau), kèm khung chỉ dẫn bấm vào thành phần con.
 - **Khi chọn thành phần con** (API, nút, ô nhập…), tab **Diễn giải** gồm:
   - *Mục đích:* 80–100 từ, dễ hiểu (§2.7).
   - *Đầu vào / Đầu ra:* khối JSON. Thành phần UI lấy theo API mà nó gọi (gọi nhiều API thì mỗi API một tab). Luồng chỉ trên giao diện thì ghi "Không có".
@@ -612,14 +612,14 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
   - *Dữ liệu mẫu:* khớp đúng Đầu vào / Đầu ra.
   - *Được gọi từ:* với API là các thành phần UI hoặc API khác gọi tới nó; với UI là chuỗi thành phần chứa, sắp từ cao nhất xuống. Bấm để chuyển tới thành phần đó.
   - *Gọi tới:* chiều ngược lại (API, service ngoài, bảng dữ liệu; với UI là API và hộp thoại nó mở).
-- Tab **Kịch bản:** mục "Các actor tham gia" (tên cột và vai trò của nó), rồi danh sách "Bước n: …" khớp 1–1 với mũi tên số n. Hover/click đồng bộ với diagram.
-- Mục do AI sinh có biểu tượng nhỏ "AI" và nút "Sinh lại".
+- Tab **Kịch bản:** mục "Các actor tham gia" (tên cột và vai trò của nó), rồi danh sách "Bước n: …" khớp 1–1 với mũi tên số n. Bấm một bước thì mũi tên tương ứng bôi đỏ (và ngược lại); rê chuột không tô.
+- Mục do AI sinh có biểu tượng nhỏ "✦ AI" và nút "Sinh lại"; nội dung chưa có bản AI mang nhãn "Hệ thống tự sinh" kèm nút "Sinh bằng AI". Panel không có ghi chú giải thích nào khác ngoài banner nêu tình trạng dịch vụ AI.
 
 **Trang Cài đặt Workspace:** danh sách Source (vai trò, đường dẫn, thư mục loại trừ, công nghệ nhận diện), luật liên kết, bộ lọc nhiễu, danh sách liên kết chốt tay, đối chiếu OpenAPI, lịch sử quét.
 
-**Trang Cấu hình AI:** nhà cung cấp và kiểm tra kết nối, bật/tắt từng mục đích, hạn mức token hôm nay, thống kê sử dụng (lượt gọi, token, tỷ lệ trúng cache, lỗi) lấy từ `llm_call_log` và `ai_artifact`.
+**Trang Cấu hình AI:** nhà cung cấp (Engine tự kiểm tra kết nối một lần khi khởi động; nút "Kiểm tra kết nối" gọi lại), bật/tắt từng mục đích (kèm mô tả việc AI làm), mức dùng hôm nay (lượt gọi, kèm hạn mức theo ngày nếu nhà cung cấp đã báo; token), thống kê sử dụng theo 1 ngày / 7 ngày / Tất cả (lượt gọi, token, lỗi, độ trễ; biểu đồ token và lượt gọi theo mục đích) lấy từ `llm_call_logs`.
 
-**Các trạng thái chung:** đang quét (thanh tiến độ và giai đoạn), lỗi quét (danh sách file lỗi), AI tắt/lỗi (mục Mục đích hiện thông báo, phần còn lại bình thường).
+**Các trạng thái chung:** đang quét (thanh tiến độ và giai đoạn), lỗi quét (danh sách file lỗi), AI tắt / đạt giới hạn (429) / quá tải (503) / lỗi (một banner trong panel phải nêu tình trạng; chỉ 429 mới tạm chặn gọi AI, các lỗi khác vẫn cho bấm lại; phần còn lại bình thường). Khi bấm "Sinh bằng AI", phần tương ứng hiện khung chờ kèm số giây.
 
 ## 2.7 Chính sách sử dụng AI
 
@@ -627,21 +627,23 @@ Danh sách đầy đủ nằm ở **[API_list.md](API_list.md)**, chia 9 nhóm A
 
 | Mục đích (`purpose`) | Khi nào gọi | Đầu vào gửi AI | Đầu ra (đã kiểm tra) | Mặc định |
 | :--- | :--- | :--- | :--- | :--- |
-| `PURPOSE_TEXT` | Thành phần con được mở lần đầu (hoặc code đã đổi) | `@Operation`/Javadoc/đặc tả (nếu có), chữ ký, trace rút gọn, danh sách ràng buộc thô, đoạn code liên quan đã che secret | `{purpose: 80–100 từ tiếng Việt, constraints: [{factId, text}], errors: [{factId, text}]}`. Mỗi ràng buộc / lỗi phải trỏ tới một ràng buộc / lỗi thô có thật; "Lỗi có thể gặp" cũng do AI diễn đạt lại để không phải tự dịch tay mọi thông báo, kể cả lỗi phát sinh về sau | Bật |
-| `SCENARIO_POLISH` | Tab Kịch bản được mở | Khung câu tất định và danh sách actor | Lời kể từng bước, **cùng số bước, thứ tự và thành phần** | Bật |
-| `EDGE_RESOLUTION` | Người dùng bấm "Nhờ AI phân tích" trên một liên kết chưa chắc chắn | Code tại điểm gọi, danh sách ứng viên | `{analyses: [{candidate, advice, reason}], extra?: {nodeKey, reason}}`. Chỉ là gợi ý, **không đổi liên kết** | Bật |
-| `MOCK_DATA` | Mở dữ liệu mẫu của node lần đầu (hoặc DTO đã thay đổi) | Cấu trúc DTO: tên trường, kiểu, ràng buộc (không có dữ liệu thật) | JSON request/response mẫu thỏa cấu trúc; sinh **một lần** rồi lưu cache | Bật |
+| `PURPOSE_TEXT` | Người dùng bấm "Sinh bằng AI" / "Sinh lại" ở mục Mục đích của tab Diễn giải (không tự gọi khi mở thành phần) | `@Operation`/Javadoc/đặc tả (nếu có), chữ ký, trace rút gọn, danh sách ràng buộc thô, đoạn code liên quan đã che secret | `{purpose: 80–100 từ tiếng Việt, constraints: [{factId, text}], errors: [{factId, text}]}`. Mỗi ràng buộc / lỗi phải trỏ tới một ràng buộc / lỗi thô có thật; "Lỗi có thể gặp" cũng do AI diễn đạt lại để không phải tự dịch tay mọi thông báo, kể cả lỗi phát sinh về sau | Bật |
+| `SCENARIO_POLISH` | Người dùng bấm "Sinh bằng AI" / "Sinh lại" ở tab Kịch bản | Khung câu tất định và danh sách actor | Lời kể từng bước, **cùng số bước, thứ tự và thành phần** | Bật |
+| `EDGE_RESOLUTION` | Người dùng bấm "Nhờ AI phân tích" trên một liên kết chưa chắc chắn | Chuỗi gọi từ thao tác của người dùng tới điểm gọi (tên hàm, dòng mã truyền chuỗi hằng), code tại điểm gọi, danh sách ứng viên, các từ khớp tên giữa chuỗi gọi và từng ứng viên | `{analyses: [{candidate, advice, reason, evidence}], extra?: {nodeKey, reason}}`. `SHOULD` phải kèm `evidence` có thật trong chuỗi gọi / mã, nhiều `SHOULD` thì chỉ giữ ứng viên khớp tên nhiều nhất (khi duy nhất). Chỉ là gợi ý, **không đổi liên kết** | Bật |
+| `MOCK_DATA` | Người dùng bấm "Sinh bằng AI" / "Sinh lại" ở mục Dữ liệu mẫu | Cấu trúc DTO: tên trường, kiểu, ràng buộc (không có dữ liệu thật) | JSON request/response mẫu thỏa cấu trúc; sinh **một lần** rồi lưu cache | Bật |
+| `ELEMENT_NAMING` | Người dùng bấm "Sinh lại tên thành phần bằng AI" ở một màn hình / hộp thoại / tab / form (áp dụng cho mọi phần tử bên dưới, kể cả hộp thoại lồng nhau; chỉ phần tử đáng đặt tên, 30 phần tử mỗi lượt gọi) | Với mỗi phần tử tương tác: loại, chữ trên giao diện (nhãn / i18n), tên control, tên hàm xử lý, màn hình / hộp thoại chứa nó, API nó gọi (method, đường dẫn, mô tả, tên Controller + hàm), hộp thoại / màn hình nó mở | `{names: [{id, label}]}`: tên tiếng Việt ngắn (≤ 6 từ, ≤ 60 ký tự) cho từng phần tử, vd "Xuất danh sách ra Excel". Chỉ đổi cách hiển thị tên, **không** đổi cây, liên kết hay diagram; mỗi `id` phải thuộc đầu vào, tên không phải mã định danh | Bật |
 | `FEATURE_SUMMARY` *(mở rộng)* | Mở nhóm chức năng | Mục đích của các thành viên | Đoạn tóm tắt | Bật |
 | `LEGACY_MATCH` *(mở rộng)* | Không ghép được cũ/mới bằng tài liệu hay độ tương đồng | Chữ ký, trace rút gọn hai phía | Xếp hạng ứng viên | Bật |
 
 **Quy tắc:**
-- **Mục đích:** dùng bản cache nếu có; chưa có thì gọi AI. AI lỗi hoặc tắt (và chưa có cache) thì hiện mô tả từ `@Operation` → Javadoc → tài liệu đặc tả, cuối cùng là câu khung tất định.
+- **Mục đích:** hiện bản AI đã lưu nếu có (chỉ đọc, không gọi AI); chưa có thì hiện mô tả từ `@Operation` → Javadoc → tài liệu đặc tả, cuối cùng là câu tự sinh tất định ("Hệ thống tự sinh"). AI chỉ được gọi khi người dùng bấm nút; kết quả được lưu và dùng lại tới khi đầu vào đổi. Các nút Sinh luôn bấm được trừ khi nhà cung cấp đang báo hết hạn mức (429).
 - **Phân tích liên kết:** AI giải thích từng ứng viên. AI được đề xuất thêm **một** ứng viên ngoài danh sách, nhưng ứng viên đó chỉ được hiển thị khi là node **có thật** trong IR và **hợp lệ về kiểu** (lớp hiện thực đúng interface, hoặc endpoint khớp phương thức HTTP). Không đạt thì bỏ. Liên kết chỉ đổi khi người dùng chốt tay.
 - Prompt được quản lý có phiên bản (`prompt_version` là một phần của khóa cache).
 - Đầu ra bắt buộc có cấu trúc (JSON mode / schema) và được kiểm tra trước khi dùng.
 - Che secret theo NFR-13 và giới hạn kích thước ngữ cảnh (chỉ gửi đoạn code liên quan, không gửi cả repo).
-- Hết quota hoặc lỗi thì trả kết quả tất định kèm thông báo, không chặn UI.
-- Cấu hình qua biến môi trường: `LLM_PROVIDER`, `LLM_MODEL`, `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `LLM_BASE_URL` + `LLM_API_KEY`, `LLM_DAILY_TOKEN_LIMIT`. Trạng thái bật/tắt từng mục đích chỉnh được trên giao diện.
+- Hết quota hoặc lỗi thì trả kết quả tất định kèm thông báo, không chặn UI. Trạng thái nhà cung cấp theo đúng loại lỗi: 429 = đạt giới hạn (ngừng gọi tới giờ nhà cung cấp báo, tối đa 24 giờ), 503 = quá tải, lỗi khác (kết nối, hết giờ, sai khóa…) = bị lỗi — hai loại sau chỉ hiển thị, không khóa chức năng. Engine tự kiểm tra kết nối một lần khi khởi động.
+- Mỗi lời gọi provider (kể cả kiểm tra kết nối) được ghi ra log của Engine (logger `flowtracer.ai`): mục đích, đối tượng, prompt đã che secret, kết quả, token, thời gian; `LLM_LOG_CONTENT=false` để chỉ ghi dòng tóm tắt. CSDL chỉ lưu mã băm prompt.
+- Cấu hình qua biến môi trường: `LLM_PROVIDER`, `LLM_MODEL`, `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `LLM_BASE_URL` + `LLM_API_KEY`, `LLM_DAILY_TOKEN_LIMIT` (giới hạn token mỗi ngày do người dùng tự đặt, mặc định 0 = không đặt), `LLM_LOG_CONTENT`. Trạng thái bật/tắt từng mục đích chỉnh được trên giao diện.
 
 ---
 

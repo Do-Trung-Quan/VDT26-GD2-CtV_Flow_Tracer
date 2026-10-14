@@ -225,6 +225,7 @@ function build(
   return {
     tag,
     line: el.sourceSpan.start.line + 1 + lineOffset,
+    endLine: el.sourceSpan.end.line + 1 + lineOffset,
     attrs,
     bindings: [...bindings].sort(),
     events,
@@ -291,6 +292,9 @@ function contentLabel(el: TmplAstElement): LabelFact | undefined {
   return text ? { kind: 'text', value: text } : undefined;
 }
 
+/** Khóa / chữ của nhãn ở trạng thái đang xử lý (đang gửi, đang tải…) — không phải tên của nút. */
+const BUSY_LABEL = /submitting|loading|saving|processing|sending|pending|busy|waiting|in_progress|inprogress|dang_/i;
+
 function interpolationLabel(value: AST): LabelFact | undefined {
   const ast = value instanceof ASTWithSource ? value.ast : value;
   if (!(ast instanceof Interpolation) || ast.expressions.length !== 1) {
@@ -320,6 +324,11 @@ function expressionLabel(expr: AST | undefined): LabelFact | undefined {
   if (ast instanceof Binary && ['+', '||', '??'].includes(ast.operation)) {
     // `t('code') + ' *'`, `t('code') || 'Mã'`: lấy khóa dịch ở một vế, bỏ phần chữ còn lại
     return expressionLabel(ast.left) ?? expressionLabel(ast.right);
+  }
+  if (ast instanceof Conditional) {
+    // `{{ saving ? t('btn_saving') : t('btn_save') }}`: nhãn bình thường của nút là nhánh KHÔNG phải trạng thái "đang xử lý"
+    const options = [expressionLabel(ast.trueExp), expressionLabel(ast.falseExp)].filter((o): o is LabelFact => o !== undefined);
+    return options.find((o) => !BUSY_LABEL.test(o.value)) ?? options[0];
   }
   if (ast instanceof NonNullAssert) {
     return expressionLabel(ast.expression);

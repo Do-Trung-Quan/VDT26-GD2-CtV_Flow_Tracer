@@ -250,6 +250,10 @@ final class FlowResolver {
             matches = index.findMethods(declared.fqn(), site.methodName(), site.argCount());
         }
         List<Target> targets = matches.stream().map(m -> Target.of(m.declaringType(), m.method())).toList();
+        if (targets.size() > 1) {
+            // hàm nạp chồng cùng số tham số: chọn theo kiểu của đối số, như trình biên dịch (chỉ loại khi chắc chắn không dùng được)
+            targets = OverloadRules.narrow(targets, targets.stream().map(Target::paramTypes).toList(), site.argTypes());
+        }
         if (targets.isEmpty() && springData) {
             targets = inheritedCrud(declared, site).map(List::of).orElse(List.of());
         }

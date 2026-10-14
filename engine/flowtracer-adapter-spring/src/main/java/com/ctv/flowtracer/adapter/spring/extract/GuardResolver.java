@@ -6,6 +6,8 @@ import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.LambdaExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.SwitchExpr;
 import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.DoStmt;
@@ -81,8 +83,32 @@ final class GuardResolver {
             if (child == d.getBody()) {
                 return new Guard(Guard.Type.LOOP, text(d.getCondition()), "loop");
             }
+        } else if (parent instanceof LambdaExpr l && child == l.getBody()) {
+            return lambdaGuard(l);
         }
         return null;
+    }
+
+    /**
+     * Thân lambda chỉ chạy khi hàm nhận nó gọi tới. Với các hàm quen thuộc điều kiện chạy đã rõ: {@code ifPresent(x -> …)} chạy khi có
+     * giá trị, {@code orElseGet(() -> …)} khi rỗng, {@code forEach(x -> …)} lặp. Quan trọng nhất cho {@code throw}: {@code
+     * opt.ifPresent(e -> { throw …; })} là nhánh lỗi CÓ ĐIỀU KIỆN — không được coi là kết thúc vô điều kiện của cả hàm (mọi bước sau
+     * đó sẽ biến mất khỏi luồng). Lambda của hàm khác giữ nguyên như trước (không gắn điều kiện).
+     */
+    private static Guard lambdaGuard(LambdaExpr lambda) {
+        if (!(lambda.getParentNode().orElse(null) instanceof MethodCallExpr call) || !call.getArguments().contains(lambda)) {
+            return null;
+        }
+        String scope = call.getScope().map(GuardResolver::text).orElse(call.getNameAsString());
+        return switch (call.getNameAsString()) {
+            case "ifPresent" -> new Guard(Guard.Type.IF, scope + ".isPresent()", "then");
+            case "ifPresentOrElse" -> call.getArguments().indexOf(lambda) == 0
+                    ? new Guard(Guard.Type.IF, scope + ".isPresent()", "then")
+                    : new Guard(Guard.Type.ELSE, scope + ".isPresent()", "else");
+            case "orElseGet" -> new Guard(Guard.Type.ELSE, scope + ".isPresent()", "else");
+            case "forEach", "forEachOrdered" -> new Guard(Guard.Type.LOOP, scope, "loop");
+            default -> null;
+        };
     }
 
     private static String selector(SwitchEntry entry) {

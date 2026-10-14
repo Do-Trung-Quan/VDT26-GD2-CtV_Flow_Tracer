@@ -27,12 +27,13 @@ final class SelfStepBuilder {
     void add(String participantId, String name, Confidence confidence, String reason, String edgeRef, boolean pinned) {
         this.participantId = participantId;
         names.add(name);
-        if (this.edgeRef == null) {
-            this.edgeRef = edgeRef;
-        }
         if (confidence.rank() < weakest.rank()) {
+            // liên kết của bước = liên kết YẾU NHẤT (cùng nguồn với mức tin cậy và lý do hiển thị), để popover mở đúng liên kết đó
             weakest = confidence;
             weakestReason = reason;
+            this.edgeRef = edgeRef;
+        } else if (this.edgeRef == null || (pinned && !this.pinned && weakest.rank() >= Confidence.CERTAIN.rank())) {
+            this.edgeRef = edgeRef;
         }
         this.pinned |= pinned;
     }

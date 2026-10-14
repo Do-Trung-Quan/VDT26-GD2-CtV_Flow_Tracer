@@ -2,16 +2,17 @@ import type { UiTreeNodeDto } from '../../core/api/api-types';
 import {
   countByApi,
   countElements,
-  filterUiTree,
   findTrail,
   flattenRows,
   fullLabel,
+  highlightFold,
   isContainer,
   nodeIcon,
   nodeLabel,
   isApiStep,
   pruneToApi,
-  revealIds
+  revealIds,
+  searchUi
 } from './frontend-tree-model';
 
 const el = (key: string, over: Partial<UiTreeNodeDto> = {}): UiTreeNodeDto => ({
@@ -93,23 +94,53 @@ describe('nhãn nút trên cây Frontend', () => {
 });
 
 describe('lọc và tìm trong cây Frontend', () => {
-  it('từ khóa rỗng giữ nguyên', () => {
-    expect(filterUiTree(tree, '  ')).toBe(tree);
+  it('từ khóa rỗng không có kết quả', () => {
+    expect(searchUi(tree, '  ')).toEqual({ screens: [], elements: [], screenTotal: 0, elementTotal: 0 });
   });
 
-  it('giữ nút khớp và tổ tiên, ẩn nút không khớp', () => {
-    const out = filterUiTree(tree, 'xóa');
-    const scr = out[0].children![0];
-    expect(scr.children!.map((c) => c.nodeKey)).toEqual(['del']);
+  it('chia hai nhóm: màn hình (gồm hộp thoại) và phần tử', () => {
+    const r = searchUi(tree, 'them');
+    expect(r.screens.map((h) => h.node.nodeKey)).toEqual(['dlg']);
+    expect(r.elements.map((h) => h.node.nodeKey)).toEqual(['add']);
+    expect(r.elements[0].context).toBe('Màn hình Danh mục');
+    expect(r.elements[0].trail.map((n) => n.nodeKey)).toEqual(['app', 'scr']);
   });
 
-  it('khớp theo tên kỹ thuật và đường dẫn route', () => {
-    expect(filterUiTree(tree, 'onrefresh')[0].children![0].children!.map((c) => c.nodeKey)).toEqual(['icon']);
-    expect(filterUiTree(tree, '/categories')[0].children![0].nodeKey).toBe('scr');
+  it('không phân biệt dấu và hoa thường, mọi từ đều phải khớp', () => {
+    expect(searchUi(tree, 'XOA').elements.map((h) => h.node.nodeKey)).toEqual(['del']);
+    expect(searchUi(tree, 'them moi').elements.map((h) => h.node.nodeKey)).toEqual(['add']);
+    expect(searchUi(tree, 'them khong-co').elements).toEqual([]);
   });
 
-  it('không khớp gì thì rỗng', () => {
-    expect(filterUiTree(tree, 'khong-co')).toEqual([]);
+  it('khớp theo tên do AI đặt, tên kỹ thuật, tên class và đường dẫn route', () => {
+    const ai: UiTreeNodeDto[] = [{ ...tree[0], children: [{ ...tree[0].children![0], children: [el('x', { aiLabel: 'Xuất báo cáo', displayName: 'Export' })] }] }];
+    expect(searchUi(ai, 'xuat bao cao').elements.map((h) => h.node.nodeKey)).toEqual(['x']);
+    expect(searchUi(tree, 'onrefresh').elements.map((h) => h.node.nodeKey)).toEqual(['icon']);
+    expect(searchUi(tree, '/categories').screens.map((h) => h.node.nodeKey)).toEqual(['scr']);
+    expect(searchUi(tree, 'CategoryList').screens.map((h) => h.node.nodeKey)).toEqual(['scr']);
+  });
+
+  it('tìm tên màn hình chỉ trả màn hình, không kéo theo phần tử bên trong; mỗi nút chỉ tính một lần', () => {
+    const r = searchUi(tree, 'danh muc');
+    expect(r.screens.map((h) => h.node.nodeKey)).toEqual(['scr', 'dlg']);
+    expect(r.elements).toEqual([]);
+    expect(searchUi(tree, 'them').elementTotal).toBe(1); // 'add' xuất hiện hai lần, tính một
+  });
+
+  it('cắt theo giới hạn nhưng vẫn báo tổng', () => {
+    const many: UiTreeNodeDto[] = [{ ...tree[0], children: [{ ...tree[0].children![0], children: [el('a', { displayName: 'Lưu 1' }), el('b', { displayName: 'Lưu 2' }), el('c', { displayName: 'Lưu 3' })] }] }];
+    const r = searchUi(many, 'luu', 2);
+    expect(r.elements).toHaveLength(2);
+    expect(r.elementTotal).toBe(3);
+  });
+
+  it('tô sáng không phân biệt dấu nhưng giữ nguyên chữ gốc', () => {
+    expect(highlightFold('Thêm mới danh mục', 'them muc')).toEqual([
+      { text: 'Thêm', hit: true },
+      { text: ' mới danh ', hit: false },
+      { text: 'mục', hit: true }
+    ]);
+    expect(highlightFold('Xóa', '')).toEqual([{ text: 'Xóa', hit: false }]);
   });
 
   it('findTrail trả đường tới lần xuất hiện đầu tiên', () => {

@@ -4,7 +4,7 @@
  *
  * Mọi dữ kiện chỉ phản ánh MỘT file (đường dẫn import chưa được giải); việc ghép chéo file làm ở pha 2.
  */
-export const FACTS_VERSION = '3';
+export const FACTS_VERSION = '5';
 
 export type AngularFacts = TsFacts | TemplateFacts | JsonFacts | FederationFacts | OtherFacts;
 
@@ -167,6 +167,8 @@ export interface HttpCallFact {
   callOrder: number;
   guard?: Guard;
   line: number;
+  /** Dòng cuối của câu lệnh chứa lời gọi (chuỗi `.pipe(...)` nhiều dòng). */
+  endLine?: number;
 }
 
 export interface UiActionFact {
@@ -254,6 +256,8 @@ export interface TemplateFacts extends FactsBase {
 export interface TplElement {
   tag: string;
   line: number;
+  /** Dòng của thẻ đóng (hết phần tử, gồm cả con); thiếu thì chỉ biết dòng mở. */
+  endLine?: number;
   /** Thuộc tính tĩnh (đã chọn lọc: id, type, label, title, placeholder, aria-label, header, name, routerLink…). */
   attrs: Record<string, string>;
   /** Tên các binding (`formGroup`, `ngModel`, `routerLink`, `formControlName`…). */

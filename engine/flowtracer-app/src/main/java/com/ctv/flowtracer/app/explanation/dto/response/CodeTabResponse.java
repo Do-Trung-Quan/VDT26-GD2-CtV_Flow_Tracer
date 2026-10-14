@@ -11,7 +11,9 @@ import java.util.List;
  * @param sourceName tên Source chứa file
  * @param startLine số dòng của dòng đầu tiên trong {@code code}
  * @param highlightLines các dòng cần tô sáng (số dòng trong file)
- * @param code nội dung đoạn mã (chỉ đọc), các dòng nối bằng {@code \n}
+ * @param code nội dung đoạn mã (chỉ đọc), các dòng nối bằng {@code \n}. Nhiều hàm / khối cách xa nhau trong cùng file được nối
+ *     tiếp nhau, giữa hai đoạn có một dòng ngăn cách {@code ⋯}
+ * @param lineNumbers số dòng trong file của từng dòng của {@code code} (cùng thứ tự); {@code 0} cho dòng ngăn cách {@code ⋯}
  */
 public record CodeTabResponse(
         String title,
@@ -20,4 +22,5 @@ public record CodeTabResponse(
         String sourceName,
         int startLine,
         List<Integer> highlightLines,
-        String code) {}
+        String code,
+        List<Integer> lineNumbers) {}

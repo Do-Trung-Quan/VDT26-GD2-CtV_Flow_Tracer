@@ -249,7 +249,7 @@ export class GraphBuilder {
         kind: 'UI_FORM',
         name: id,
         ...(label?.text ? { displayName: label.text } : {}),
-        location: { filePath: w.tpl.file, startLine: el.line },
+        location: { filePath: w.tpl.file, startLine: el.line, ...(el.endLine ? { endLine: el.endLine } : {}) },
         attrs: { component: className, fields: collectFields(el) }
       });
       this.edge(w.container, key, 'CONTAINS', 'CERTAIN', undefined, undefined, { filePath: w.tpl.file, startLine: el.line });
@@ -265,7 +265,7 @@ export class GraphBuilder {
         kind: 'UI_TAB',
         name: tabLabel ?? tabId,
         ...(tabLabel ? { displayName: tabLabel } : {}),
-        location: { filePath: w.tpl.file, startLine: el.line },
+        location: { filePath: w.tpl.file, startLine: el.line, ...(el.endLine ? { endLine: el.endLine } : {}) },
         attrs: { component: className, label: tabLabel ?? '' }
       });
       this.edge(w.container, key, 'CONTAINS', 'CERTAIN', undefined, undefined, { filePath: w.tpl.file, startLine: el.line });
@@ -286,7 +286,7 @@ export class GraphBuilder {
           kind: 'UI_ELEMENT',
           name: handlerNames[0] ?? el.tag,
           ...(label?.text ? { displayName: label.text } : {}),
-          location: { filePath: w.tpl.file, startLine: el.line },
+          location: { filePath: w.tpl.file, startLine: el.line, ...(el.endLine ? { endLine: el.endLine } : {}) },
           attrs: {
             elementType: elementTypeOf(el),
             tag: el.tag,
@@ -337,7 +337,7 @@ export class GraphBuilder {
         kind: 'UI_DIALOG',
         name: dialogRef.cls.name,
         ...(heading ? { displayName: heading } : {}),
-        location: { filePath: w.tpl.file, startLine: el.line },
+        location: { filePath: w.tpl.file, startLine: el.line, ...(el.endLine ? { endLine: el.endLine } : {}) },
         attrs: { component: dialogRef.cls.name, hosted: true, ...(heading ? { label: heading } : {}) }
       });
     }
@@ -473,7 +473,7 @@ export class GraphBuilder {
     method.httpCalls.forEach((http, index) => {
       const httpKey = NodeKeys.ngHttpCall(ctx.app, ref.cls.name, method.name, index);
       const url = this.deps.urls.evaluate(http.url, ref.file, ref);
-      const location: SourceLocation = { filePath: ref.file, startLine: http.line };
+      const location: SourceLocation = { filePath: ref.file, startLine: http.line, ...(http.endLine ? { endLine: http.endLine } : {}) };
       this.addNode({
         key: httpKey,
         kind: 'HTTP_CALL',

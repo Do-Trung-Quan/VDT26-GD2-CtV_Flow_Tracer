@@ -145,7 +145,7 @@ interface OpenLink {
     }
 
     @if (link(); as o) {
-      <app-edge-popover [workspaceId]="workspaceId()" [step]="o.step" [fromLabel]="laneLabel(o.step.from)" [toLabel]="laneLabel(o.step.to)"
+      <app-edge-popover [workspaceId]="workspaceId()" [step]="o.step" [startKey]="trace()?.startKey ?? ''" [fromLabel]="laneLabel(o.step.from)" [toLabel]="laneLabel(o.step.to)"
         [at]="{ x: o.x, y: o.y }" [area]="area()" (closed)="link.set(null)" (changed)="link.set(null); linkChanged.emit()" />
     }
 
@@ -225,8 +225,6 @@ export class SequenceCanvas {
   protected readonly zoom = signal(1);
   /** Bước đang tô sáng (bấm); dùng chung với tab Kịch bản ở cột phải nên là biến hai chiều. */
   readonly highlight = model<number | null>(null);
-  /** Bước đang được rê chuột ở tab Kịch bản: tô sáng tạm mũi tên tương ứng mà không đổi bước đã bấm. */
-  readonly preview = input<number | null>(null);
   protected readonly legendCollapsed = signal(false);
   protected readonly menuOpen = signal(false);
   protected readonly tip = signal<StepTip | null>(null);
@@ -246,7 +244,7 @@ export class SequenceCanvas {
   protected readonly percent = computed(() => Math.round(this.zoom() * 100));
   protected readonly svg = computed(() => {
     const l = this.layout();
-    return l ? this.sanitizer.bypassSecurityTrustHtml(renderSequenceSvg(l, { zoom: this.zoom(), highlight: this.preview() ?? this.highlight(), measure: this.measure })) : '';
+    return l ? this.sanitizer.bypassSecurityTrustHtml(renderSequenceSvg(l, { zoom: this.zoom(), highlight: this.highlight(), measure: this.measure })) : '';
   });
 
   private suppressClick = false;
@@ -424,7 +422,7 @@ export class SequenceCanvas {
     const text = this.plainSvg();
     if (t && text) {
       downloadBlob(`${fileBase(t)}.svg`, new Blob([text], { type: 'image/svg+xml' }));
-      this.toast.show('Đã tải file SVG.', 'ok');
+      this.toast.show('Xuất ảnh SVG thành công', 'ok');
     }
   }
 
@@ -434,11 +432,11 @@ export class SequenceCanvas {
     if (!t || !text) {
       return;
     }
-    this.toast.show('Đang tạo ảnh PNG…');
     try {
       downloadBlob(`${fileBase(t)}.png`, await svgToPng(text));
+      this.toast.show('Xuất ảnh PNG thành công', 'ok');
     } catch (e) {
-      this.toast.show(e instanceof Error ? e.message : 'Không xuất được PNG.', 'err');
+      this.toast.show(e instanceof Error ? e.message : 'Xuất ảnh PNG không thành công', 'err');
     }
   }
 

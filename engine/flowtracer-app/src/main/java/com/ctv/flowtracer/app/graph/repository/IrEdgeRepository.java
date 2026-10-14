@@ -14,16 +14,21 @@ import com.ctv.flowtracer.ir.SourceLocation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /** Truy cập bảng {@code ir_edges} bằng JdbcClient / JdbcTemplate. Cột confidence là enum PostgreSQL: dùng {@code ?::edge_confidence}. */
@@ -69,6 +74,68 @@ public class IrEdgeRepository {
                 .param("source", sourceId)
                 .update();
         insertAll(rows);
+    }
+
+    /** Các cột đã lưu của một edge, dùng để so edge cũ với edge mới (JSON so theo cây, không theo chuỗi). */
+    private record Signature(
+            UUID from, UUID to, String kind, String confidence, String reason, Integer callOrder, JsonNode guard, JsonNode candidates,
+            UUID fileId, Integer line) {}
+
+    /**
+     * Đồng bộ edge xuất phát từ node của một Source với kết quả quét mới CHỈ bằng phần chênh lệch: edge giống hệt (cùng hai đầu, loại, mức
+     * tin cậy, lý do, ứng viên, vị trí…) được giữ nguyên cùng id, edge không còn bị xóa, edge mới được thêm. Rescan chỉ vài file đổi nên
+     * chỉ ghi vài trăm dòng thay vì hàng nghìn, và id của các cạnh không đổi được giữ qua các lần quét. Cạnh {@code HTTP_REQUEST} do
+     * bước LINK quản lý nên không nằm trong phép so này.
+     */
+    public void syncForSource(UUID sourceId, List<IrEdgeRow> rows) {
+        Map<Signature, Deque<UUID>> existing = new HashMap<>();
+        jdbc.sql("""
+                        SELECT e.id, e.from_node_id, e.to_node_id, e.kind, e.confidence::text AS confidence, e.reason, e.call_order,
+                               e.guard::text AS guard, e.candidates::text AS candidates, e.file_id, e.line
+                        FROM ir_edges e
+                        WHERE e.from_node_id IN (SELECT id FROM ir_nodes WHERE source_id = :source) AND e.kind <> 'HTTP_REQUEST'
+                        """)
+                .param("source", sourceId)
+                .query((rs, n) -> {
+                    var sig = new Signature(
+                            rs.getObject("from_node_id", UUID.class), rs.getObject("to_node_id", UUID.class), rs.getString("kind"),
+                            rs.getString("confidence"), rs.getString("reason"), rs.getObject("call_order", Integer.class),
+                            tree(rs.getString("guard")), tree(rs.getString("candidates")), rs.getObject("file_id", UUID.class),
+                            rs.getObject("line", Integer.class));
+                    existing.computeIfAbsent(sig, k -> new ArrayDeque<>()).add(rs.getObject("id", UUID.class));
+                    return sig;
+                })
+                .list();
+
+        var toInsert = new ArrayList<IrEdgeRow>();
+        for (IrEdgeRow row : rows) {
+            IrEdge e = row.edge();
+            if (e.kind() == EdgeKind.HTTP_REQUEST) {
+                continue;
+            }
+            var sig = new Signature(
+                    row.fromNodeId(), row.toNodeId(), e.kind().name(), e.confidence().name(), e.reason(), e.callOrder(),
+                    e.guard() == null ? null : json.valueToTree(e.guard()),
+                    e.candidates().isEmpty() ? null : json.valueToTree(e.candidates()), row.fileId(),
+                    e.location() == null ? null : e.location().startLine());
+            Deque<UUID> same = existing.get(sig);
+            if (same != null && !same.isEmpty()) {
+                same.poll(); // giữ nguyên edge đã có
+            } else {
+                toInsert.add(row);
+            }
+        }
+        List<UUID> stale = existing.values().stream().flatMap(Collection::stream).toList();
+        for (int from = 0; from < stale.size(); from += BATCH_SIZE) {
+            jdbc.sql("DELETE FROM ir_edges WHERE id IN (:ids)")
+                    .param("ids", stale.subList(from, Math.min(stale.size(), from + BATCH_SIZE)))
+                    .update();
+        }
+        insertAll(toInsert);
+    }
+
+    private JsonNode tree(String text) {
+        return text == null ? null : json.readTree(text);
     }
 
     /** Xóa mọi edge một loại của Workspace (vd {@code HTTP_REQUEST} trước khi liên kết lại). */

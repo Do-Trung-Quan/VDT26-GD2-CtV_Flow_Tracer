@@ -24,6 +24,8 @@ import java.util.UUID;
  * @param sourceName tên Source; chỉ có với {@code UI_APP}
  * @param filePath file khai báo, tương đối trong Source (template hoặc class)
  * @param line dòng bắt đầu
+ * @param aiLabel tên chuẩn do AI đặt (mục đích {@code ELEMENT_NAMING}, từ chữ trên giao diện, tên hàm và API mà phần tử gọi); null
+ *     nếu chưa đặt. Giao diện hiện tên này thay cho {@code displayName} / {@code fallbackName} nhưng không đổi cây hay liên kết
  * @param children các thành phần con theo đúng thứ tự trong template
  */
 public record UiTreeNodeResponse(
@@ -40,4 +42,16 @@ public record UiTreeNodeResponse(
         String sourceName,
         String filePath,
         Integer line,
-        List<UiTreeNodeResponse> children) {}
+        String aiLabel,
+        List<UiTreeNodeResponse> children) {
+
+    /** Bản sao (đệ quy) với tên AI của các phần tử có trong {@code names} (key phần tử → tên). */
+    public UiTreeNodeResponse withAiLabels(java.util.Map<String, String> names) {
+        if (names.isEmpty()) {
+            return this;
+        }
+        return new UiTreeNodeResponse(
+                nodeKey, kind, name, displayName, fallbackName, elementType, callsApi, leadsToApi, routePath, sourceId, sourceName,
+                filePath, line, names.getOrDefault(nodeKey, aiLabel), children.stream().map(c -> c.withAiLabels(names)).toList());
+    }
+}

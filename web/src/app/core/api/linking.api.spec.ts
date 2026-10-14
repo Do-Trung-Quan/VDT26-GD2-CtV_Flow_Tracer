@@ -17,6 +17,13 @@ describe('LinkingApi', () => {
 
   afterEach(() => http.verify());
 
+  it('E1 kèm start_key (thành phần xuất phát của luồng) để có từ khớp tên của ứng viên', async () => {
+    const result = api.edge('w1', 'e1', 'ng:element:a b');
+    const req = http.expectOne((r) => r.url === '/api/workspaces/w1/edges/e1' && r.params.get('start_key') === 'ng:element:a b');
+    req.flush(ok({ edgeId: 'e1', candidates: [{ nodeKey: 'k', hints: ['most'] }] }));
+    expect((await result).candidates?.[0].hints).toEqual(['most']);
+  });
+
   it('E1 lấy chi tiết liên kết theo edgeRef', async () => {
     const result = api.edge('w1', 'e1');
     const req = http.expectOne('/api/workspaces/w1/edges/e1');

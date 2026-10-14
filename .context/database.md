@@ -101,7 +101,7 @@ Mỗi bản ghi là **một thành phần** trên bản đồ của dự án: m�
 | start_line | INTEGER (nullable) | Dòng bắt đầu trong file, để mở đúng vị trí code |
 | end_line | INTEGER (nullable) | Dòng kết thúc trong file |
 | attrs | JSONB | Thông tin riêng theo loại. Ví dụ endpoint có method, đường dẫn, tham số; phần tử giao diện có loại (nút, ô nhập…) và sự kiện |
-| search_text | TSVECTOR | Chỉ mục tìm kiếm toàn văn (tên, tên hiển thị, đường dẫn), phục vụ ô tìm kiếm nhanh |
+| search_text | TSVECTOR | Chỉ mục tìm kiếm toàn văn, tự tính từ tên, tên hiển thị và `key` (cấu hình `simple`, không bỏ dấu), phục vụ ô tìm kiếm nhanh (Ctrl+K) |
 
 ## 6. IrEdge
 
@@ -145,16 +145,16 @@ Mỗi bản ghi là **một quyết định chốt tay** của người dùng v�
 | :--- | :--- | :--- |
 | id | UUID | Khóa chính |
 | workspace_id | UUID (FK) | Workspace sở hữu, tham chiếu Workspace.id |
-| target_key | TEXT | Đối tượng được sinh nội dung: key của thành phần, key của luồng, cặp key (so sánh cũ/mới) hoặc id nhóm chức năng |
-| purpose | ENUM('PURPOSE_TEXT', 'SCENARIO_POLISH', 'MOCK_DATA', 'EDGE_RESOLUTION', 'LEGACY_MATCH', 'FEATURE_SUMMARY') | Mục đích dùng AI: viết mục đích và ràng buộc; viết lời kịch bản; sinh dữ liệu mẫu (một lần, từ cấu trúc DTO); phân tích liên kết (chỉ giải thích, không đổi liên kết); ghép luồng cũ/mới; tóm tắt nhóm chức năng |
-| input_hash | CHAR(64) | Mã băm của toàn bộ đầu vào (đoạn code liên quan, phiên bản prompt, model). Mỗi bộ (workspace, mục đích, đối tượng, mã băm) chỉ có một bản ghi |
+| target_key | TEXT | Đối tượng được sinh nội dung: key của thành phần (mục đích, dữ liệu mẫu), id luồng (kịch bản), key của màn hình / hộp thoại (đặt tên phần tử; nhiều lượt gọi thì thêm `#số`), `id liên kết#mã băm chuỗi gọi` (phân tích liên kết — cùng một liên kết xem từ luồng khác có lời giải thích khác), cặp key (so sánh cũ/mới, mở rộng) hoặc id nhóm chức năng (mở rộng) |
+| purpose | ENUM('PURPOSE_TEXT', 'SCENARIO_POLISH', 'MOCK_DATA', 'EDGE_RESOLUTION', 'ELEMENT_NAMING', 'LEGACY_MATCH', 'FEATURE_SUMMARY') | Mục đích dùng AI: viết mục đích và ràng buộc; viết lời kịch bản; sinh dữ liệu mẫu (một lần, từ cấu trúc DTO); phân tích liên kết (chỉ giải thích, không đổi liên kết); ghép luồng cũ/mới; tóm tắt nhóm chức năng |
+| input_hash | CHAR(64) | Mã băm SHA-256 của phiên bản prompt + toàn bộ nội dung prompt (đoạn code, dữ kiện đã dựng). **Không gồm model**: đổi model thì nội dung đã lưu vẫn dùng lại. Mỗi bộ (workspace, mục đích, đối tượng, mã băm) chỉ có một bản ghi; sinh lại thì bản cũ của cùng đối tượng bị thay |
 | prompt_version | VARCHAR(20) | Phiên bản câu lệnh gửi AI. Đổi prompt thì cache cũ tự hết hiệu lực |
 | provider | VARCHAR(50) | Nhà cung cấp AI đã dùng, ví dụ `gemini` |
 | model | VARCHAR(50) | Tên model đã dùng |
 | content | JSONB | Kết quả AI **đã được kiểm tra hợp lệ** |
 | created_at | TIMESTAMPTZ | Thời điểm sinh |
-| hit_count | INTEGER | Số lần nội dung này được dùng lại thay vì gọi AI (mặc định 0). Dùng tính tỷ lệ trúng cache trên trang thống kê |
-| last_hit_at | TIMESTAMPTZ (nullable) | Lần gần nhất được dùng lại |
+| hit_count | INTEGER | Bộ đếm lượt dùng lại nội dung (mặc định 0). **Hiện không hiển thị ở đâu** (thống kê "trúng cache" đã gỡ); các API đọc Diễn giải / Kịch bản chạy trong giao dịch chỉ-đọc nên lệnh ghi bộ đếm thực tế không được lưu |
+| last_hit_at | TIMESTAMPTZ (nullable) | Lần gần nhất được dùng lại (cùng ghi chú trên) |
 
 ## 9. LlmCallLog
 
@@ -164,14 +164,14 @@ Mỗi bản ghi là **một quyết định chốt tay** của người dùng v�
 | :--- | :--- | :--- |
 | id | UUID | Khóa chính |
 | workspace_id | UUID (FK, nullable) | Workspace phát sinh lời gọi, tham chiếu Workspace.id. NULL với lời gọi hệ thống (ví dụ kiểm tra kết nối) hoặc khi Workspace đã bị xóa |
-| purpose | VARCHAR(30) | Mục đích lời gọi (cùng danh sách với AiArtifact.purpose, thêm `CONNECTION_TEST`) |
+| purpose | VARCHAR(30) | Mục đích lời gọi (cùng danh sách với AiArtifact.purpose, thêm `CONNECTION_TEST` = lần "Kiểm tra kết nối", gồm cả lần Engine tự kiểm tra khi khởi động) |
 | provider | VARCHAR(50) | Nhà cung cấp AI |
 | model | VARCHAR(50) | Tên model |
 | prompt_hash | CHAR(64) | Mã băm của nội dung gửi đi (không lưu nội dung gốc) |
-| input_tokens | INTEGER (nullable) | Số token gửi đi |
-| output_tokens | INTEGER (nullable) | Số token nhận về |
+| input_tokens | INTEGER (nullable) | Số token gửi đi do nhà cung cấp báo (0 khi lỗi / bị loại trước khi gọi) |
+| output_tokens | INTEGER (nullable) | Số token nhận về do nhà cung cấp báo |
 | latency_ms | INTEGER (nullable) | Thời gian phản hồi (mili giây) |
-| status | ENUM('OK', 'ERROR', 'REJECTED_BY_VALIDATION', 'QUOTA_EXCEEDED') | Kết quả: thành công; lỗi từ provider; kết quả AI không qua bước kiểm tra nên bị loại; vượt hạn mức |
+| status | ENUM('OK', 'ERROR', 'REJECTED_BY_VALIDATION', 'QUOTA_EXCEEDED') | Kết quả: thành công; lỗi từ provider; kết quả AI không qua bước kiểm tra nên bị loại; vượt hạn mức. (Kiểu enum trong CSDL còn thừa giá trị `CACHE_HIT` do migration V4; không dùng — V5 đã xóa các dòng này.) |
 | created_at | TIMESTAMPTZ | Thời điểm gọi |
 
 ## 10. AppSetting
@@ -180,8 +180,8 @@ Lưu **cấu hình chung của tool** mà người dùng chỉnh được trên 
 
 | Thuộc tính | Kiểu dữ liệu | Mô tả |
 | :--- | :--- | :--- |
-| key | VARCHAR(100) | Khóa chính, tên cấu hình, ví dụ `ai.purposes` |
-| value | JSONB | Giá trị cấu hình, ví dụ `{"PURPOSE_TEXT":true,"SCENARIO_POLISH":false}` |
+| key | VARCHAR(100) | Khóa chính, tên cấu hình. Đang dùng: `ai.purposes` (bật / tắt từng mục đích AI) và `ai.daily_request_limit` (hạn mức lượt gọi theo ngày do nhà cung cấp báo trong lỗi 429, theo model) |
+| value | JSONB | Giá trị cấu hình, ví dụ `{"PURPOSE_TEXT":true,"SCENARIO_POLISH":false}` hoặc `{"limit":20,"model":"gemini-2.5-flash"}` |
 | updated_at | TIMESTAMPTZ | Thời điểm cập nhật gần nhất |
 
 ## 11. Feature *(Mở rộng)*
@@ -207,6 +207,20 @@ Danh sách **thành phần thuộc một nhóm chức năng** và thứ tự c�
 | feature_id | UUID (PK, FK) | Nhóm chức năng, tham chiếu Feature.id. Cùng với `node_key` tạo thành khóa chính |
 | node_key | TEXT (PK) | Key của thành phần thuộc nhóm (endpoint, nút bấm…) |
 | order_index | INTEGER | Thứ tự của thành phần trong quy trình, ví dụ 1 = Tìm kiếm, 2 = Thêm vào giỏ, 3 = Đặt hàng |
+
+---
+
+## Lịch sử migration (Flyway)
+
+| Phiên bản | Nội dung |
+| :--- | :--- |
+| V1 | Tạo toàn bộ bảng, kiểu enum và chỉ mục |
+| V2 | Bỏ mức tin cậy `AI_RESOLVED` và mục đích `MIGRATION_CHECKLIST`; thêm `hit_count`, `last_hit_at` cho `ai_artifacts` |
+| V3 | Thêm mục đích AI `ELEMENT_NAMING` |
+| V4 | Thêm giá trị `CACHE_HIT` cho `llm_call_status` và bỏ hai cột `hit_count`, `last_hit_at` (thử nghiệm thống kê "trúng cache", đã gỡ) |
+| V5 | Hoàn tác phần bỏ cột của V4: thêm lại `hit_count`, `last_hit_at`; xóa các dòng nhật ký `CACHE_HIT` |
+
+Không bao giờ sửa migration đã chạy (Flyway kiểm tra mã băm); thay đổi cấu trúc luôn bằng file migration mới. `spring.jpa.hibernate.ddl-auto` luôn là `validate`.
 
 ---
 

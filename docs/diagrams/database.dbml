@@ -47,6 +47,7 @@ Enum ai_purpose {
   SCENARIO_POLISH
   MOCK_DATA
   EDGE_RESOLUTION
+  ELEMENT_NAMING
   LEGACY_MATCH
   FEATURE_SUMMARY
 }
@@ -56,6 +57,7 @@ Enum llm_call_status {
   ERROR
   REJECTED_BY_VALIDATION
   QUOTA_EXCEEDED
+  CACHE_HIT [note: 'Không dùng: còn lại từ migration V4 đã gỡ']
 }
 
 Enum feature_origin {

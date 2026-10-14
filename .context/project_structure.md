@@ -310,6 +310,7 @@ config/
 ├── FlowTracerProperties.java        # Gom toàn bộ thiết lập riêng của tool (thư mục mã nguồn, thư mục dữ liệu, số luồng quét,
 │                                    #   cách gọi sidecar, chọn AI, hạn mức AI/ngày) thành một chỗ để các phần khác dùng
 ├── WebConfig.java                   # Thiết lập web: mọi API bắt đầu bằng /api; giao diện web được phục vụ ở địa chỉ gốc "/"
+├── SpaFallbackResolver.java         # Mở thẳng / tải lại một màn hình (vd /w/<id>) thì trả index.html để router Angular xử lý; /api, /v3 và file thiếu vẫn 404
 ├── ExecutorConfig.java              # Tạo "nhóm luồng chạy nền" để quét mã nguồn song song mà không làm treo các yêu cầu khác
 └── OpenApiConfig.java               # Thông tin cho trang tài liệu API tự sinh (Swagger) — giao diện web dùng nó để tự sinh kiểu dữ liệu
 
@@ -507,8 +508,11 @@ linking/
 ├── service/
 │   ├── LinkingService.java          # Xử lý việc nối mọi lời gọi HTTP với API đích sau mỗi lần quét: Frontend → Backend, Backend → service khác
 │   │                                #   trong Workspace (microservice), hoặc đánh dấu "hệ thống bên ngoài"
-│   ├── EdgeAdviceService.java       # Xử lý "nhờ AI phân tích": gửi đoạn code và danh sách ứng viên cho AI, nhận lời giải thích từng ứng viên;
-│   │                                #   KHÔNG đổi liên kết — người dùng đọc rồi tự chốt tay
+│   ├── EdgeAdviceService.java       # Xử lý "nhờ AI phân tích": gửi chuỗi gọi từ thao tác của người dùng tới điểm gọi, đoạn code và danh sách ứng viên
+│   │                                #   cho AI, nhận lời giải thích + bằng chứng từng ứng viên; KHÔNG đổi liên kết — người dùng đọc rồi tự chốt tay
+│   ├── CallChainService.java        # Tìm chuỗi gọi (phần tử → hàm → … → lời gọi HTTP) theo đúng luồng đang xem; kèm dòng mã dẫn tới mắt xích kế
+│   ├── CandidateHintRule.java       # Quy tắc thuần: từ trong tên hàm / chuỗi truyền vào trùng với đường dẫn ứng viên (tín hiệu khớp tên, không cần AI)
+│   ├── AdviceConsistencyRule.java   # Quy tắc thuần: "Nên chọn" phải có bằng chứng thật; nhiều "Nên chọn" thì chỉ giữ ứng viên khớp tên nhiều nhất
 │   ├── AiAdviceRule.java            # Quy tắc kiểm tra câu trả lời của AI: lời giải thích phải gắn với ứng viên có thật; ứng viên AI đề xuất thêm
 │   │                                #   chỉ được giữ khi là thành phần có thật trong bản đồ và hợp lệ về kiểu (đúng interface / đúng phương thức HTTP)
 │   ├── LinkOverrideService.java     # Xử lý liên kết chốt tay (tạo, xóa, liệt kê) — chức năng dò luồng cũng dùng qua đây
@@ -602,42 +606,43 @@ explanation/
 ```text
 ai/
 ├── controller/
-│   ├── AiSettingsController.java    # Nhận yêu cầu xem/sửa cấu hình AI (bật/tắt từng mục đích) và kiểm tra kết nối AI (API I1–I3)
-│   └── AiUsageController.java       # Nhận yêu cầu xem thống kê sử dụng AI: số lần gọi, số token, tỷ lệ lỗi (API I6)
+│   └── AiSettingsController.java    # Xem / sửa cấu hình AI (bật/tắt từng mục đích), kiểm tra kết nối, thống kê sử dụng (API I1–I3, I6)
 ├── service/
-│   ├── AiGateway.java               # CỔNG DUY NHẤT để gọi AI — mọi chức năng muốn dùng AI đều đi qua đây và tuân 7 bước kiểm soát ở trên
-│   ├── PromptRegistry.java          # Nơi lấy câu lệnh mẫu gửi AI (prompt) cho từng việc, kèm phiên bản và định dạng kết quả mong muốn
-│   ├── CacheKeys.java               # Tạo "dấu vân tay" cho mỗi yêu cầu AI — cùng nội dung thì cùng dấu, nên lấy lại kết quả cũ khỏi gọi AI lần nữa
-│   ├── TokenBudget.java             # Theo dõi hạn mức AI mỗi ngày — vượt hạn mức thì ngừng gọi AI và báo lỗi
-│   ├── SecretRedactor.java          # Che mật khẩu, token, khóa bí mật, chuỗi kết nối CSDL trong đoạn code TRƯỚC khi gửi cho AI
-│   └── AiSettingsService.java       # Xử lý cấu hình AI: lưu trạng thái bật/tắt từng việc, kiểm tra kết nối, tổng hợp thống kê sử dụng
-├── provider/                        # Các "nhà cung cấp" AI có thể dùng
-│   ├── LlmProvider.java             # Khuôn mẫu chung của một nhà cung cấp AI — nhờ vậy đổi Gemini sang Claude chỉ cần đổi cấu hình
-│   ├── SpringAiLlmProvider.java     # Kết nối thật tới Gemini / Claude / dịch vụ tương thích OpenAI (thông qua thư viện Spring AI)
-│   ├── NoopLlmProvider.java         # Nhà cung cấp "tắt AI" — luôn trả lời "AI không khả dụng" để các chức năng dùng cách không cần AI
-│   ├── LlmProviderConfig.java       # Chọn nhà cung cấp theo cấu hình; API key chỉ đọc từ biến môi trường, không lưu, không in ra log
-│   └── LlmRequest.java, LlmResult.java   # Dạng dữ liệu một yêu cầu gửi AI và một câu trả lời nhận về (kèm số token đã dùng)
-├── repository/
-│   ├── AiArtifactRepository.java    # Nơi đọc/ghi bảng ai_artifacts (kết quả AI đã lưu)
-│   ├── LlmCallLogRepository.java    # Nơi đọc/ghi bảng llm_call_logs (nhật ký gọi AI)
-│   └── AppSettingRepository.java    # Nơi đọc/ghi bảng app_settings (cấu hình chung chỉnh trên giao diện)
-├── entity/
-│   ├── AiArtifact.java              # Một dòng của bảng ai_artifacts — một kết quả AI đã được kiểm tra và lưu để dùng lại
-│   ├── LlmCallLog.java              # Một dòng của bảng llm_call_logs — nhật ký một lần gọi AI (không lưu nội dung gửi đi)
-│   ├── AppSetting.java              # Một dòng của bảng app_settings — một cấu hình chung (vd bật/tắt từng mục đích dùng AI)
-│   ├── AiPurpose.java               # Danh sách các việc ĐƯỢC PHÉP nhờ AI làm (viết mục đích & ràng buộc, viết lời kịch bản, sinh dữ liệu mẫu, phân tích liên kết…)
-│   └── LlmCallStatus.java           # Danh sách kết quả một lần gọi AI: thành công / lỗi / bị loại vì sai định dạng / vượt hạn mức
-└── dto/                             # Dữ liệu giao diện gửi lên và Engine trả về
-    ├── AiSettingsResponse.java      # Cấu hình AI hiện tại (không bao giờ chứa API key)
-    ├── UpdateAiPurposesRequest.java # Yêu cầu bật/tắt từng việc dùng AI
-    ├── AiConnectionTestResponse.java # Kết quả kiểm tra kết nối AI (thành công/thất bại, độ trễ)
-    └── AiUsageResponse.java         # Thống kê sử dụng AI
+│   ├── AiGateway.java               # CỔNG DUY NHẤT để gọi AI — 7 bước kiểm soát ở trên; chỉ đọc bản đã lưu (peek / latest) hoặc chạy đủ (execute)
+│   ├── SecretRedactor.java          # Che mật khẩu, token, khóa, chuỗi kết nối CSDL, private key TRƯỚC khi gửi AI; không gửi file .env / keystore / dữ liệu
+│   ├── PromptTemplates.java         # Nạp prompt từ resources/prompts/<tên>.v<n>.st (SYSTEM / USER / SCHEMA), điền dữ kiện, giữ phiên bản
+│   ├── ProviderHealth.java          # Tình trạng provider theo loại lỗi: 429 = đạt giới hạn (chặn gọi tới giờ nhà cung cấp báo), 503 = quá tải, lỗi khác = bị lỗi
+│   │                                #   (chỉ hiển thị); trạng thái "đang kiểm tra" khi vừa khởi động
+│   ├── AiStartupCheck.java          # Tự "Kiểm tra kết nối" một lần khi Engine khởi động (chạy nền)
+│   ├── AiCallTrace.java             # Ghi ra log Engine (logger flowtracer.ai) mục đích, prompt đã che secret, kết quả, token, thời gian của mọi lời gọi AI
+│   └── AiSettingsService.java       # Bật/tắt từng mục đích (app_settings), kiểm tra kết nối, trạng thái AI, mức dùng hôm nay, hạn mức lượt gọi theo ngày do nhà cung cấp báo, thống kê sử dụng
+├── model/                           # Kiểu dùng chung cho package khác (không phải entity)
+│   ├── AiPurpose.java               # Các việc ĐƯỢC PHÉP nhờ AI: viết mục đích & ràng buộc & lỗi, lời kịch bản, dữ liệu mẫu, phân tích liên kết, đặt tên thành phần FE
+│   ├── AiCall.java                  # Một lần nhờ AI: mục đích, đối tượng, prompt, schema, bộ kiểm tra đầu ra
+│   ├── AiOutcome.java               # Kết quả: GENERATED / CACHED / DISABLED / UNAVAILABLE / QUOTA_EXCEEDED / REJECTED
+│   └── AiRejectedException.java     # Đầu ra AI không đạt kiểm tra → bỏ, dùng kết quả tất định
+├── provider/
+│   ├── LlmProvider.java             # Khuôn mẫu chung của một nhà cung cấp AI
+│   ├── SpringAiLlmProvider.java     # Gemini / Claude / OpenAI-compatible qua Spring AI ChatModel (lỗi chỉ trả loại lỗi, log đã che secret)
+│   ├── NoopLlmProvider.java         # provider = none: luôn "không khả dụng"
+│   ├── LlmProviderConfig.java       # Chọn provider theo cấu hình; khóa chỉ đọc từ biến môi trường; thiếu khóa thì AI không khả dụng, app vẫn chạy
+│   └── LlmRequest.java, LlmResult.java
+├── repository/                      # ai_artifacts, llm_call_logs (kèm tổng hợp token / lỗi / độ trễ theo mục đích), app_settings
+├── entity/                          # AiArtifact, LlmCallLog, LlmCallStatus, AppSetting
+└── dto/
+    ├── request/UpdateAiSettingsRequest.java
+    └── response/                    # AiSettingsResponse, AiPurposeSettingResponse, AiTestResponse, AiUsageResponse
+
+Phía package khác (gọi AiGateway): explanation/ExplanationAiService (PURPOSE_TEXT, MOCK_DATA, SCENARIO_POLISH), explanation/ElementNamingService
+(ELEMENT_NAMING), explanation/AiArtifactService + AiArtifactController (F4), linking/EdgeAdviceService + AiAdviceRule (E2), graph/ElementNameLookup
+(đưa tên AI vào cây Frontend C2 và quan hệ C4); core: ScenarioPolishRule, ElementNameRule.
 
 main/resources/prompts/              # Câu lệnh mẫu gửi cho AI — mỗi việc một file, đổi nội dung thì tăng số phiên bản (v1 → v2)
 ├── purpose-text.v1.st               # Lệnh nhờ AI viết 80–100 từ tiếng Việt dễ hiểu về mục đích của một API/nút bấm, kèm câu ràng buộc gọn
 ├── scenario-polish.v1.st            # Lệnh nhờ AI viết lời kể cho từng bước kịch bản, giữ nguyên số bước, thứ tự và thành phần
 ├── mock-data.v1.st                  # Lệnh nhờ AI sinh dữ liệu mẫu đúng cấu trúc dữ liệu cho trước (không dùng dữ liệu thật)
-├── edge-resolution.v1.st            # Lệnh nhờ AI phân tích các ứng viên của một liên kết chưa chắc chắn: giải thích từng ứng viên, có thể đề xuất thêm một
+├── element-naming.v1.st             # Lệnh nhờ AI đặt tên tiếng Việt chuẩn cho các phần tử của một màn hình từ chữ trên giao diện, tên hàm và API mà phần tử gọi
+├── edge-resolution.v2.st            # Lệnh nhờ AI phân tích các ứng viên của một liên kết chưa chắc chắn (kèm chuỗi gọi, từ khớp tên, bằng chứng): giải thích từng ứng viên, có thể đề xuất thêm một
 └── (mở rộng) feature-summary.v1.st · legacy-match.v1.st   # Lệnh cho tóm tắt nhóm chức năng và ghép luồng cũ–mới
 ```
 
@@ -756,7 +761,7 @@ web/
 ├── eslint.config.js                 # Luật kiểm tra chất lượng code giao diện (chạy bằng npm run lint)
 ├── proxy.conf.json                  # Khi chạy giao diện lúc phát triển: chuyển mọi yêu cầu /api sang Engine đang chạy ở cổng 8600
 └── src/
-    ├── main.ts, index.html, styles.scss   # Điểm khởi động của giao diện, trang HTML gốc, và kiểu dáng (màu, font) dùng chung
+    ├── main.ts, index.html, styles.scss   # Điểm khởi động của giao diện, trang HTML gốc (tiêu đề "Flow Tracer", favicon logo "CtV" ở public/favicon.svg + favicon.ico), và kiểu dáng (màu, font, ô tích) dùng chung
     └── app/
         ├── app.ts, app.html, app.scss   # Khung ngoài cùng của giao diện (thanh tiêu đề + vùng hiển thị từng màn hình)
         ├── app.config.ts            # Bật các tính năng chung của ứng dụng: điều hướng giữa màn hình, gọi API lên Engine
@@ -767,7 +772,7 @@ web/
         │   │   ├── api-types.ts     # Tên ngắn cho các kiểu sinh ra; vỏ bọc ApiResponse; kiểu sự kiện SSE (không có trong OpenAPI)
         │   │   ├── api-error.ts     # Đọc lỗi từ vỏ bọc (code, message, errors) thành thông báo tiếng Việt
         │   │   └── workspace.api.ts, scan.api.ts, graph.api.ts, trace.api.ts, linking.api.ts, explanation.api.ts   # Gọi API theo nhóm A / B (kể cả SSE tiến độ) / C / D / E / F, lấy data trong vỏ bọc; khóa node trên đường dẫn mã hóa hai lần
-        │   ├── ui/                  # Mảnh giao diện dùng chung: icon SVG, modal (Esc đóng modal trên cùng), hộp xác nhận, toast
+        │   ├── ui/                  # Mảnh giao diện dùng chung: icon SVG, modal (Esc đóng modal trên cùng), hộp xác nhận, toast, dropdown chọn giá trị theo thiết kế riêng (select-menu.ts — không dùng <select> mặc định)
         │   ├── explorer-navigation.ts   # Cầu nối bảng Ctrl+K (ở khung ứng dụng) → màn hình chính: "hãy mở thành phần này"
         │   └── workspace-context.ts # Danh sách Workspace, Workspace đang mở, trạng thái mở wizard Import và bảng Ctrl+K
         └── features/                # Mỗi thư mục là một nhóm màn hình
@@ -791,16 +796,18 @@ web/
             │   │   ├── sequence-canvas.ts      # Canvas: zoom / kéo / vừa khung, chú giải, thẻ "n bước chưa xác định", mô tả khi di chuột, tô sáng, xuất;
             │   │   │                           #   bấm mũi tên chưa chắc chắn / đã chốt tay → popover liên kết
             │   │   ├── edge-popover.ts         # Popover liên kết (Giai đoạn 5): lý do, ứng viên + mức khớp Cao / Trung bình / Thấp (E1), chọn API khác
-            │   │   │                           #   qua ô tìm (C3), Chốt tay (E4) / Bỏ chốt tay (E5); "Nhờ AI phân tích" mờ tới Giai đoạn 7
+            │   │   │                           #   qua ô tìm (C3), Chốt tay (E4) / Bỏ chốt tay (E5); "Nhờ AI phân tích" (E2): lời giải thích từng ứng viên + ứng viên AI đề xuất, không đổi liên kết
             │   │   └── edge-popover-model.ts   # Khi nào mở popover, nhãn mức tin cậy, danh sách ứng viên, giữ popover trọn trong canvas (thuần, test được)
             │   └── panel/                      # Cột phải (Giai đoạn 6)
-            │       ├── node-panel.ts           # Tên + nút Xem code + hai tab; Diễn giải (F1, F2), Kịch bản (F3, tô sáng đồng bộ với diagram), thành phần chứa
+            │       ├── node-panel.ts           # Tên + nút Xem code + hai tab; Diễn giải (F1, F2), Kịch bản (F3, tô sáng đồng bộ với diagram), thành phần chứa;
+            │       │                           #   nhãn "✦ AI", nút Sinh bằng AI / Sinh lại (F4), banner khi AI nghỉ, chữ hiện dần, "Đặt tên bằng AI"
             │       ├── json-block.ts           # Khối JSON nền tối, tô màu cú pháp, nút Sao chép
             │       ├── code-dialog.ts          # Popup Xem code (C5): tab theo lớp, đánh số dòng, tô sáng, chỉ đọc
             │       └── explanation-model.ts    # Tô màu JSON, đầu vào / đầu ra hiển thị, dòng kịch bản, dòng code, nhãn quan hệ (thuần, test được)
             ├── search/              # Bảng tìm nhanh Ctrl+K (API C3): gõ → kết quả nhóm theo loại, ↑ ↓ Enter Esc; chọn thì mở đúng thành phần trên cây
             ├── compare/             # (MỞ RỘNG — TẠM HOÃN, chưa làm) Màn hình so sánh 2 diagram cạnh nhau và danh sách khác biệt cũ – mới
-            └── ai-settings/         # Màn hình cấu hình AI: xem đang dùng AI nào, bật/tắt từng việc, kiểm tra kết nối, hạn mức token, thống kê (lượt gọi, token, trúng cache, lỗi)
+            └── ai-settings/         # Màn hình cấu hình AI: xem đang dùng AI nào, bật/tắt từng việc, kiểm tra kết nối, mức dùng hôm nay, thống kê (lượt gọi, token, lỗi)
+            │                        # (+ ai-usage-model.ts: định dạng số, chiều cao cột, khoảng ngày (1 / 7 ngày / tất cả) — thuần, test được)
 ```
 
 ---
@@ -823,8 +830,9 @@ fixtures/                            # Các dự án mẫu nhỏ TỰ VIẾT 100
 └── golden/                          # Các "kết quả chuẩn" đã lưu khi phân tích dự án mẫu — test so kết quả mới với đây để phát hiện thay đổi ngoài ý muốn
 
 scripts/                             # Các công cụ chạy tay
-├── benchmark.mjs                    # Đo tốc độ: quét lần đầu, quét lại, dò luồng mất bao lâu (so với chỉ tiêu NFR-01 → NFR-04)
+├── benchmark.mjs                    # Đo tốc độ: quét lần đầu, quét lại (20 file đổi — trên bản sao), tải cây, tìm kiếm, dò luồng, RAM (NFR-01 → NFR-04, NFR-06)
 ├── evaluate-accuracy.mjs            # Đo độ chính xác trên dự án demo (CHỈ chạy trên máy cá nhân) — chỉ in ra con số tổng hợp, không in code
+├── lib/engine-client.mjs            # Phần dùng chung của hai script đo: gọi API Engine, chờ quét, thống kê, đo RAM, so khớp tên
 └── check-forbidden-terms.mjs        # Chặn lỡ commit các từ khóa nội bộ của công ty (danh sách từ khóa để trong file .forbidden-terms, không đưa lên Git)
 
 docker/

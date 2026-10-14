@@ -19,6 +19,7 @@ import java.util.List;
  * @param trail chuỗi thành phần chứa, từ cao nhất xuống cha trực tiếp (thành phần giao diện)
  * @param calledFrom các thành phần giao diện gọi tới API này (khi thành phần là API)
  * @param calledFromTotal tổng số thành phần gọi tới (có thể lớn hơn số phần tử trong {@code calledFrom})
+ * @param ai trạng thái nội dung AI của Mục đích / Ràng buộc / Lỗi; null với thành phần chứa
  * @param callsTo thành phần mà nó gọi tới: API / hộp thoại / màn hình (phần tử giao diện), bảng dữ liệu / hệ thống khác (API)
  */
 public record ExplanationResponse(
@@ -33,4 +34,5 @@ public record ExplanationResponse(
         List<NodeRelationResponse> trail,
         List<NodeRelationResponse> calledFrom,
         int calledFromTotal,
-        List<NodeRelationResponse> callsTo) {}
+        List<NodeRelationResponse> callsTo,
+        AiInfoResponse ai) {}

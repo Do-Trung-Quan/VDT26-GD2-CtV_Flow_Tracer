@@ -63,7 +63,9 @@ npm --prefix web start                                                          
 | 4 | Frontend Angular & tìm kiếm nhanh — phần BE (Task 4.1, BE của 4.2) — nhật ký: `docs/progress/1210_gd4_be_frontend_angular.md` | ✅ Xong (BE + FE), chờ người dùng review |
 | 5 | Liên kết Frontend ↔ Backend & End-to-End (Task 5.1–5.2, đã tinh chỉnh khử trùng lặp & bỏ khung `opt [try]`) — nhật ký: `docs/progress/1310_gd5_lien_ket_fe_be.md` | ✅ Xong (BE + FE), đã kiểm chứng UI |
 | 6 | Diễn giải & Kịch bản (không AI) — phần BE (Task 6.1) — nhật ký: `docs/progress/1310_gd6_dien_giai_kich_ban.md` | ✅ Xong (BE + FE), chờ người dùng review |
-| 7 · 8 · 11 | Xem bên dưới | ⏳ Chưa làm |
+| 7 | Cổng AI & nội dung AI (Task 7.1, 7.2; BE có thêm xử lý 429 / 503 và thời gian nghỉ) — nhật ký: `docs/progress/1310_gd7_cong_ai_be.md` | ✅ Xong (BE + FE), chờ người dùng review (đã kiểm chứng giao diện bằng provider giả; chưa chạy lại với khóa Gemini thật vì hết hạn mức ngày) |
+| 8 (Task 8.1, 8.2) | Script đo + `docs/evaluation.md` + tối ưu + sửa ca sai — nhật ký: `docs/progress/1410_gd8_11_do_luong_dong_goi.md` | 🔄 NFR-01 → 06 **đạt** (cả trong Docker khi loại thư mục không phân tích); NFR-08 precision 100% / recall 96,6% (nghiêm ngặt 84,8%), NFR-09 96,7% trên mẫu 30 luồng của demo; NFR-07 chưa đo được (thiếu file OpenAPI); Backend OpenAPI-first chờ quyết định |
+| 11 | Đóng gói (Task 11.1 Docker đã kiểm chứng với demo thật; 11.2 CI + README đã viết) — cùng nhật ký | 🔄 Xong, chờ người dùng review; chưa chạy trên máy sạch khác / Linux và CI thật |
 | 9 · 10 | Đối chiếu hệ thống cũ (phân tích PHP + so sánh cũ – mới) | ⏸ **Tạm hoãn** (deadline gấp); xem lại nếu còn thời gian |
 
 ---
@@ -443,7 +445,7 @@ Tôi sẽ làm:
 **Mục tiêu:** 4 mục đích MVP hoạt động trên giao diện, đầu ra luôn được kiểm tra.
 
 Tôi sẽ làm:
-- BE — prompt `*.v1.st` + schema đầu ra:
+- BE — prompt `*.v1.st` + schema đầu ra (thêm mục đích **`ELEMENT_NAMING`** theo yêu cầu 13/10: đặt tên chuẩn cho thành phần Frontend từ chữ trên giao diện, tên hàm, API và Controller mà thành phần gọi):
   - `purpose-text`: 80–100 từ + câu ràng buộc trỏ về ràng buộc thô, **và diễn đạt lại danh sách "Lỗi có thể gặp"** (người dùng đồng ý 13/10: không tự dịch thủ công hết được mọi lỗi, nhất là lỗi phát sinh về sau; cùng mục đích `PURPOSE_TEXT`, mỗi câu phải trỏ về một lỗi thô có thật, lỗi/tắt AI thì dùng câu tất định ở §2.2.6);
   - `scenario-polish`: `ScenarioPolishRule` giữ nguyên số bước, thứ tự, thành phần;
   - `mock-data`: khớp schema DTO, sinh một lần;
@@ -452,7 +454,8 @@ Tôi sẽ làm:
 - FE:
   - chữ hiện dần, nhãn "✦ AI", nút Sinh lại, nhãn "Bộ sinh dự phòng" khi AI tắt;
   - "Nhờ AI phân tích" trong popover;
-  - đèn AI ở header;
+  - đèn AI ở header (bật / đang nghỉ / tắt / lỗi) và banner khi provider đang nghỉ sau lỗi 429 / 503;
+  - nút "Sinh bằng AI" khi chưa có bản lưu (AI chỉ chạy khi người dùng bấm, kết quả được lưu), nút "Đặt tên bằng AI" ở thành phần chứa;
   - trang Cấu hình AI (bật / tắt mục đích, kiểm tra kết nối, hạn mức hôm nay, thống kê).
 
 **Cách kiểm chứng trên giao diện (khóa Gemini thật + dự án demo):**
@@ -461,7 +464,7 @@ Tôi sẽ làm:
 | :--- | :--- | :--- |
 | 1 | Mở một nút lần đầu | Chữ mục đích đầu tiên ≤ 5 giây (NFR-05); mở lại ≤ 1 giây |
 | 2 | "Nhờ AI phân tích" ở mũi tên chưa xác định | Có lời giải thích từng ứng viên; diagram **không** tự đổi |
-| 3 | Trang Cấu hình AI | Lượt gọi, token, tỷ lệ trúng cache khớp dữ liệu `llm_call_log` / `ai_artifact` |
+| 3 | Trang Cấu hình AI | Lượt gọi, token khớp dữ liệu `llm_call_log` |
 | 4 | Đặt `LLM_PROVIDER=none` rồi khởi động lại | Mọi tab vẫn đủ nội dung tất định (NFR-18) |
 
 ---

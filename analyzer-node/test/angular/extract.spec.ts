@@ -24,6 +24,17 @@ describe('extract — template', () => {
     expect(facts.nodes[1]!.label).toEqual({ kind: 'pipe', value: 'x.y' });
   });
 
+  it('nhãn là biểu thức điều kiện giữa hai khóa dịch: lấy nhánh không phải trạng thái đang xử lý', async () => {
+    const facts = await html(
+      `<button (click)="a()">{{ isSubmitting ? t('login_submitting') : t('login_button') }}</button>` +
+        `<button (click)="b()">{{ !loading ? t('save') : t('loading_text') }}</button>` +
+        `<button (click)="c()">{{ ok ? t('yes') : t('no') }}</button>`
+    );
+    expect(facts.nodes[0]!.label).toEqual({ kind: 'key', value: 'login_button' });
+    expect(facts.nodes[1]!.label).toEqual({ kind: 'key', value: 'save' });
+    expect(facts.nodes[2]!.label).toEqual({ kind: 'key', value: 'yes' }); // không nhánh nào là "đang xử lý": lấy nhánh đầu
+  });
+
   it('@if / @for / *ngIf trong suốt; phần tử không đáng giữ bị gộp', async () => {
     const facts = await html(
       `<div class="wrap"><span>chữ</span>@if (ok) { <p><button (click)="go()">Đi</button></p> }<ul *ngIf="x"><li><button (click)="del(1)">Xóa</button></li></ul></div>`

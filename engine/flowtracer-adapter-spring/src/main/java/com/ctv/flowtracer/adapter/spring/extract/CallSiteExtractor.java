@@ -275,7 +275,49 @@ public final class CallSiteExtractor {
                     order++,
                     GuardResolver.guardOf(at),
                     AstSupport.line(at),
-                    httpArgs(at, methodName)));
+                    httpArgs(at, methodName),
+                    argTypes(at)));
+        }
+
+        /** Kiểu đã biết của từng đối số: biến cục bộ / tham số có kiểu khai báo, literal, {@code new X()}, ép kiểu; còn lại null. */
+        private List<String> argTypes(Node at) {
+            if (!(at instanceof MethodCallExpr call)) {
+                return List.of();
+            }
+            var types = new java.util.ArrayList<String>();
+            for (Expression a : call.getArguments()) {
+                types.add(argType(a));
+            }
+            return types;
+        }
+
+        private String argType(Expression a) {
+            if (a instanceof NameExpr n) {
+                String type = locals.get(n.getNameAsString());
+                return type == null || type.startsWith(CALL_PREFIX) ? null : type;
+            }
+            if (a instanceof StringLiteralExpr) {
+                return "String";
+            }
+            if (a instanceof com.github.javaparser.ast.expr.IntegerLiteralExpr) {
+                return "int";
+            }
+            if (a instanceof com.github.javaparser.ast.expr.LongLiteralExpr) {
+                return "long";
+            }
+            if (a instanceof com.github.javaparser.ast.expr.BooleanLiteralExpr) {
+                return "boolean";
+            }
+            if (a instanceof com.github.javaparser.ast.expr.DoubleLiteralExpr) {
+                return "double";
+            }
+            if (a instanceof ObjectCreationExpr created && created.getAnonymousClassBody().isEmpty()) {
+                return AstSupport.rawType(created.getType().asString());
+            }
+            if (a instanceof com.github.javaparser.ast.expr.CastExpr cast) {
+                return AstSupport.rawType(AstSupport.typeText(cast.getType()));
+            }
+            return null;
         }
 
         /**

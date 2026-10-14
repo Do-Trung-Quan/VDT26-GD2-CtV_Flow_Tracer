@@ -47,3 +47,41 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  scripts:
+    # Script đo (Giai đoạn 8) phải ít nhất biên dịch được; chạy thật cần Engine + ground truth cục bộ nên không chạy ở CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: for f in scripts/*.mjs scripts/lib/*.mjs; do node --check "$f"; done
+
+  forbidden-terms:
+    # Danh sách từ khóa nội bộ là secret của repo (FORBIDDEN_TERMS); không có secret thì bước này chỉ cảnh báo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check-forbidden-terms.mjs --all
+        env:
+          FORBIDDEN_TERMS: ${{ secrets.FORBIDDEN_TERMS }}
+
+  docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (web + sidecar + engine)
+        run: docker build -f docker/Dockerfile -t flowtracer:ci .
+      - name: Smoke test — image khởi động được và /api/health lên
+        run: |
+          docker network create ft-ci
+          docker run -d --name ft-db --network ft-ci -e POSTGRES_DB=flowtracer -e POSTGRES_USER=flowtracer -e POSTGRES_PASSWORD=flowtracer postgres:16-alpine
+          for i in $(seq 1 30); do docker exec ft-db pg_isready -U flowtracer -d flowtracer && break; sleep 2; done
+          docker run -d --name ft-app --network ft-ci -p 127.0.0.1:8600:8600 -e DB_URL=jdbc:postgresql://ft-db:5432/flowtracer -e DB_USER=flowtracer -e DB_PASSWORD=flowtracer -v "$PWD/fixtures:/sources:ro" flowtracer:ci
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:8600/api/health && exit 0; sleep 3; done
+          docker logs ft-app
+          exit 1

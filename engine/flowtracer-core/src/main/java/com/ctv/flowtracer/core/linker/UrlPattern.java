@@ -52,6 +52,13 @@ public record UrlPattern(String httpMethod, List<Segment> segments) {
 
     public static final String ANY = "ANY";
 
+    // Biên dịch một lần: parse() được gọi rất nhiều lần khi nối hàng trăm lời gọi với hàng trăm API
+    private static final Pattern HOST = Pattern.compile("^(?i)(https?:)?//[^/]*");
+    private static final Pattern QUERY_OR_FRAGMENT = Pattern.compile("[?#].*$");
+    private static final Pattern SLASHES = Pattern.compile("/+");
+    private static final Pattern REGEX_IN_VARIABLE = Pattern.compile("\\{([^}:]*):[^}]*}");
+    private static final Pattern WHOLE_VARIABLE = Pattern.compile("\\{[^{}]*}");
+
     public UrlPattern {
         Objects.requireNonNull(httpMethod, "httpMethod");
         segments = List.copyOf(segments);
@@ -64,10 +71,10 @@ public record UrlPattern(String httpMethod, List<Segment> segments) {
     public static UrlPattern parse(String httpMethod, String rawPath) {
         String method = httpMethod == null || httpMethod.isBlank() ? ANY : httpMethod.strip().toUpperCase(Locale.ROOT);
         String path = rawPath == null ? "" : rawPath.strip();
-        path = path.replaceFirst("^(?i)(https?:)?//[^/]*", "");
-        path = path.replaceFirst("[?#].*$", "");
+        path = HOST.matcher(path).replaceFirst("");
+        path = QUERY_OR_FRAGMENT.matcher(path).replaceFirst("");
         var segments = new ArrayList<Segment>();
-        for (String part : path.split("/+")) {
+        for (String part : SLASHES.split(path)) {
             if (part.isEmpty()) {
                 continue;
             }
@@ -81,8 +88,8 @@ public record UrlPattern(String httpMethod, List<Segment> segments) {
             return new Segment("{" + part.replace(":", "") + "}", SegmentType.VARIABLE);
         }
         // {id:\d+} của Spring: bỏ phần regex sau dấu ':'
-        String cleaned = part.replaceAll("\\{([^}:]*):[^}]*}", "{$1}");
-        if (cleaned.matches("\\{[^{}]*}")) {
+        String cleaned = REGEX_IN_VARIABLE.matcher(part).replaceAll("{$1}");
+        if (WHOLE_VARIABLE.matcher(cleaned).matches()) {
             return new Segment(cleaned, SegmentType.VARIABLE);
         }
         if (cleaned.contains("{") && cleaned.contains("}")) {

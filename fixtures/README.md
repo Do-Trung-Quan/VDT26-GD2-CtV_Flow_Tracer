@@ -14,3 +14,5 @@ Sẽ bổ sung khi làm tới phase tương ứng (xem `.context/project_structu
 - `golden/spring-flow.ir.json`, `golden/spring-flow.trace.*.json|puml` — snapshot IR và kết quả dò vết / mã PlantUML của `spring-flow`; sinh lại bằng `./mvnw -f engine/pom.xml -Pgolden-update test`.
 - `golden/angular-mini.ir.json` — snapshot IR của `angular-mini`; sinh lại bằng `UPDATE_GOLDEN=1 npm --prefix analyzer-node run test` (chỉ khi thay đổi IR có chủ đích).
 - `golden/spring-mini.ir.json` — snapshot IR của `spring-mini`; sinh lại bằng `./mvnw -f engine/pom.xml -Pgolden-update -pl flowtracer-adapter-spring test` (chỉ khi thay đổi IR có chủ đích).
+- `ground-truth/spring-angular-mini.json` — ground truth **ví dụ** (tự viết) cho `spring-flow` + `angular-mini`, dùng thử `scripts/evaluate-accuracy.mjs` (định dạng: `scripts/README.md`). Ground truth của dự án thật đặt ngoài repo.
+- `angular-ngmodule/` — Angular dùng NgModule: module con nạp sớm có `RouterModule.forChild` (route ở gốc) và module nạp lười (Giai đoạn 8), xem `angular-ngmodule/README.md`.

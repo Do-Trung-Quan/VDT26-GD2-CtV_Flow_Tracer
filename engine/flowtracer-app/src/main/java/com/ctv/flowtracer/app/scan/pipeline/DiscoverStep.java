@@ -60,13 +60,16 @@ class DiscoverStep {
         long walked = System.nanoTime();
         int prefix = work.target.rootPath().isEmpty() ? 0 : work.target.rootPath().length() + 1;
         work.allPaths = entries.stream().map(e -> e.relativePath().substring(prefix)).sorted().toList();
-        for (SourceReader.Entry entry : entries) {
-            String relative = entry.relativePath().substring(prefix);
-            if (work.adapter.analyzes(relative)) {
-                ctx.checkCancelled();
-                work.files.put(relative, read(entry.relativePath(), relative, entry.sizeBytes()));
-            }
-        }
+        // Đọc + băm file song song (I/O và SHA-256 độc lập từng file); thứ tự kết quả giữ theo thứ tự duyệt nên vẫn tất định
+        List<SourceReader.Entry> toRead =
+                entries.stream().filter(e -> work.adapter.analyzes(e.relativePath().substring(prefix))).toList();
+        List<DiscoveredFile> read = toRead.parallelStream()
+                .map(e -> {
+                    ctx.checkCancelled();
+                    return read(e.relativePath(), e.relativePath().substring(prefix), e.sizeBytes());
+                })
+                .toList();
+        read.forEach(f -> work.files.put(f.relativePath(), f));
         for (String path : work.allPaths) {
             if (work.adapter.affectsAnalysis(path)) {
                 ctx.checkCancelled();

@@ -111,6 +111,18 @@ class LinkerTest {
     }
 
     @Test
+    void everyTiedApiIsListedAsACandidateSoTheCountInTheReasonMatches() {
+        for (String name : List.of("books", "types", "config", "featured", "borrowed", "authors", "tags")) {
+            endpoint("GET", "/lib/public/" + name);
+        }
+        IrEdge edge = linkOne(call("c", "GET", "/lib/public/{resource}", "url", Map.of()));
+
+        assertThat(edge.confidence()).isEqualTo(Confidence.UNRESOLVED);
+        assertThat(edge.reason()).contains("7 API khớp");
+        assertThat(edge.candidates()).hasSize(7);
+    }
+
+    @Test
     void unknownBaseUrlMatchesTheSuffix() {
         endpoint("GET", "/api/v1/items");
         endpoint("GET", "/api/v1/orders");

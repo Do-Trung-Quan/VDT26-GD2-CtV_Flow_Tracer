@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git' | 'minus' | 'fit' | 'download' | 'code' | 'copy' | 'chevd' | 'image' | 'layers' | 'window' | 'file' | 'cursor' | 'input' | 'table' | 'bolt' | 'db' | 'pin' | 'link' | 'shield' | 'refresh';
+export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'search' | 'plus' | 'chev' | 'x' | 'folder' | 'alert' | 'check' | 'trash' | 'edit' | 'server' | 'monitor' | 'info' | 'dots' | 'git' | 'minus' | 'fit' | 'download' | 'code' | 'copy' | 'chevd' | 'image' | 'layers' | 'window' | 'file' | 'cursor' | 'input' | 'table' | 'bolt' | 'db' | 'pin' | 'link' | 'shield' | 'refresh' | 'menu';
 
 /** Icon SVG nét mảnh (stroke 1.8) theo bản vẽ giao diện; không tải gì từ mạng. */
 @Component({
@@ -8,6 +8,9 @@ export type IconName = 'home' | 'layout' | 'gear' | 'sparkle' | 'upload' | 'sear
   template: `
     <svg class="i" [class.sm]="small()" viewBox="0 0 24 24" aria-hidden="true">
     @switch (name()) {
+      @case ('menu') {
+        <svg:path d="M4 6h16M4 12h16M4 18h16"/>
+      }
       @case ('home') {
         <svg:path d="M3 11l9-8 9 8"/><svg:path d="M5 10v10h14V10"/>
       }

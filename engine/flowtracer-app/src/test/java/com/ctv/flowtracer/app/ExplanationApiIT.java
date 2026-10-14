@@ -168,7 +168,10 @@ class ExplanationApiIT {
         // ---- C5: popup Xem code chia tab theo lớp
         JsonNode tabs = get(ws, SAVE, "source?context_lines=2").data();
         List<String> titles = texts(tabs, "title");
-        assertThat(titles).contains("Template", "Controller", "Service", "Repository");
+        // mỗi hàm / khối một đoạn; một file có nhiều đoạn thì tiêu đề thêm " · tên hàm"
+        for (String layer : List.of("Template", "Controller", "Service", "Repository")) {
+            assertThat(titles).as("tab " + layer).anyMatch(t -> t.equals(layer) || t.startsWith(layer + " · "));
+        }
         JsonNode service = tab(tabs, "Service");
         assertThat(service.get("code").asString()).contains("existsByCode");
         assertThat(service.get("filePath").asString()).endsWith("CategoryServiceImpl.java");
@@ -242,7 +245,8 @@ class ExplanationApiIT {
 
     private static JsonNode tab(JsonNode tabs, String title) {
         for (JsonNode t : tabs) {
-            if (title.equals(t.get("title").asString())) {
+            String name = t.get("title").asString();
+            if (title.equals(name) || name.startsWith(title + " · ")) {
                 return t;
             }
         }

@@ -13,6 +13,7 @@ import com.ctv.flowtracer.ir.NodeKind;
  * @param elementType loại phần tử giao diện ({@code button}, {@code input}…); null nếu không phải phần tử
  * @param fallbackName tên kỹ thuật của phần tử không có nhãn đọc được (như trên cây Frontend); null nếu đã có {@code displayName}
  * @param routePath đường dẫn route của màn hình; null nếu không phải màn hình
+ * @param aiLabel tên chuẩn do AI đặt cho phần tử giao diện; null nếu chưa đặt
  */
 public record NodeRelationResponse(
         String nodeKey,
@@ -22,4 +23,5 @@ public record NodeRelationResponse(
         String context,
         String elementType,
         String fallbackName,
-        String routePath) {}
+        String routePath,
+        String aiLabel) {}

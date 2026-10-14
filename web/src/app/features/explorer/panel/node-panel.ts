@@ -1,9 +1,12 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, model, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, input, model, output, signal, untracked } from '@angular/core';
 import { toApiError } from '../../../core/api/api-error';
-import type { ApiIoDto, ExplanationDto, MockDataDto, NodeRelationDto, ScenarioDto } from '../../../core/api/api-types';
+import { AiStatus } from '../../../core/ai/ai-status';
+import { AiApi } from '../../../core/api/ai.api';
+import type { ApiIoDto, ExplanationDto, GenerateAiRequest, MockDataDto, NodeRelationDto, ScenarioDto } from '../../../core/api/api-types';
 import { ExplanationApi } from '../../../core/api/explanation.api';
 import { Icon, type IconName } from '../../../core/ui/icon';
+import { ToastService } from '../../../core/ui/toast.service';
 import type { SequenceTrace } from '../sequence/sequence-model';
 import { CodeDialog } from './code-dialog';
 import { apiLabel, inputValue, isOpenable, outputValue, relationName, scenarioRows } from './explanation-model';
@@ -25,15 +28,15 @@ export interface PanelHeader {
   pills: PanelPill[];
   /** Thành phần chứa: không có tab và không có nút Xem code. */
   container: boolean;
-  /** Ghi chú dưới tiêu đề (vd phần tử không có nhãn trong mã nguồn). */
-  note: string | null;
 }
 
 type PanelTab = 'explain' | 'script';
+type AiKind = 'purpose' | 'mock' | 'script' | 'naming';
 
 /**
- * Cột phải của màn hình chính: tên thành phần, nút "Xem code" và hai tab — Diễn giải (F1, F2) và Kịch bản (F3). Chưa có AI
- * nên mục đích dùng nguồn tất định và nút "Sinh lại" ở trạng thái tắt (Giai đoạn 7 mới bật).
+ * Cột phải của màn hình chính: tên thành phần, nút "Xem code" và hai tab — Diễn giải (F1, F2) và Kịch bản (F3). Nội dung AI chỉ
+ * được ĐỌC từ bản đã lưu; muốn có thì bấm "Sinh bằng AI" / "Sinh lại" (F4). AI tắt, hết hạn mức hoặc lỗi thì các phần hiện nội dung
+ * tự sinh từ mã nguồn kèm banner nêu lý do — không có gì bị chặn.
  */
 @Component({
   selector: 'app-node-panel',
@@ -69,11 +72,8 @@ type PanelTab = 'explain' | 'script';
       </div>
 
       <div class="rb">
-        @if (h.note) {
-          <div class="hint gap">{{ h.note }}</div>
-        }
-        @for (n of notes(); track n) {
-          <div class="warn gap">{{ n }}</div>
+        @if (banner(); as b) {
+          <div [class]="b.cls + ' gap'"><app-icon name="alert" [small]="true" />{{ b.text }}</div>
         }
 
         @if (h.container || tab() === 'explain') {
@@ -85,11 +85,28 @@ type PanelTab = 'explain' | 'script';
             <div class="errb">{{ expError() }}</div>
           } @else if (exp(); as e) {
             @if (e.container) {
-              <div class="sec first">
-                <h4>Mô tả</h4>
-                <p>{{ e.purpose?.text }}</p>
+              @if (e.kind !== 'UI_APP' && e.kind !== 'API_ENDPOINT') {
+                <div class="sec first">
+                  <button class="btn sm" type="button" [disabled]="!canName() || anyBusy()" [title]="nameTitle()" (click)="nameElements(true)">
+                    <app-icon name="sparkle" [small]="true" />{{ isBusy('naming') ? 'AI đang đặt tên… ' + busySeconds() + ' giây' : 'Sinh lại tên thành phần bằng AI' }}
+                  </button>
+                  @if (isBusy('naming')) {
+                    <div class="top6">
+                      <ng-container [ngTemplateOutlet]="skelTpl" [ngTemplateOutletContext]="{ lines: [92, 78, 64], caption: 'AI đang đặt tên các phần tử' }" />
+                    </div>
+                  }
+                  @if (namingResult(); as r) {
+                    <div [class]="r.cls + ' top6'">{{ r.text }}</div>
+                  }
+                </div>
+              }
+              <div class="pick" aria-hidden="true">
+                <div class="skel" style="width: 38%"></div>
+                <div class="skel" style="width: 92%"></div>
+                <div class="skel" style="width: 74%"></div>
+                <div class="skel" style="width: 86%"></div>
               </div>
-              <div class="hint">Đây là thành phần chứa. Chọn một nút hoặc ô nhập bên trong để xem diễn giải đầy đủ và kịch bản.</div>
+              <div class="hint pick-hint">Bấm vào một thành phần bên trong để xem diễn giải và kịch bản luồng đầy đủ.</div>
             } @else {
               <ng-container [ngTemplateOutlet]="explainTpl" [ngTemplateOutletContext]="{ $implicit: e }" />
             }
@@ -108,10 +125,18 @@ type PanelTab = 'explain' | 'script';
       <div class="sec first">
         <h4>
           Mục đích
-          <span class="pill p-blue plain">{{ e.purpose?.sourceLabel }}</span>
+          @if (e.ai?.state === 'APPLIED') {
+            <span class="pill p-purple plain">✦ AI</span>
+          } @else {
+            <span class="pill p-blue plain">{{ e.purpose?.source === 'SKELETON' ? SYSTEM_LABEL : e.purpose?.sourceLabel }}</span>
+          }
+          <ng-container [ngTemplateOutlet]="regenTpl" [ngTemplateOutletContext]="{ info: e.ai, kind: 'purpose' }" />
         </h4>
-        <p>{{ e.purpose?.text }}</p>
-        <div class="hint top6">AI chưa được bật và chưa có bản lưu — đang hiện mô tả ngắn từ {{ e.purpose?.sourceLabel }}.</div>
+        @if (isBusy('purpose')) {
+          <ng-container [ngTemplateOutlet]="skelTpl" [ngTemplateOutletContext]="{ lines: [96, 92, 95, 58], caption: 'AI đang viết mục đích' }" />
+        } @else {
+          <p [class.tw]="typing()">{{ typing() ? typed() : e.purpose?.text }}</p>
+        }
       </div>
 
       @if ((e.apis?.length ?? 0) > 1) {
@@ -158,7 +183,9 @@ type PanelTab = 'explain' | 'script';
           } @else {
             <p>Không có — API không trả nội dung.</p>
           }
-          @if (a.errors?.length) {
+          @if (isBusy('purpose')) {
+            <div class="skel top6" style="width: 72%"></div>
+          } @else if (a.errors?.length) {
             <div class="hint top6">Lỗi có thể gặp: {{ a.errors!.join('; ') }}.</div>
           }
         } @else {
@@ -168,8 +195,12 @@ type PanelTab = 'explain' | 'script';
 
       <div class="sec">
         <h4>Ràng buộc</h4>
-        @if (api()?.constraints?.length) {
-          <div class="hint bot4">AI chưa bật — hiện ràng buộc rút trực tiếp từ code:</div>
+        @if (isBusy('purpose')) {
+          <ng-container [ngTemplateOutlet]="skelTpl" [ngTemplateOutletContext]="{ lines: [90, 82, 68], caption: 'AI đang viết lại ràng buộc' }" />
+        } @else if (api()?.constraints?.length) {
+          @if (e.ai?.state !== 'APPLIED') {
+            <div class="hint bot4">AI chưa viết lại — hiện ràng buộc rút trực tiếp từ code:</div>
+          }
           <ul>
             @for (c of api()!.constraints!; track $index) {
               <li>{{ c }}</li>
@@ -184,11 +215,18 @@ type PanelTab = 'explain' | 'script';
         <h4>
           Dữ liệu mẫu
           @if (api()) {
-            <span class="pill p-gray plain">Bộ sinh dự phòng</span>
+            @if (mock()?.ai?.state === 'APPLIED') {
+              <span class="pill p-purple plain">✦ AI sinh một lần · đã lưu</span>
+            } @else {
+              <span class="pill p-gray plain">{{ SYSTEM_LABEL }}</span>
+            }
+            <ng-container [ngTemplateOutlet]="regenTpl" [ngTemplateOutletContext]="{ info: mock()?.ai, kind: 'mock' }" />
           }
         </h4>
         @if (!api()) {
           <p>Không có.</p>
+        } @else if (isBusy('mock')) {
+          <ng-container [ngTemplateOutlet]="skelTpl" [ngTemplateOutletContext]="{ lines: [40, 74, 64, 80, 58, 70, 36], caption: 'AI đang sinh dữ liệu mẫu' }" />
         } @else if (mockLoading()) {
           <div class="skel"></div>
           <div class="skel" style="width: 70%"></div>
@@ -246,6 +284,27 @@ type PanelTab = 'explain' | 'script';
       </div>
     </ng-template>
 
+    <ng-template #skelTpl let-lines="lines" let-caption="caption">
+      <div role="status" aria-live="polite">
+        @for (w of lines; track $index) {
+          <div class="skel" [style.width.%]="w"></div>
+        }
+        <div class="hint top6">{{ caption }}… {{ busySeconds() }} giây</div>
+      </div>
+    </ng-template>
+
+    <ng-template #regenTpl let-info="info" let-kind="kind">
+      @if (info?.state === 'APPLIED') {
+        <button class="chip nav ai-act" type="button" [disabled]="anyBusy() || blocked()" [title]="blocked() ? 'AI hiện chưa dùng được' : ''" (click)="generate(kind, true)">
+          <app-icon name="refresh" [small]="true" />{{ isBusy(kind) ? 'Đang sinh… ' + busySeconds() + ' giây' : 'Sinh lại' }}
+        </button>
+      } @else if (info?.state === 'MISSING' && !blocked()) {
+        <button class="chip nav ai-act gen" type="button" [disabled]="anyBusy()" (click)="generate(kind, false)">
+          <app-icon name="sparkle" [small]="true" />{{ isBusy(kind) ? 'Đang sinh… ' + busySeconds() + ' giây' : 'Sinh bằng AI' }}
+        </button>
+      }
+    </ng-template>
+
     <ng-template #scriptTpl>
       @if (traceLoading()) {
         @for (w of skeleton; track $index) {
@@ -260,13 +319,19 @@ type PanelTab = 'explain' | 'script';
         @for (w of skeleton; track $index) {
           <div class="skel" [style.width.%]="w"></div>
         }
+      } @else if (isBusy('script')) {
+        <ng-container [ngTemplateOutlet]="skelTpl" [ngTemplateOutletContext]="{ lines: [34, 86, 80, 88, 76, 84, 70, 82, 60], caption: 'AI đang viết lời kể cho từng bước' }" />
       } @else if (scenarioError()) {
         <div class="errb">{{ scenarioError() }}</div>
       } @else if (scenario(); as s) {
         <div class="row head">
-          <span class="pill p-gray">Khung câu tự sinh (AI chưa bật)</span>
+          @if (s.ai?.state === 'APPLIED') {
+            <span class="pill p-purple">✦ AI viết lời kể</span>
+          } @else {
+            <span class="pill p-gray">{{ SYSTEM_LABEL }}</span>
+          }
           <span class="sp1"></span>
-          <button class="chip dis" type="button" disabled title="AI chưa được bật — không thể sinh lại"><app-icon name="refresh" [small]="true" />Sinh lại</button>
+          <ng-container [ngTemplateOutlet]="regenTpl" [ngTemplateOutletContext]="{ info: s.ai, kind: 'script' }" />
         </div>
         <div class="sec">
           <h4>Các actor tham gia</h4>
@@ -285,7 +350,7 @@ type PanelTab = 'explain' | 'script';
               } @else {
                 <li class="st" tabindex="0" role="button" [attr.data-n]="r.index" [class.sub]="r.depth > 0" [class.hl]="highlight() === r.index"
                   [class.unres]="r.unresolved" [style.margin-left.px]="r.depth > 0 ? 6 + (r.depth - 1) * 14 : null"
-                  (click)="clickStep(r.index)" (keydown.enter)="clickStep(r.index)" (mouseenter)="preview.emit(r.index)" (mouseleave)="preview.emit(null)">
+                  (click)="clickStep(r.index)" (keydown.enter)="clickStep(r.index)">
                   <b>Bước {{ r.index }}:</b> {{ r.text }}
                 </li>
               }
@@ -313,6 +378,15 @@ type PanelTab = 'explain' | 'script';
     .sec ul { margin: 0; padding-left: 18px; }
     .sec li { margin: 3px 0; }
     .pill.plain { text-transform: none; letter-spacing: 0; }
+    .ai-act { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; }
+    .ai-act.gen { background: var(--purple-l); color: var(--purple); }
+    .naming { margin-top: 14px; }
+    .pick { margin-top: 18px; }
+    .pick-hint { margin-top: 10px; text-align: center; }
+    .gen-btn { margin-top: 8px; }
+    .ai-act:disabled { opacity: 0.6; cursor: progress; }
+    .tw::after { content: '▍'; color: var(--purple); animation: bl 1s infinite; }
+    @keyframes bl { 50% { opacity: 0; } }
     .gap { margin-bottom: 12px; }
     .top6 { margin-top: 6px; }
     .bot6 { margin-bottom: 6px; }
@@ -349,26 +423,29 @@ type PanelTab = 'explain' | 'script';
 })
 export class NodePanel {
   private readonly explanationApi = inject(ExplanationApi);
+  private readonly aiApi = inject(AiApi);
+  private readonly toast = inject(ToastService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  protected readonly ai = inject(AiStatus);
 
   readonly workspaceId = input.required<string>();
   readonly header = input.required<PanelHeader | null>();
   readonly nodeKey = input.required<string | null>();
-  /** Cảnh báo của luồng / API (hiện trên đầu cả hai tab). */
-  readonly notes = input<string[]>([]);
   readonly trace = input<SequenceTrace | null>(null);
   readonly traceLoading = input(false);
   /** Tăng lên khi dữ liệu có thể đã đổi (chốt / bỏ chốt liên kết, quét xong): tải lại diễn giải. */
   readonly refresh = input(0);
   /** Bước đang tô sáng — dùng chung với diagram (bấm bước ↔ bấm mũi tên). */
   readonly highlight = model<number | null>(null);
-  /** Rê chuột qua một bước (null khi rời): diagram tô sáng tạm mũi tên. */
-  readonly preview = output<number | null>();
   /** Bấm một bước trong kịch bản: trang chứa cuộn diagram tới mũi tên đó. */
   readonly stepClicked = output<number>();
   /** Bấm một chip quan hệ để mở thành phần đó. */
   readonly openNode = output<NodeRelationDto>();
+  /** AI vừa đặt tên các phần tử của thành phần chứa: trang chứa tải lại cây Frontend để hiện tên mới. */
+  readonly labelsChanged = output<void>();
 
+  /** Nhãn thống nhất cho nội dung do hệ thống tự sinh từ mã nguồn (không phải AI). */
+  protected readonly SYSTEM_LABEL = 'Hệ thống tự sinh';
   protected readonly skeleton = [95, 81, 67, 53, 95, 81, 67, 53];
   protected readonly tab = signal<PanelTab>('explain');
   protected readonly codeOpen = signal(false);
@@ -394,6 +471,51 @@ export class NodePanel {
   protected readonly outValue = computed(() => outputValue(this.api()));
   protected readonly rows = computed(() => scenarioRows(this.scenario()?.items));
 
+  /** Các phần đang chờ AI sinh (mỗi lần một phần, để không bắn nhiều lời gọi cùng lúc). */
+  protected readonly busyKinds = signal<readonly AiKind[]>([]);
+  protected isBusy(kind: AiKind): boolean {
+    return this.busyKinds().includes(kind);
+  }
+  protected readonly anyBusy = computed(() => this.busyKinds().length > 0);
+  protected readonly namingResult = signal<{ cls: string; text: string } | null>(null);
+  /** Đặt tên được khi AI dùng được (kể cả khi lần gọi trước gặp quá tải / lỗi — vẫn cho thử lại) và mục đích ELEMENT_NAMING đang bật. */
+  protected readonly canName = computed(() => this.ai.usable() && this.ai.purposeEnabled('ELEMENT_NAMING'));
+  /** Số giây đã chờ của lần sinh AI đang chạy (hiện trên nút). */
+  protected readonly busySeconds = signal(0);
+  private busyTimer: ReturnType<typeof setInterval> | undefined;
+  /** Không thể gọi AI lúc này: hết hạn mức (429) hoặc chưa cấu hình. Quá tải / lỗi khác thì vẫn cho bấm để thử lại. */
+  protected readonly blocked = computed(() => {
+    const status = this.ai.settings()?.status;
+    return status === 'COOLING' || status === 'NOT_CONFIGURED';
+  });
+  protected readonly nameTitle = computed(() => {
+    const s = this.ai.settings();
+    if (this.canName()) {
+      return 'AI đặt tên cho các phần tử bên trong, kể cả trong hộp thoại lồng nhau; tên được lưu lại';
+    }
+    return this.ai.usable() ? 'Mục đích "Đặt tên thành phần giao diện" đang tắt trong Cấu hình AI' : (s?.statusMessage ?? 'AI chưa dùng được');
+  });
+  /** Hiệu ứng chữ hiện dần của Mục đích vừa được AI viết. */
+  protected readonly typing = signal(false);
+  protected readonly typed = signal('');
+  private typeTimer: ReturnType<typeof setInterval> | undefined;
+
+  /** Banner theo loại lỗi: 429 đạt giới hạn (vàng), 503 quá tải (vàng), lỗi khác / chưa cấu hình (đỏ). Nội dung tự sinh vẫn dùng bình thường. */
+  protected readonly banner = computed<{ cls: string; text: string } | null>(() => {
+    const s = this.ai.settings();
+    switch (s?.status) {
+      case 'COOLING':
+        return { cls: 'warn', text: `${s.statusMessage ?? 'AI đã đạt giới hạn.'} Đang dùng nội dung tự sinh từ mã nguồn.` };
+      case 'OVERLOADED':
+        return { cls: 'warn', text: s.statusMessage ?? 'Dịch vụ AI đang quá tải.' };
+      case 'ERROR':
+      case 'NOT_CONFIGURED':
+        return { cls: 'errb', text: s.statusMessage ?? 'AI bị lỗi.' };
+      default:
+        return null;
+    }
+  });
+
   private expToken = 0;
   private mockToken = 0;
   private scenarioToken = 0;
@@ -401,12 +523,15 @@ export class NodePanel {
   private mockFor: string | null = null;
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.stopTyping());
     // Chọn thành phần khác → đóng popup code, bỏ API đã chọn; tab đang xem được giữ nguyên như bản vẽ
     effect(() => {
       this.nodeKey();
       untracked(() => {
         this.codeOpen.set(false);
         this.apiKey.set(null);
+        this.namingResult.set(null);
+        this.stopTyping();
       });
     });
     // Thành phần khác (hoặc dữ liệu đổi) → nạp lại diễn giải
@@ -437,6 +562,120 @@ export class NodePanel {
         );
       }
     });
+  }
+
+  /** F4: sinh (hoặc sinh lại) nội dung AI của một phần rồi nạp lại phần đó. AI lỗi thì giữ nội dung cũ và báo lý do. */
+  protected async generate(kind: AiKind, force: boolean): Promise<void> {
+    if (this.anyBusy()) {
+      return;
+    }
+    await this.run(kind, force);
+  }
+
+  private async run(kind: AiKind, force: boolean): Promise<void> {
+    const key = this.nodeKey();
+    const traceId = this.trace()?.traceId ?? null;
+    if (!key || this.isBusy(kind) || (kind === 'script' && !traceId)) {
+      return;
+    }
+    const body: GenerateAiRequest =
+      kind === 'purpose'
+        ? { purpose: 'PURPOSE_TEXT', targetKey: key, force }
+        : kind === 'mock'
+          ? { purpose: 'MOCK_DATA', targetKey: key, apiKey: this.api()?.apiKey, force }
+          : { purpose: 'SCENARIO_POLISH', targetKey: traceId ?? '', force };
+    this.markBusy(kind, true);
+    try {
+      await this.aiApi.generate(this.workspaceId(), body);
+      if (kind === 'purpose') {
+        await this.loadExplanation(key);
+        this.startTyping(this.exp()?.purpose?.text ?? '');
+      } else if (kind === 'mock') {
+        this.mockFor = null;
+        await this.loadMock(key, this.api()?.apiKey ?? null);
+      } else {
+        this.scenarioFor = null;
+        await this.loadScenario(traceId);
+      }
+      this.toast.show(force ? 'Đã sinh lại nội dung.' : 'Đã sinh nội dung bằng AI và lưu lại.', 'ok');
+    } catch (e) {
+      this.toast.show(toApiError(e).message || 'AI không phản hồi — giữ nguyên nội dung hiện có.', 'err');
+    } finally {
+      this.markBusy(kind, false);
+      void this.ai.refresh();
+    }
+  }
+
+  /** Đánh dấu một phần đang / hết chờ AI; đồng hồ đếm giây chạy khi có ít nhất một phần đang chờ. */
+  private markBusy(kind: AiKind, on: boolean): void {
+    const wasIdle = this.busyKinds().length === 0;
+    this.busyKinds.update((list) => (on ? [...list.filter((k) => k !== kind), kind] : list.filter((k) => k !== kind)));
+    if (on && wasIdle) {
+      this.startBusyTimer();
+    } else if (!on && this.busyKinds().length === 0) {
+      this.stopBusyTimer();
+    }
+  }
+
+  private startBusyTimer(): void {
+    const t0 = Date.now();
+    this.busySeconds.set(0);
+    clearInterval(this.busyTimer);
+    this.busyTimer = setInterval(() => this.busySeconds.set(Math.round((Date.now() - t0) / 1000)), 500);
+  }
+
+  private stopBusyTimer(): void {
+    clearInterval(this.busyTimer);
+    this.busyTimer = undefined;
+  }
+
+  /** F4 với ELEMENT_NAMING: đặt tên cho mọi phần tử đáng đặt tên trong thành phần chứa đang xem. */
+  protected async nameElements(force: boolean): Promise<void> {
+    const key = this.nodeKey();
+    if (!key || this.anyBusy() || !this.canName()) {
+      return;
+    }
+    this.markBusy('naming', true);
+    this.namingResult.set(null);
+    try {
+      const r = await this.aiApi.generate(this.workspaceId(), { purpose: 'ELEMENT_NAMING', targetKey: key, force });
+      const text =
+        r.total === 0
+          ? (r.message ?? 'Không có phần tử nào cần đặt tên lại.')
+          : `Đã đặt tên ${r.named ?? 0}/${r.total ?? 0} phần tử.${r.message ? ' ' + r.message : ''}`;
+      this.namingResult.set({ cls: r.total === 0 || (r.named ?? 0) === (r.total ?? 0) ? 'okb' : 'warn', text });
+      if ((r.named ?? 0) > 0) {
+        this.labelsChanged.emit();
+      }
+    } catch (e) {
+      this.namingResult.set({ cls: 'errb', text: toApiError(e).message || 'AI không phản hồi — giữ nguyên tên hiện có.' });
+    } finally {
+      this.markBusy('naming', false);
+      void this.ai.refresh();
+    }
+  }
+
+  private startTyping(full: string): void {
+    this.stopTyping();
+    if (!full) {
+      return;
+    }
+    let i = 0;
+    this.typed.set('');
+    this.typing.set(true);
+    this.typeTimer = setInterval(() => {
+      i += 3;
+      this.typed.set(full.slice(0, i));
+      if (i >= full.length) {
+        this.stopTyping();
+      }
+    }, 16);
+  }
+
+  private stopTyping(): void {
+    clearInterval(this.typeTimer);
+    this.typeTimer = undefined;
+    this.typing.set(false);
   }
 
   protected readonly label = apiLabel;
@@ -486,6 +725,7 @@ export class NodePanel {
     this.expLoading.set(true);
     try {
       const dto = await this.explanationApi.explanation(this.workspaceId(), key);
+      void this.ai.refresh(); // hết thời gian nghỉ / đổi cấu hình thì banner và đèn AI cập nhật theo
       if (token === this.expToken) {
         this.exp.set(dto);
         // tải lại cùng thành phần (vd sau khi chốt tay) thì giữ API đang chọn nếu còn

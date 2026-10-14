@@ -7,6 +7,7 @@ import com.ctv.flowtracer.app.scan.model.ScanStage;
 import com.ctv.flowtracer.app.scan.repository.SourceFileRepository;
 import com.ctv.flowtracer.ir.IrFragment;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -65,8 +66,16 @@ class PersistStep {
         sourceFiles.deleteAll(toDelete);
 
         var toSave = new ArrayList<SourceFile>();
+        var ids = new TreeMap<String, UUID>();
         for (DiscoveredFile file : work.files.values()) {
             SourceFile entity = work.previous.get(file.relativePath());
+            // File không đổi, từng phân tích tốt và lần này cũng không lỗi: bản ghi giữ nguyên (chỉ cần đánh dấu lần quét — cập nhật hàng loạt
+            // ở cuối); khỏi đọc + ghi lại từng bản ghi, việc này tốn hàng giây với hàng nghìn file
+            if (entity != null && work.unchanged.contains(file.relativePath()) && entity.getParseStatus() == ParseStatus.OK
+                    && !work.fileErrors.containsKey(file.relativePath())) {
+                ids.put(entity.getRelPath(), entity.getId());
+                continue;
+            }
             if (entity == null) {
                 entity = new SourceFile(
                         work.target.sourceId(), file.relativePath(), file.contentHash(), language(file.relativePath()),
@@ -82,6 +91,10 @@ class PersistStep {
         }
         for (DiscoveredFile file : work.configFiles.values()) {
             SourceFile entity = work.previousConfig.get(file.relativePath());
+            if (entity != null && !work.configChanged.contains(file.relativePath())) {
+                ids.put(entity.getRelPath(), entity.getId());
+                continue;
+            }
             if (entity == null) {
                 entity = new SourceFile(
                         work.target.sourceId(), file.relativePath(), file.contentHash(), SourceFile.LANGUAGE_CONFIG,
@@ -93,8 +106,8 @@ class PersistStep {
             }
             toSave.add(entity);
         }
-        var ids = new TreeMap<String, UUID>();
         sourceFiles.saveAllAndFlush(toSave).forEach(f -> ids.put(f.getRelPath(), f.getId()));
+        sourceFiles.markScanned(List.of(work.target.sourceId()), scanRunId);
         return ids;
     }
 

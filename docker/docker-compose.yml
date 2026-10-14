@@ -1,9 +1,12 @@
-# Chạy: docker compose -f docker/docker-compose.yml --env-file .env up -d --build
+# Chạy toàn bộ tool bằng một lệnh (từ gốc repo, sau khi sao chép .env.example → .env và đặt SOURCE_ROOT):
+#   docker compose -f docker/docker-compose.yml --env-file .env up -d --build
+# Mở http://127.0.0.1:8600 — cổng chỉ mở cho máy cục bộ (127.0.0.1), máy khác trong mạng không truy cập được.
 name: flowtracer
 
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: flowtracer
       POSTGRES_USER: ${DB_USER:-flowtracer}
@@ -21,6 +24,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,13 +34,16 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-flowtracer}
       LLM_PROVIDER: ${LLM_PROVIDER:-none}
       LLM_MODEL: ${LLM_MODEL:-}
+      LLM_DAILY_TOKEN_LIMIT: ${LLM_DAILY_TOKEN_LIMIT:-0}
+      LLM_LOG_CONTENT: ${LLM_LOG_CONTENT:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_BASE_URL: ${LLM_BASE_URL:-}
       LLM_API_KEY: ${LLM_API_KEY:-}
     ports:
-      - "127.0.0.1:8600:8600"   # chỉ mở cho máy cục bộ
+      - "127.0.0.1:${APP_PORT:-8600}:8600"   # chỉ mở cho máy cục bộ
     volumes:
+      # Mã nguồn cần phân tích: gắn CHỈ ĐỌC. Trên Windows dùng dạng D:/projects; trong tool chọn đường dẫn tương đối so với thư mục này.
       - ${SOURCE_ROOT:?Cần đặt SOURCE_ROOT trong .env}:/sources:ro
       - flowtracer-data:/data
 

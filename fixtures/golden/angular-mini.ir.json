@@ -35,7 +35,8 @@
       "displayName": "Ghi chú đơn hàng",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
-        "startLine": 12
+        "startLine": 12,
+        "endLine": 12
       },
       "attrs": {
         "component": "OrderNoteDialogComponent",
@@ -50,7 +51,8 @@
       "displayName": "Danh mục",
       "location": {
         "filePath": "projects/admin-app/src/app/app.component.html",
-        "startLine": 2
+        "startLine": 2,
+        "endLine": 2
       },
       "attrs": {
         "elementType": "link",
@@ -66,7 +68,8 @@
       "displayName": "Đơn hàng",
       "location": {
         "filePath": "projects/admin-app/src/app/app.component.html",
-        "startLine": 4
+        "startLine": 4,
+        "endLine": 4
       },
       "attrs": {
         "elementType": "link",
@@ -82,7 +85,8 @@
       "displayName": "Sản phẩm",
       "location": {
         "filePath": "projects/admin-app/src/app/app.component.html",
-        "startLine": 3
+        "startLine": 3,
+        "endLine": 3
       },
       "attrs": {
         "elementType": "link",
@@ -98,7 +102,8 @@
       "displayName": "Đăng xuất",
       "location": {
         "filePath": "projects/admin-app/src/app/app.component.html",
-        "startLine": 5
+        "startLine": 5,
+        "endLine": 5
       },
       "attrs": {
         "elementType": "button",
@@ -120,7 +125,8 @@
       "displayName": "Lưu",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
-        "startLine": 5
+        "startLine": 5,
+        "endLine": 5
       },
       "attrs": {
         "elementType": "button",
@@ -143,7 +149,8 @@
       "displayName": "Hủy",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
-        "startLine": 6
+        "startLine": 6,
+        "endLine": 6
       },
       "attrs": {
         "elementType": "button",
@@ -166,7 +173,8 @@
       "displayName": "Mã danh mục",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
-        "startLine": 3
+        "startLine": 3,
+        "endLine": 3
       },
       "attrs": {
         "elementType": "input",
@@ -183,7 +191,8 @@
       "displayName": "Tên danh mục",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
-        "startLine": 4
+        "startLine": 4,
+        "endLine": 4
       },
       "attrs": {
         "elementType": "input",
@@ -200,7 +209,8 @@
       "displayName": "Xóa",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
-        "startLine": 16
+        "startLine": 16,
+        "endLine": 16
       },
       "attrs": {
         "elementType": "button",
@@ -223,7 +233,8 @@
       "displayName": "Tải về",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
-        "startLine": 7
+        "startLine": 7,
+        "endLine": 7
       },
       "attrs": {
         "elementType": "button",
@@ -245,7 +256,8 @@
       "displayName": "Sửa",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
-        "startLine": 15
+        "startLine": 15,
+        "endLine": 15
       },
       "attrs": {
         "elementType": "button",
@@ -267,7 +279,8 @@
       "displayName": "Xuất Excel",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
-        "startLine": 5
+        "startLine": 5,
+        "endLine": 5
       },
       "attrs": {
         "elementType": "button",
@@ -289,7 +302,8 @@
       "name": "onRefresh",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
-        "startLine": 6
+        "startLine": 6,
+        "endLine": 6
       },
       "attrs": {
         "elementType": "button",
@@ -311,7 +325,8 @@
       "displayName": "Thêm mới",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
-        "startLine": 4
+        "startLine": 4,
+        "endLine": 4
       },
       "attrs": {
         "elementType": "button",
@@ -334,7 +349,8 @@
       "displayName": "Tìm theo mã hoặc tên",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-list.component.html",
-        "startLine": 3
+        "startLine": 3,
+        "endLine": 3
       },
       "attrs": {
         "elementType": "input",
@@ -357,7 +373,8 @@
       "displayName": "Hủy đơn",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
-        "startLine": 21
+        "startLine": 21,
+        "endLine": 21
       },
       "attrs": {
         "elementType": "button",
@@ -379,7 +396,8 @@
       "displayName": "Xác nhận đơn",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
-        "startLine": 20
+        "startLine": 20,
+        "endLine": 20
       },
       "attrs": {
         "elementType": "button",
@@ -402,7 +420,8 @@
       "displayName": "Ghi chú",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
-        "startLine": 10
+        "startLine": 10,
+        "endLine": 10
       },
       "attrs": {
         "elementType": "button",
@@ -421,7 +440,8 @@
       "displayName": "Đóng",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
-        "startLine": 12
+        "startLine": 12,
+        "endLine": 12
       },
       "attrs": {
         "elementType": "button",
@@ -443,7 +463,8 @@
       "displayName": "Lưu ghi chú",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-note-dialog.component.ts",
-        "startLine": 11
+        "startLine": 11,
+        "endLine": 11
       },
       "attrs": {
         "elementType": "button",
@@ -465,7 +486,8 @@
       "displayName": "Trang sau",
       "location": {
         "filePath": "projects/shared-lib/src/lib/pager.component.ts",
-        "startLine": 9
+        "startLine": 9,
+        "endLine": 9
       },
       "attrs": {
         "elementType": "button",
@@ -487,7 +509,8 @@
       "displayName": "Trang trước",
       "location": {
         "filePath": "projects/shared-lib/src/lib/pager.component.ts",
-        "startLine": 8
+        "startLine": 8,
+        "endLine": 8
       },
       "attrs": {
         "elementType": "button",
@@ -508,7 +531,8 @@
       "name": "onPage",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
-        "startLine": 7
+        "startLine": 7,
+        "endLine": 7
       },
       "attrs": {
         "elementType": "pagination",
@@ -530,7 +554,8 @@
       "displayName": "Xem đơn hàng",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
-        "startLine": 10
+        "startLine": 10,
+        "endLine": 10
       },
       "attrs": {
         "elementType": "button",
@@ -552,7 +577,8 @@
       "displayName": "Bộ lọc",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
-        "startLine": 3
+        "startLine": 3,
+        "endLine": 3
       },
       "attrs": {
         "elementType": "button",
@@ -574,7 +600,8 @@
       "displayName": "Đóng bộ lọc",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
-        "startLine": 5
+        "startLine": 5,
+        "endLine": 5
       },
       "attrs": {
         "elementType": "button",
@@ -592,7 +619,8 @@
       "name": "form.ngSubmit.save",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/presentation/category-form-dialog.component.html",
-        "startLine": 2
+        "startLine": 2,
+        "endLine": 7
       },
       "attrs": {
         "component": "CategoryFormDialogComponent",
@@ -614,7 +642,8 @@
       "name": "POST /gateway/api/v1/categories",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 19
+        "startLine": 19,
+        "endLine": 19
       },
       "attrs": {
         "httpMethod": "POST",
@@ -631,7 +660,8 @@
       "name": "GET /gateway/api/v1/categories/export",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 27
+        "startLine": 27,
+        "endLine": 27
       },
       "attrs": {
         "httpMethod": "GET",
@@ -647,7 +677,8 @@
       "name": "GET /gateway/api/v1/categories",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 15
+        "startLine": 15,
+        "endLine": 15
       },
       "attrs": {
         "httpMethod": "GET",
@@ -663,7 +694,8 @@
       "name": "DELETE /gateway/api/v1/categories/{id}",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 23
+        "startLine": 23,
+        "endLine": 23
       },
       "attrs": {
         "httpMethod": "DELETE",
@@ -679,7 +711,8 @@
       "name": "DELETE /gateway/api/v1/orders/{id}",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 23
+        "startLine": 23,
+        "endLine": 23
       },
       "attrs": {
         "httpMethod": "DELETE",
@@ -695,7 +728,8 @@
       "name": "PUT /gateway/api/v1/orders/{id}/confirm",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 19
+        "startLine": 19,
+        "endLine": 19
       },
       "attrs": {
         "httpMethod": "PUT",
@@ -711,7 +745,8 @@
       "name": "GET /gateway/api/v1/orders",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 11
+        "startLine": 11,
+        "endLine": 11
       },
       "attrs": {
         "httpMethod": "GET",
@@ -727,7 +762,8 @@
       "name": "POST /gateway/api/v1/orders/note",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 15
+        "startLine": 15,
+        "endLine": 15
       },
       "attrs": {
         "httpMethod": "POST",
@@ -1130,8 +1166,8 @@
       "name": "OrderListComponent.constructor",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
-        "startLine": 5,
-        "endLine": 5
+        "startLine": 32,
+        "endLine": 32
       },
       "attrs": {
         "layer": "COMPONENT",
@@ -1412,7 +1448,8 @@
       "displayName": "Danh sách",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
-        "startLine": 2
+        "startLine": 2,
+        "endLine": 8
       },
       "attrs": {
         "component": "ProductListComponent",
@@ -1426,7 +1463,8 @@
       "displayName": "Tồn kho",
       "location": {
         "filePath": "projects/admin-app/src/app/modules/product/product-list.component.html",
-        "startLine": 9
+        "startLine": 9,
+        "endLine": 11
       },
       "attrs": {
         "component": "ProductListComponent",
@@ -2077,7 +2115,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 19
+        "startLine": 19,
+        "endLine": 19
       }
     },
     {
@@ -2088,7 +2127,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 27
+        "startLine": 27,
+        "endLine": 27
       }
     },
     {
@@ -2099,7 +2139,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 15
+        "startLine": 15,
+        "endLine": 15
       }
     },
     {
@@ -2110,7 +2151,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/category/data/http-category.repository.ts",
-        "startLine": 23
+        "startLine": 23,
+        "endLine": 23
       }
     },
     {
@@ -2165,7 +2207,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 23
+        "startLine": 23,
+        "endLine": 23
       }
     },
     {
@@ -2176,7 +2219,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 19
+        "startLine": 19,
+        "endLine": 19
       }
     },
     {
@@ -2187,7 +2231,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 11
+        "startLine": 11,
+        "endLine": 11
       }
     },
     {
@@ -2198,7 +2243,8 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order.service.ts",
-        "startLine": 15
+        "startLine": 15,
+        "endLine": 15
       }
     },
     {
@@ -2369,7 +2415,7 @@
       "callOrder": 0,
       "location": {
         "filePath": "projects/admin-app/src/app/modules/order/order-list.component.ts",
-        "startLine": 5
+        "startLine": 32
       }
     },
     {

@@ -37,8 +37,11 @@ import java.util.regex.Pattern;
  */
 public final class Linker {
 
-    /** Số ứng viên tối đa lưu cho một lời gọi. */
+    /** Số ứng viên tối thiểu lưu cho một lời gọi (lấy theo điểm giảm dần). */
     static final int MAX_CANDIDATES = 5;
+
+    /** Khi nhiều API ngang điểm thì lưu đủ các API đó (để người dùng thấy đúng số ghi trong lý do), nhưng không quá số này. */
+    static final int MAX_TIED_CANDIDATES = 30;
 
     private static final Pattern STRING_LITERAL = Pattern.compile("^\\s*(?:'[^'$]*'|\"[^\"$]*\"|`[^`$]*`)\\s*$");
 
@@ -55,6 +58,13 @@ public final class Linker {
 
     private record Scored(IrNode endpoint, SegmentMatch match, List<LinkRule> rules, int score) {}
 
+    /** Một biến thể đường dẫn đã phân tích sẵn (phân tích một lần, dùng cho mọi cặp lời gọi × endpoint). */
+    private record Parsed(UrlPattern pattern, List<LinkRule> applied) {}
+
+    private static List<Parsed> parse(String method, List<Variant> variants) {
+        return variants.stream().map(v -> new Parsed(UrlPattern.parse(method, v.path()), v.applied())).toList();
+    }
+
     /**
      * @param httpCalls mọi node {@code HTTP_CALL} của Workspace
      * @param endpoints mọi node {@code API_ENDPOINT} của Workspace
@@ -62,9 +72,10 @@ public final class Linker {
      */
     public Result link(List<IrNode> httpCalls, List<IrNode> endpoints, List<LinkRule> rules) {
         List<IrNode> sortedEndpoints = endpoints.stream().sorted(Comparator.comparing(IrNode::key)).toList();
-        Map<String, List<Variant>> endpointVariants = new TreeMap<>();
+        Map<String, List<Parsed>> endpointVariants = new TreeMap<>();
         for (IrNode e : sortedEndpoints) {
-            endpointVariants.put(e.key(), ruleEngine.backendVariants(str(e, "path"), e.attrs().get("contextPath") != null, rules));
+            endpointVariants.put(e.key(), parse(str(e, "httpMethod"),
+                    ruleEngine.backendVariants(str(e, "path"), e.attrs().get("contextPath") != null, rules)));
         }
         var edges = new ArrayList<IrEdge>();
         Map<String, IrNode> externals = new TreeMap<>();
@@ -77,7 +88,7 @@ public final class Linker {
     private IrEdge linkOne(
             IrNode call,
             List<IrNode> endpoints,
-            Map<String, List<Variant>> endpointVariants,
+            Map<String, List<Parsed>> endpointVariants,
             List<LinkRule> rules,
             Map<String, IrNode> externals) {
         String method = str(call, "httpMethod");
@@ -99,14 +110,13 @@ public final class Linker {
                     "Không tính được URL của lời gọi" + (issue.isEmpty() ? "" : ": " + issue), List.of());
         }
         boolean resolved = !Boolean.FALSE.equals(call.attrs().get("urlResolved"));
-        List<Variant> callVariants = ruleEngine.frontendVariants(pattern, rules);
+        List<Parsed> callVariants = parse(method, ruleEngine.frontendVariants(pattern, rules));
         List<Scored> matches = new ArrayList<>();
         for (IrNode endpoint : endpoints) {
             Scored best = null;
-            for (Variant cv : callVariants) {
-                UrlPattern callPattern = UrlPattern.parse(method, cv.path());
-                for (Variant ev : endpointVariants.get(endpoint.key())) {
-                    var found = matcher.match(callPattern, UrlPattern.parse(str(endpoint, "httpMethod"), ev.path()), !resolved);
+            for (Parsed cv : callVariants) {
+                for (Parsed ev : endpointVariants.get(endpoint.key())) {
+                    var found = matcher.match(cv.pattern(), ev.pattern(), !resolved);
                     if (found.isEmpty()) {
                         continue;
                     }
@@ -132,11 +142,14 @@ public final class Linker {
             return edge(call, null, Confidence.UNRESOLVED, "Không có API nào trong Workspace khớp " + label, List.of());
         }
         Scored best = matches.get(0);
-        List<Candidate> candidates = matches.stream().limit(MAX_CANDIDATES).map(Linker::candidate).toList();
-        if (matches.size() > 1 && best.score() - matches.get(1).score() < CandidateScorer.TIE_MARGIN) {
-            long tied = matches.stream().filter(m -> best.score() - m.score() < CandidateScorer.TIE_MARGIN).count();
+        long tied = matches.stream().filter(m -> best.score() - m.score() < CandidateScorer.TIE_MARGIN).count();
+        int limit = (int) Math.min(MAX_TIED_CANDIDATES, Math.max(MAX_CANDIDATES, tied));
+        List<Candidate> candidates = matches.stream().limit(limit).map(Linker::candidate).toList();
+        if (tied > 1) {
             return edge(call, null, Confidence.UNRESOLVED,
-                    tied + " API khớp " + label + " với mức gần như nhau nên chưa kết luận; hãy chọn một ứng viên", candidates);
+                    tied + " API khớp " + label + " với mức gần như nhau nên chưa kết luận; hãy chọn một ứng viên"
+                            + (tied > limit ? " (hiện " + limit + " ứng viên đầu)" : ""),
+                    candidates);
         }
         boolean literalUrl = STRING_LITERAL.matcher(str(call, "urlExpr")).matches();
         if (best.match().exact() && best.rules().isEmpty() && resolved && literalUrl && !"false".equals(str(best.endpoint(), "pathResolved"))) {

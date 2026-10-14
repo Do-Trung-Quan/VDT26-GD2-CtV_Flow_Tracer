@@ -10,10 +10,12 @@ import java.util.List;
  * @param response phản hồi mẫu; null nếu API không trả nội dung
  * @param source nguồn sinh: {@code RULE} (bộ sinh tất định) hoặc {@code AI} (từ Giai đoạn 7)
  * @param problems chỗ dữ liệu mẫu không khớp cấu trúc DTO (rỗng nếu khớp hoàn toàn)
+ * @param ai trạng thái nội dung AI (xem {@link AiInfoResponse})
  */
 public record MockDataResponse(
         String apiKey,
         Object request,
         Object response,
         String source,
-        List<String> problems) {}
+        List<String> problems,
+        AiInfoResponse ai) {}

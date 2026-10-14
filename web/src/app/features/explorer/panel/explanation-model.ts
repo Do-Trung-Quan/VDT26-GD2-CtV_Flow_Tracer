@@ -66,6 +66,7 @@ export function relationName(r: NodeRelationDto): string {
       kind: r.kind,
       name: r.name,
       displayName: r.displayName,
+      aiLabel: r.aiLabel,
       elementType: r.elementType,
       fallbackName: r.fallbackName,
       routePath: r.routePath
@@ -79,10 +80,17 @@ export interface CodeLine {
   n: number;
   text: string;
   hl: boolean;
+  /** Dòng ngăn cách ("⋯") giữa hai đoạn xa nhau của cùng một file. */
+  gap?: boolean;
 }
 
 export function codeLines(tab: CodeTabDto): CodeLine[] {
   const start = tab.startLine ?? 1;
   const highlighted = new Set(tab.highlightLines ?? []);
-  return (tab.code ?? '').split(/\r?\n/).map((text, i) => ({ n: start + i, text, hl: highlighted.has(start + i) }));
+  const numbers = tab.lineNumbers ?? [];
+  return (tab.code ?? '').split(/\r?\n/).map((text, i) => {
+    // lineNumbers[i] = 0 là dòng ngăn cách giữa hai đoạn xa nhau trong cùng file; không có lineNumbers thì đánh số liên tục từ startLine
+    const n = numbers.length > i ? numbers[i] : start + i;
+    return { n, text, hl: n > 0 && highlighted.has(n), gap: n === 0 };
+  });
 }

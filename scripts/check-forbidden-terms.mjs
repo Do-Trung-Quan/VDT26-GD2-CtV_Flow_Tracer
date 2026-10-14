@@ -4,7 +4,7 @@
 //   node scripts/check-forbidden-terms.mjs          # quét nội dung các file đã `git add` (bản trong index)
 //   node scripts/check-forbidden-terms.mjs --all    # quét mọi file của repo (đã theo dõi + mới, trừ file bị .gitignore)
 //
-// Danh sách từ khóa nằm trong file `.forbidden-terms` ở gốc repo (đã gitignore, KHÔNG commit):
+// Danh sách từ khóa nằm trong file `.forbidden-terms` ở gốc repo (đã gitignore, KHÔNG commit), hoặc biến môi trường FORBIDDEN_TERMS (CI):
 // mỗi dòng một từ khóa, không phân biệt hoa thường; dòng trống và dòng bắt đầu bằng `#` bị bỏ qua.
 // Mã thoát: 0 = sạch (hoặc chưa có `.forbidden-terms`), 1 = có vi phạm, 2 = lỗi chạy.
 import { execFileSync } from 'node:child_process';
@@ -21,10 +21,12 @@ function git(args, encoding = 'utf8') {
 }
 
 function loadTerms() {
-  if (!existsSync(TERMS_FILE)) {
+  // CI không có file cục bộ: danh sách lấy từ biến môi trường FORBIDDEN_TERMS (GitHub Actions secret, mỗi dòng một từ khóa)
+  const fromEnv = process.env.FORBIDDEN_TERMS;
+  if (!existsSync(TERMS_FILE) && !fromEnv) {
     return null;
   }
-  return readFileSync(TERMS_FILE, 'utf8')
+  return (existsSync(TERMS_FILE) ? readFileSync(TERMS_FILE, 'utf8') : fromEnv)
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l && !l.startsWith('#'))

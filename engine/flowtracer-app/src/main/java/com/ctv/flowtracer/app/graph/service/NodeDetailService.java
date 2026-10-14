@@ -53,9 +53,15 @@ public class NodeDetailService {
     private final IrNodeRepository nodes;
     private final IrEdgeRepository edges;
     private final WorkspaceService workspaceService;
+    private final ElementNameLookup elementNames;
 
     public NodeDetailService(
-            GraphQueryService graphQueries, IrNodeRepository nodes, IrEdgeRepository edges, WorkspaceService workspaceService) {
+            GraphQueryService graphQueries,
+            IrNodeRepository nodes,
+            IrEdgeRepository edges,
+            WorkspaceService workspaceService,
+            ElementNameLookup elementNames) {
+        this.elementNames = elementNames;
         this.graphQueries = graphQueries;
         this.nodes = nodes;
         this.edges = edges;
@@ -128,6 +134,7 @@ public class NodeDetailService {
     // ---------------- API ----------------
 
     private Relations endpointRelations(UUID workspaceId, IrNodeRow row, Subgraph flow) {
+        Map<String, String> names = elementNames.forWorkspace(workspaceId);
         List<UUID> callerIds = edges.findUiCallerIds(workspaceId, row.id());
         List<IrNodeRow> callers = nodes.findByIds(workspaceId, callerIds).stream()
                 .sorted(Comparator.comparingInt((IrNodeRow r) -> r.node().kind() == NodeKind.UI_ELEMENT ? 0 : 1)
@@ -135,23 +142,24 @@ public class NodeDetailService {
                 .toList();
         var from = new ArrayList<NodeRelationResponse>();
         for (IrNodeRow caller : callers.stream().limit(MAX_CALLERS).toList()) {
-            from.add(relation(caller.node(), contextOf(workspaceId, caller)));
+            from.add(relation(caller.node(), contextOf(workspaceId, caller), names));
         }
         Subgraph graph = flow != null ? flow : graphQueries.subgraphFrom(workspaceId, row.node().key(), RELATION_DEPTH);
         BackendFlow backend = BackendFlow.of(row.node(), new GraphIndex(graph));
         var to = new ArrayList<NodeRelationResponse>();
-        backend.tables().forEach(t -> to.add(relation(t, null)));
-        backend.remoteCalls().forEach(t -> to.add(relation(t, null)));
+        backend.tables().forEach(t -> to.add(relation(t, null, names)));
+        backend.remoteCalls().forEach(t -> to.add(relation(t, null, names)));
         return new Relations(List.of(), from, callers.size(), to);
     }
 
     private Relations elementRelations(UUID workspaceId, IrNodeRow row, Subgraph flow) {
+        Map<String, String> names = elementNames.forWorkspace(workspaceId);
         Subgraph graph = flow != null ? flow : graphQueries.subgraphFrom(workspaceId, row.node().key(), RELATION_DEPTH);
         UiFlowResolver ui = UiFlowResolver.of(row.node(), new GraphIndex(graph));
         var to = new ArrayList<NodeRelationResponse>();
-        ui.apis().forEach(n -> to.add(relation(n, null)));
-        ui.opens().forEach(n -> to.add(relation(n, null)));
-        ui.navigates().forEach(n -> to.add(relation(n, null)));
+        ui.apis().forEach(n -> to.add(relation(n, null, names)));
+        ui.opens().forEach(n -> to.add(relation(n, null, names)));
+        ui.navigates().forEach(n -> to.add(relation(n, null, names)));
         return new Relations(trail(workspaceId, row), List.of(), 0, to);
     }
 
@@ -161,7 +169,7 @@ public class NodeDetailService {
         Set<UUID> seen = new HashSet<>();
         Optional<IrNodeRow> parent = nodes.findParent(workspaceId, row.id());
         while (parent.isPresent() && chain.size() < MAX_TRAIL && seen.add(parent.get().id())) {
-            chain.add(relation(parent.get().node(), null));
+            chain.add(relation(parent.get().node(), null, Map.of()));
             parent = nodes.findParent(workspaceId, parent.get().id());
         }
         Collections.reverse(chain);
@@ -191,7 +199,7 @@ public class NodeDetailService {
     }
 
     /** Quan hệ kèm đủ thông tin để giao diện đặt nhãn như trên cây Frontend ("Nút Lưu", "Màn hình Danh mục"). */
-    private static NodeRelationResponse relation(IrNode node, String context) {
+    private static NodeRelationResponse relation(IrNode node, String context, Map<String, String> names) {
         boolean element = node.kind() == NodeKind.UI_ELEMENT;
         Object type = node.attrs().get("elementType");
         Object route = node.attrs().get("routePath");
@@ -203,7 +211,8 @@ public class NodeDetailService {
                 context,
                 element && type instanceof String t && !t.isBlank() ? t : null,
                 element && node.displayName() == null ? TreeBuilder.fallbackName(node) : null,
-                node.kind() == NodeKind.UI_SCREEN && route instanceof String r && !r.isBlank() ? r : null);
+                node.kind() == NodeKind.UI_SCREEN && route instanceof String r && !r.isBlank() ? r : null,
+                names.get(node.key()));
     }
 
     private static String label(IrNode node) {

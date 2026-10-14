@@ -10,6 +10,8 @@ export interface NodeLabel {
   text: string;
   /** true nếu `text` là tên kỹ thuật lấy từ mã nguồn (không có nhãn tiếng Việt). */
   technical: boolean;
+  /** true nếu `text` là tên do AI đặt (mục đích ELEMENT_NAMING) — chỉ đổi cách hiển thị, không đổi cây hay liên kết. */
+  ai?: boolean;
 }
 
 const KIND_PREFIX: Record<string, string> = {
@@ -48,6 +50,9 @@ export function typeLabel(node: UiTreeNodeDto): string {
 export function nodeLabel(node: UiTreeNodeDto): NodeLabel {
   const kind = node.kind ?? 'UI_ELEMENT';
   const prefix = kind === 'UI_ELEMENT' ? (node.elementType ? (ELEMENT_PREFIX[node.elementType] ?? '') : '') : (KIND_PREFIX[kind] ?? '');
+  if (node.aiLabel) {
+    return { prefix, text: node.aiLabel, technical: false, ai: true };
+  }
   if (node.displayName) {
     return { prefix, text: node.displayName, technical: false };
   }
@@ -131,29 +136,111 @@ export function countByApi(nodes: UiTreeNodeDto[]): { api: number; gateway: numb
   return { api: api.size, gateway: gateway.size, uiOnly: ui.size };
 }
 
-const norm = (s: string | undefined) => (s ?? '').toLowerCase();
+/** Bỏ dấu tiếng Việt và hạ chữ thường để so khớp không phân biệt dấu: "Thêm mới" ~ "them moi", "Đơn" ~ "don". */
+export function fold(text: string | undefined): string {
+  return (text ?? '')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase();
+}
 
-function matches(node: UiTreeNodeDto, q: string): boolean {
-  return [fullLabel(node), node.name, node.fallbackName, node.routePath].some((v) => norm(v).includes(q));
+/** Một kết quả tìm kiếm trên cây Frontend: nút, các tổ tiên của nó (từ ứng dụng xuống, không gồm nút) và đường dẫn để hiển thị. */
+export interface UiHit {
+  node: UiTreeNodeDto;
+  trail: UiTreeNodeDto[];
+  /** "Màn hình Danh mục › Hộp thoại Thêm danh mục" — nơi nút nằm (bỏ ứng dụng khi chỉ có một cấp). */
+  context: string;
+}
+
+/** Kết quả tìm trong cây Frontend, chia hai nhóm giống ô tìm kiếm nhanh trên header. */
+export interface UiSearchResult {
+  /** Ứng dụng, màn hình, tab, hộp thoại, form. */
+  screens: UiHit[];
+  /** Phần tử giao diện (nút, ô nhập…). */
+  elements: UiHit[];
+  /** Tổng số khớp mỗi nhóm trước khi cắt theo `limit`. */
+  screenTotal: number;
+  elementTotal: number;
+}
+
+function searchText(node: UiTreeNodeDto): string {
+  return fold([fullLabel(node), node.displayName, node.aiLabel, node.name, node.fallbackName, node.routePath].filter(Boolean).join(' '));
 }
 
 /**
- * Lọc cây theo từ khóa (không phân biệt hoa thường), như bản vẽ: giữ nút khớp nhãn / tên / đường dẫn và mọi nút tổ tiên của
- * nút khớp; con không khớp bị ẩn. Từ khóa rỗng thì giữ nguyên.
+ * Tìm trong cây (cả phần tử chỉ thao tác giao diện), không phân biệt hoa thường và dấu; mọi từ trong từ khóa đều phải khớp. Khớp tên
+ * hiển thị, tên do AI đặt, tên kỹ thuật, tên class và đường dẫn route. Mỗi nút chỉ tính một lần (lần xuất hiện đầu tiên).
  */
-export function filterUiTree(nodes: UiTreeNodeDto[], query: string): UiTreeNodeDto[] {
-  const q = norm(query.trim());
-  if (!q) {
-    return nodes;
+export function searchUi(nodes: UiTreeNodeDto[], query: string, limit = 30): UiSearchResult {
+  const tokens = fold(query).split(/\s+/).filter(Boolean);
+  const result: UiSearchResult = { screens: [], elements: [], screenTotal: 0, elementTotal: 0 };
+  if (tokens.length === 0) {
+    return result;
   }
-  const result: UiTreeNodeDto[] = [];
-  for (const n of nodes) {
-    const children = filterUiTree(n.children ?? [], query);
-    if (children.length > 0 || matches(n, q)) {
-      result.push({ ...n, children });
+  const seen = new Set<string>();
+  const visit = (list: UiTreeNodeDto[], trail: UiTreeNodeDto[]): void => {
+    for (const node of list) {
+      const key = node.nodeKey;
+      if (key && !seen.has(key)) {
+        const text = searchText(node);
+        if (tokens.every((t) => text.includes(t))) {
+          seen.add(key);
+          const isElement = node.kind === 'UI_ELEMENT';
+          const hit: UiHit = { node, trail, context: trail.slice(trail.length > 1 ? 1 : 0).map(fullLabel).join(' › ') };
+          if (isElement) {
+            result.elementTotal++;
+            if (result.elements.length < limit) {
+              result.elements.push(hit);
+            }
+          } else {
+            result.screenTotal++;
+            if (result.screens.length < limit) {
+              result.screens.push(hit);
+            }
+          }
+        }
+      }
+      visit(node.children ?? [], [...trail, node]);
+    }
+  };
+  visit(nodes, []);
+  return result;
+}
+
+/** Tách chữ thành đoạn khớp / không khớp từ khóa, không phân biệt hoa thường và dấu (để tô sáng kết quả tìm kiếm). */
+export function highlightFold(text: string | undefined, query: string): TextPart[] {
+  const value = text ?? '';
+  const tokens = fold(query).split(/\s+/).filter(Boolean);
+  if (tokens.length === 0 || !value) {
+    return [{ text: value, hit: false }];
+  }
+  let folded = '';
+  const map: number[] = [];
+  for (let i = 0; i < value.length; i++) {
+    for (const ch of fold(value[i])) {
+      folded += ch;
+      map.push(i);
     }
   }
-  return result;
+  const marked = new Array<boolean>(value.length).fill(false);
+  for (const t of tokens) {
+    for (let at = folded.indexOf(t); at >= 0; at = folded.indexOf(t, at + t.length)) {
+      for (let j = at; j < at + t.length; j++) {
+        marked[map[j]] = true;
+      }
+    }
+  }
+  const parts: TextPart[] = [];
+  let from = 0;
+  for (let i = 1; i <= value.length; i++) {
+    if (i === value.length || marked[i] !== marked[from]) {
+      parts.push({ text: value.slice(from, i), hit: marked[from] });
+      from = i;
+    }
+  }
+  return parts;
 }
 
 /** Đường từ gốc tới nút `key` (gồm cả nút), theo lần xuất hiện đầu tiên trong cây; null nếu không có. */

@@ -51,12 +51,25 @@ public final class FallbackMockGenerator {
      * @param types tra node {@code DATA_TYPE} theo key
      */
     public Sample generate(IrNode endpoint, Function<String, Optional<IrNode>> types) {
-        var schemas = new JsonSchemaBuilder(types);
+        Schemas schemas = schemas(endpoint, types);
         var problems = new ArrayList<String>();
+        Object request = schemas.request() == null ? Map.of() : checked(schemas.request(), problems, "request");
+        Object response = schemas.response() == null ? null : checked(schemas.response(), problems, "response");
+        return new Sample(request, response, List.copyOf(problems));
+    }
+
+    /**
+     * JSON Schema của thân yêu cầu (hoặc tham số đường dẫn / query) và của phản hồi một API; null nếu API không có phần đó. Dùng
+     * làm đầu vào cho AI sinh dữ liệu mẫu và để kiểm tra đầu ra của AI.
+     */
+    public record Schemas(Map<String, Object> request, Map<String, Object> response) {}
+
+    public Schemas schemas(IrNode endpoint, Function<String, Optional<IrNode>> types) {
+        var builder = new JsonSchemaBuilder(types);
         Map<String, Object> requestExpr = map(endpoint.attrs().get("requestTypeExpr"));
-        Object request;
+        Map<String, Object> request = null;
         if (!requestExpr.isEmpty()) {
-            request = checked(schemas.build(requestExpr), problems, "request");
+            request = builder.build(requestExpr);
         } else {
             Map<String, Map<String, Object>> props = new LinkedHashMap<>();
             var required = new ArrayList<String>();
@@ -69,11 +82,10 @@ public final class FallbackMockGenerator {
                     }
                 }
             }
-            request = props.isEmpty() ? Map.of() : checked(schemas.buildObject(props, required), problems, "request");
+            request = props.isEmpty() ? null : builder.buildObject(props, required);
         }
         Map<String, Object> responseExpr = map(endpoint.attrs().get("responseTypeExpr"));
-        Object response = responseExpr.isEmpty() ? null : checked(schemas.build(responseExpr), problems, "response");
-        return new Sample(request, response, List.copyOf(problems));
+        return new Schemas(request, responseExpr.isEmpty() ? null : builder.build(responseExpr));
     }
 
     private Object checked(Map<String, Object> schema, List<String> problems, String part) {

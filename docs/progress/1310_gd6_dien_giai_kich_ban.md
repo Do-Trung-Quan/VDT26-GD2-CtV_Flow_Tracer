@@ -108,7 +108,7 @@ Fixture `spring-flow` (tự viết, miền Shop) thêm: Bean Validation + enum c
 | Khối JSON nền tối, tô màu cú pháp (khóa / chuỗi / số / true-false-null), nút **Sao chép** | `panel/json-block.ts`, `explanation-model.ts` |
 | Tab Diễn giải đủ 7 mục theo thứ tự bản vẽ: Mục đích · Đầu vào · Đầu ra · Ràng buộc · Dữ liệu mẫu · Được gọi từ · Gọi tới (chip bấm để chuyển sang thành phần đó) | `node-panel.ts` |
 | Tab Kịch bản: "Các actor tham gia", "Scenario:", dòng điều kiện in nghiêng, bước con thụt vào, bước chưa xác định chữ đỏ | `node-panel.ts` |
-| **Tô sáng đồng bộ hai chiều**: rê chuột bước → mũi tên sáng tạm; bấm bước → giữ sáng và cuộn diagram tới mũi tên; bấm mũi tên → bước sáng và cuộn danh sách; bấm lại để tắt | `sequence-canvas.ts` (`highlight` thành biến hai chiều, thêm `preview`, `revealStep`), `explorer.page.ts` |
+| **Tô sáng đồng bộ hai chiều**: bấm bước → mũi tên sáng (rê chuột không còn tô sáng, đổi 14/10); giữ sáng và cuộn diagram tới mũi tên; bấm mũi tên → bước sáng và cuộn danh sách; bấm lại để tắt | `sequence-canvas.ts` (`highlight` thành biến hai chiều, thêm `preview`, `revealStep`), `explorer.page.ts` |
 | Popup **Xem code** (C5): tab theo lớp, đường dẫn + nhãn "Chỉ đọc", đánh số dòng, tô sáng dòng liên quan | `panel/code-dialog.ts` |
 | Cài đặt › **Đối chiếu OpenAPI** (C6): báo tìm thấy file đặc tả trong repo, ô nhập URL, 3 thẻ số liệu, bảng "Chỉ trong mã / Chỉ trong Swagger" kèm gợi ý | `workspaces/openapi-check-tab.ts`, `openapi-check-model.ts` |
 | Cột phải rộng 390px như bản vẽ (330px khi màn hình < 1100px); icon `refresh` | `explorer.page.ts`, `icon.ts` |

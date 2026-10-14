@@ -1,4 +1,4 @@
-package com.ctv.flowtracer.app.ai.entity;
+package com.ctv.flowtracer.app.ai.model;
 
 /**
  * Các mục đích ĐƯỢC PHÉP dùng AI (overview §2.7). Thêm mục đích mới phải được người dùng đồng ý và cập nhật §2.7
@@ -10,6 +10,8 @@ public enum AiPurpose {
     SCENARIO_POLISH(true),
     MOCK_DATA(true),
     EDGE_RESOLUTION(true),
+    /** Đặt tên chuẩn tiếng Việt cho thành phần Frontend từ chữ trên giao diện, tên hàm, API mà nó gọi (người dùng đồng ý 13/10). */
+    ELEMENT_NAMING(true),
     FEATURE_SUMMARY(false),
     LEGACY_MATCH(false);
 

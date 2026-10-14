@@ -1,0 +1,23 @@
+{
+  "_ghi_chu": "Ground truth VÍ DỤ cho fixtures/spring-flow + fixtures/angular-mini (tự viết, miền Shop). Dùng để thử scripts/evaluate-accuracy.mjs; ground truth của dự án thật đặt ngoài repo.",
+  "links": [
+    { "screen": "Danh mục", "element": "Tìm theo mã hoặc tên", "apis": ["GET /api/v1/categories"] },
+    { "screen": "Danh mục", "element": "Thêm mới", "apis": [] },
+    { "screen": "Danh mục", "element": "Xuất Excel", "apis": [] },
+    { "screen": "Danh mục", "element": "Xóa", "apis": ["DELETE /api/v1/categories/{id}", "GET /api/v1/categories"] },
+    { "screen": "Thêm danh mục", "element": "Lưu", "apis": ["POST /api/v1/categories", "GET /api/v1/categories"] },
+    { "screen": "Thêm danh mục", "element": "Hủy", "apis": [] },
+    { "screen": "Đơn hàng", "element": "Xác nhận đơn", "apis": ["PUT /api/v1/orders/{id}/confirm"] },
+    { "screen": "Đơn hàng", "element": "Hủy đơn", "apis": [] },
+    { "screen": "Sản phẩm", "element": "Bộ lọc", "apis": [] }
+  ],
+  "traces": [
+    { "start": { "api": "POST /api/v1/categories" }, "tables": ["category"] },
+    { "start": { "api": "GET /api/v1/categories" }, "tables": ["category"] },
+    { "start": { "api": "DELETE /api/v1/categories/{id}" }, "tables": ["category"] },
+    { "start": { "api": "GET /api/v1/products" }, "tables": ["product", "product_brand"] },
+    { "start": { "api": "PUT /api/v1/orders/{id}/confirm" }, "tables": ["shop_order"] },
+    { "start": { "screen": "Thêm danh mục", "element": "Lưu" }, "tables": ["category"] },
+    { "start": { "screen": "Danh mục", "element": "Xóa" }, "tables": ["category"] }
+  ]
+}

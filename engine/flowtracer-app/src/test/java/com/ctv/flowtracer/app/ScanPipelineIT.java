@@ -286,6 +286,25 @@ class ScanPipelineIT {
 
     @Test
     @Order(8)
+    void rescanKeepsIdsOfUnchangedNodesAndOnlyWritesTheChangedOnes() throws Exception {
+        Map<String, String> before = nodeIds();
+        assertThat(before).isNotEmpty();
+        write("d.fake", "GET /api/d\nPUT /api/d");
+
+        JsonNode run = scanAndWait("RESCAN");
+
+        assertThat(run.get("status").asString()).isIn("SUCCEEDED", "PARTIAL");
+        Map<String, String> after = nodeIds();
+        // node của file không đổi giữ NGUYÊN id (không bị xóa rồi ghi lại); node mới có mặt, node không còn bị xóa
+        before.entrySet().stream().filter(e -> !e.getKey().contains("/api/d")).forEach(e -> assertThat(after).containsEntry(e.getKey(), e.getValue()));
+        assertThat(after.keySet().stream().filter(k -> k.contains("/api/d")).count()).isEqualTo(2);
+        assertThat(endpointPaths()).contains("GET /api/d", "PUT /api/d");
+        // kết quả quét lại giống quét mới: lần quét kế tiếp không còn thay đổi nào
+        assertThat(scanAndWait("RESCAN").get("stats").get("noChanges").asBoolean()).isTrue();
+    }
+
+    @Test
+    @Order(9)
     void deletingWorkspaceRemovesScanDataButNotSourceFiles() throws Exception {
         assertThat(call("DELETE", "/api/workspaces/" + workspaceId, null).status).isEqualTo(200);
         assertThat(Files.exists(PROJECT.resolve("a.fake"))).isTrue();
@@ -312,6 +331,14 @@ class ScanPipelineIT {
 
     private JsonNode tree() throws Exception {
         return call("GET", "/api/workspaces/" + workspaceId + "/trees/backend", null).data();
+    }
+
+    private Map<String, String> nodeIds() {
+        Map<String, String> ids = new java.util.HashMap<>();
+        jdbc.query("SELECT key, id::text AS id FROM ir_nodes WHERE workspace_id = ?::uuid", rs -> {
+            ids.put(rs.getString("key"), rs.getString("id"));
+        }, workspaceId);
+        return ids;
     }
 
     private List<String> endpointPaths() throws Exception {

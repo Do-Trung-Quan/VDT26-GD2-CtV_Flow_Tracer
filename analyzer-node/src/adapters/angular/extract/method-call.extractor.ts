@@ -2,7 +2,7 @@ import ts from 'typescript';
 import type { CallFact, CallRef, Guard, HttpCallFact, UiActionFact, UrlPart } from '../facts.js';
 import { classifyHttpCall } from './http-call.extractor.js';
 import { classifyUiAction } from './ui-action.extractor.js';
-import { accessPath, isStringLike, snippet, stringParts, typeName, unwrap } from './ts-utils.js';
+import { accessPath, endLineOf, isStringLike, snippet, stringParts, typeName, unwrap } from './ts-utils.js';
 
 /** Điều kiện ghi cho lời gọi nằm trong callback chạy khi hộp thoại đóng; `branch` để Engine nhận ra mà không cần so chữ. */
 export const AFTER_CLOSED: Guard = { type: 'IF', text: 'sau khi hộp thoại đóng', branch: 'afterClosed' };
@@ -146,7 +146,7 @@ export function extractBody(body: ts.Node | undefined, sf: ts.SourceFile, scope:
 
     const http = classifyHttpCall(call, method, receiverType(root, path), sf, ctx, scope.params);
     if (http) {
-      result.httpCalls.push({ ...http, callOrder: order++, ...(guard ? { guard } : {}), line });
+      result.httpCalls.push({ ...http, callOrder: order++, ...(guard ? { guard } : {}), line, endLine: endLineOf(sf, enclosingStatement(call)) });
       return;
     }
     const ui = classifyUiAction(call, method, receiverType(root, path), path, sf);
@@ -266,4 +266,16 @@ export function extractBody(body: ts.Node | undefined, sf: ts.SourceFile, scope:
 
   visit(body, undefined);
   return result;
+}
+
+/** Câu lệnh chứa biểu thức (để lấy dòng cuối của cả chuỗi gọi nhiều dòng); không thấy thì chính biểu thức. */
+function enclosingStatement(node: ts.Node): ts.Node {
+  let current: ts.Node = node;
+  while (current.parent && !ts.isBlock(current.parent) && !ts.isSourceFile(current.parent) && !ts.isClassDeclaration(current.parent)) {
+    current = current.parent;
+    if (ts.isExpressionStatement(current) || ts.isVariableStatement(current) || ts.isReturnStatement(current)) {
+      return current;
+    }
+  }
+  return node;
 }

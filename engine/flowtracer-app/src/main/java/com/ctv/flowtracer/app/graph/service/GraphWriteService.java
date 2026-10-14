@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -58,7 +59,10 @@ public class GraphWriteService {
                 .filter(n -> !skipped.contains(n.key()))
                 .map(n -> new IrNodeRow(null, workspaceId, sourceId, fileId(filePathOf(n), fileIdsByPath), n))
                 .toList();
-        nodes.upsertAll(rows);
+        // Chỉ ghi node mới hoặc đã đổi: rescan vài file đổi thì phần lớn node giữ nguyên (cùng id, khỏi ghi lại hàng nghìn dòng)
+        Map<String, IrNodeRow> stored = new HashMap<>();
+        nodes.findAllBySource(sourceId).forEach(r -> stored.put(r.node().key(), r));
+        nodes.upsertAll(rows.stream().filter(r -> changed(stored.get(r.node().key()), r)).toList());
 
         Set<String> endpointKeys = new TreeSet<>();
         fragment.edges().forEach(e -> {
@@ -80,7 +84,7 @@ public class GraphWriteService {
             String file = e.location() == null ? null : e.location().filePath();
             edgeRows.add(new IrEdgeRow(null, workspaceId, from, to, fileId(file, fileIdsByPath), e));
         }
-        edges.replaceForSource(sourceId, edgeRows);
+        edges.syncForSource(sourceId, edgeRows);
         return new SourceGraphWriteResult(rows.size(), removed.size(), edgeRows.size(), List.copyOf(skipped), skippedEdges);
     }
 
@@ -135,6 +139,11 @@ public class GraphWriteService {
         }
         edges.insertAll(rows);
         return rows.size();
+    }
+
+    /** Node mới chưa có, hoặc khác bản đã lưu (nội dung hoặc file chứa). So sánh lệch kiểu số của JSON chỉ khiến ghi thừa, không sai. */
+    private static boolean changed(IrNodeRow stored, IrNodeRow incoming) {
+        return stored == null || !stored.node().equals(incoming.node()) || !Objects.equals(stored.fileId(), incoming.fileId());
     }
 
     private static String filePathOf(IrNode node) {

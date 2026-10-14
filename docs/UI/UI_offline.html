@@ -652,7 +652,7 @@ function render() {
   <div class="body">
     <nav class="rail ${S.rail ? 'wide' : ''}">
       ${ri('goHome', 'home', 'Danh sách Workspace', S.screen === 'workspaces')}
-      ${ri('goExplorer', 'layout', 'Màn hình chính', S.screen === 'explorer')}
+      ${ri('goExplorer', 'layout', 'Chi tiết Workspace', S.screen === 'explorer')}
       ${ri('goSettings', 'gear', 'Cài đặt Workspace', S.screen === 'settings')}
       ${ri('goAi', 'spark', 'Cấu hình AI', S.screen === 'ai')}
       ${ri('toggleDrawer', 'list', 'Nhật ký API giả lập', S.drawer, `<i class="bdg" id="logBadge" style="display:${S.logs.length ? 'grid' : 'none'}">${S.logs.length}</i>`)}

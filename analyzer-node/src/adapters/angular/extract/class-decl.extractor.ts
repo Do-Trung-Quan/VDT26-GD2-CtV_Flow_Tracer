@@ -258,8 +258,8 @@ function mergeFieldInitializers(fact: ClassFact, init: BodyFacts, node: ts.Class
       kind: 'constructor',
       params: [],
       isStatic: false,
-      startLine: lineOf(sf, node),
-      endLine: lineOf(sf, node),
+      // constructor giả: chỉ phần khởi tạo field có gọi hàm (không phải cả khai báo class)
+      ...initializerLines(init, sf, node),
       calls: [],
       httpCalls: [],
       uiActions: []
@@ -385,4 +385,14 @@ function signature(node: ts.MethodSignature, sf: ts.SourceFile): MethodFact {
     httpCalls: [],
     uiActions: []
   };
+}
+
+/** Khoảng dòng của các lời gọi trong khởi tạo field (để constructor giả trỏ đúng chỗ); không có thì dòng khai báo class. */
+function initializerLines(init: BodyFacts, sf: ts.SourceFile, node: ts.ClassDeclaration): { startLine: number; endLine: number } {
+  const spans = [...init.calls, ...init.httpCalls, ...init.uiActions].map((c) => ({ start: c.line, end: 'endLine' in c && typeof c.endLine === 'number' ? c.endLine : c.line }));
+  if (spans.length === 0) {
+    const line = lineOf(sf, node);
+    return { startLine: line, endLine: line };
+  }
+  return { startLine: Math.min(...spans.map((s) => s.start)), endLine: Math.max(...spans.map((s) => s.end)) };
 }

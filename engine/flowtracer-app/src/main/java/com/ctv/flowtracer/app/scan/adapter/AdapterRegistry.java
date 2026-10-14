@@ -22,7 +22,7 @@ public class AdapterRegistry {
      * Phiên bản bộ phân tích Angular: tăng khi cách trích dữ kiện hoặc luật ghép trong
      * {@code analyzer-node/src/adapters/angular} đổi (cùng với {@code FACTS_VERSION} trong {@code facts.ts} khi dữ kiện đổi).
      */
-    static final String ANGULAR_ANALYSIS_VERSION = "3";
+    static final String ANGULAR_ANALYSIS_VERSION = "5";
 
     private static final Pattern ANGULAR_CONFIG_JSON =
             Pattern.compile("(^|/)(angular\\.json|package\\.json|tsconfig[^/]*\\.json|proxy[^/]*\\.json)$");

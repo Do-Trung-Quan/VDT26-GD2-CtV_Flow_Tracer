@@ -39,7 +39,7 @@ public record FlowTracerProperties(
      * @param provider gemini | anthropic | openai-compatible | none
      * @param model tên model (rỗng = mặc định của provider)
      * @param baseUrl chỉ dùng với openai-compatible
-     * @param dailyTokenLimit hạn mức token/ngày
+     * @param dailyTokenLimit giới hạn token/ngày do người dùng tự đặt (0 = không đặt)
      */
     public record Ai(@NotBlank String provider, String model, String baseUrl, @Min(0) long dailyTokenLimit) {}
 }

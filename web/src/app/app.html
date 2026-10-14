@@ -1,12 +1,13 @@
 <header class="hdr">
-  <a class="logo" routerLink="/"><b>FT</b><span class="topbar">CtV Flow Tracer</span></a>
-  <label class="sr-only" for="wsSelect">Workspace</label>
-  <select id="wsSelect" class="wsel" [value]="ctx.currentId() ?? ''" (change)="selectWorkspace($event)">
-    <option value="">— Chọn Workspace —</option>
-    @for (w of ctx.workspaces(); track w.id) {
-      <option [value]="w.id" [selected]="w.id === ctx.currentId()">{{ w.name }}</option>
-    }
-  </select>
+  <button class="hbtn icon" type="button" (click)="toggleRail()" [attr.aria-expanded]="railWide()" aria-controls="mainRail"
+    [title]="railWide() ? 'Thu gọn menu' : 'Mở rộng menu'" aria-label="Mở / thu gọn menu">
+    <app-icon name="menu" />
+  </button>
+  <a class="logo" routerLink="/" title="Danh sách Workspace"><b>CtV</b><span class="topbar">Flow Tracer</span></a>
+  <div class="hsep"></div>
+  <app-select-menu variant="header" icon="folder" ariaLabel="Chọn Workspace" placeholder="Chọn Workspace" currentHint="đang mở"
+    [options]="workspaceOptions()" [value]="ctx.currentId()" [actions]="workspaceActions" (changed)="selectWorkspace($event)"
+    (action)="onWorkspaceAction($event)" />
   <div class="sp1 center">
     <button class="hsearch" type="button" (click)="openPalette()"
       [title]="ctx.currentId() ? 'Tìm kiếm nhanh trong Workspace đang mở' : 'Chọn một Workspace để tìm kiếm'">
@@ -15,8 +16,8 @@
       <kbd>Ctrl K</kbd>
     </button>
   </div>
-  <a class="hai" routerLink="/settings/ai" title="Cấu hình AI làm ở Giai đoạn 7 — hiện chạy với AI tắt">
-    <span class="dot"></span>AI tắt
+  <a class="hai" routerLink="/settings/ai" [title]="aiTitle()">
+    <span [class]="'dot ' + ai.lamp().lamp"></span>{{ ai.lamp().label }}
   </a>
   <button class="hbtn solid" type="button" (click)="ctx.importOpen.set(true)">
     <app-icon name="upload" [small]="true" />Import dự án
@@ -24,20 +25,20 @@
 </header>
 
 <div class="body">
-  <nav class="rail" aria-label="Điều hướng">
+  <nav id="mainRail" class="rail" [class.wide]="railWide()" aria-label="Điều hướng">
     <a class="ri" routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" title="Danh sách Workspace">
-      <app-icon name="home" />
+      <app-icon name="home" /><span>Danh sách Workspace</span>
     </a>
     @if (ctx.currentId(); as id) {
-      <a class="ri" [routerLink]="['/w', id]" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" title="Màn hình chính">
-        <app-icon name="layout" />
+      <a class="ri" [routerLink]="['/w', id]" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" title="Chi tiết Workspace">
+        <app-icon name="layout" /><span>Chi tiết Workspace</span>
       </a>
       <a class="ri" [routerLink]="['/w', id, 'settings']" routerLinkActive="on" title="Cài đặt Workspace">
-        <app-icon name="gear" />
+        <app-icon name="gear" /><span>Cài đặt Workspace</span>
       </a>
     }
     <a class="ri" routerLink="/settings/ai" routerLinkActive="on" title="Cấu hình AI">
-      <app-icon name="sparkle" />
+      <app-icon name="sparkle" /><span>Cấu hình AI</span>
     </a>
   </nav>
   <main>

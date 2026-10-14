@@ -58,4 +58,5 @@ flowtracer:
     provider: ${LLM_PROVIDER:none}
     model: ${LLM_MODEL:}
     base-url: ${LLM_BASE_URL:}
-    daily-token-limit: ${LLM_DAILY_TOKEN_LIMIT:2000000}
+    daily-token-limit: ${LLM_DAILY_TOKEN_LIMIT:0}
+    log-content: ${LLM_LOG_CONTENT:true}

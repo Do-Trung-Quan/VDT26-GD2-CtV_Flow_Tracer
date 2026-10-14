@@ -63,6 +63,18 @@ export type CodeTabDto = Schemas['CodeTabResponse'];
 export type OpenApiCheckDto = Schemas['OpenApiCheckResponse'];
 export type OpenApiOperationDto = Schemas['OpenApiOperationResponse'];
 
+export type AiSettingsDto = Schemas['AiSettingsResponse'];
+export type AiPurposeSettingDto = Schemas['AiPurposeSettingResponse'];
+export type AiTestDto = Schemas['AiTestResponse'];
+export type AiUsageDto = Schemas['AiUsageResponse'];
+export type AiUsageByPurposeDto = Schemas['ByPurpose'];
+export type AiInfoDto = Schemas['AiInfoResponse'];
+export type AiGenerationDto = Schemas['AiGenerationResponse'];
+export type GenerateAiRequest = Schemas['GenerateAiRequest'];
+export type AiPurposeName = GenerateAiRequest['purpose'];
+export type EdgeAdviceDto = Schemas['EdgeAdviceResponse'];
+export type CandidateAdviceDto = Schemas['CandidateAdvice'];
+
 /** Kết quả phân trang dùng chung của Engine. */
 export interface PageDto<T> {
   items: T[];

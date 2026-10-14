@@ -35,9 +35,19 @@ describe('explanation-model', () => {
     const lines = codeLines({ startLine: 40, highlightLines: [41], code: 'a\nb\r\nc' });
 
     expect(lines).toEqual([
-      { n: 40, text: 'a', hl: false },
-      { n: 41, text: 'b', hl: true },
-      { n: 42, text: 'c', hl: false }
+      { n: 40, text: 'a', hl: false, gap: false },
+      { n: 41, text: 'b', hl: true, gap: false },
+      { n: 42, text: 'c', hl: false, gap: false }
+    ]);
+  });
+
+  it('nhiều đoạn xa nhau trong cùng file: số dòng theo lineNumbers, dòng ngăn cách không có số và không tô sáng', () => {
+    const lines = codeLines({ startLine: 10, highlightLines: [10, 90], code: 'a\n⋯\nz', lineNumbers: [10, 0, 90] });
+
+    expect(lines.map((l) => [l.n, l.hl, l.gap])).toEqual([
+      [10, true, false],
+      [0, false, true],
+      [90, true, false]
     ]);
   });
 

@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import com.ctv.flowtracer.app.ai.model.AiPurpose;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
@@ -60,7 +61,7 @@ public class AiArtifact {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    /** Số lần bản ghi này được dùng lại thay vì gọi AI (cho thống kê tỷ lệ trúng cache). */
+    /** Số lần bản ghi này được dùng lại thay vì gọi AI. */
     @Column(name = "hit_count", nullable = false)
     private int hitCount;
 

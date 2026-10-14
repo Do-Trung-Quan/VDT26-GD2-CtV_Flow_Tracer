@@ -19,8 +19,27 @@ describe('App', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.topbar')?.textContent).toContain('CtV Flow Tracer');
-    expect([...el.querySelectorAll('#wsSelect option')].map((o) => o.textContent?.trim())).toContain('Shop');
+    expect(el.querySelector('.logo b')?.textContent).toBe('CtV');
+    expect(el.querySelector('.topbar')?.textContent).toBe('Flow Tracer');
+
+    // dropdown chọn Workspace theo thiết kế riêng (không dùng <select> mặc định)
+    expect(el.querySelector('select')).toBeNull();
+    (el.querySelector('app-select-menu .trg') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect([...el.querySelectorAll('app-select-menu .pi')].map((o) => o.textContent?.trim())).toEqual(['Shop', 'Danh sách Workspace']);
+    (document.body as HTMLElement).click();
+    fixture.detectChanges();
+
+    // nút 3 gạch mở rộng / thu gọn menu bên trái
+    const rail = el.querySelector('nav.rail') as HTMLElement;
+    expect(rail.classList.contains('wide')).toBe(false);
+    (el.querySelector('.hbtn.icon') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(rail.classList.contains('wide')).toBe(true);
+    expect([...rail.querySelectorAll('.ri span')].map((o) => o.textContent?.trim())).toContain('Danh sách Workspace');
+    (el.querySelector('.hbtn.icon') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(rail.classList.contains('wide')).toBe(false);
 
     (el.querySelector('.hbtn.solid') as HTMLButtonElement).click();
     fixture.detectChanges();

@@ -11,13 +11,15 @@ import java.util.List;
  * @param source nguồn lời kể: {@code FRAMEWORK} (khung câu tất định); {@code AI} từ Giai đoạn 7
  * @param actors các actor tham gia, theo thứ tự cột của diagram
  * @param items bước và dòng điều kiện, theo thứ tự đọc
+ * @param ai trạng thái lời kể do AI viết (xem {@link AiInfoResponse})
  */
 public record ScenarioResponse(
         String traceId,
         String title,
         String source,
         List<ActorResponse> actors,
-        List<ItemResponse> items) {
+        List<ItemResponse> items,
+        AiInfoResponse ai) {
 
     /**
      * Một actor (cột của diagram).
@@ -44,6 +46,23 @@ public record ScenarioResponse(
                 title,
                 "FRAMEWORK",
                 scenario.actors().stream().map(a -> new ActorResponse(a.id(), a.name(), a.description())).toList(),
-                scenario.items().stream().map(i -> new ItemResponse(i.index(), i.text(), i.depth(), i.unresolved())).toList());
+                scenario.items().stream().map(i -> new ItemResponse(i.index(), i.text(), i.depth(), i.unresolved())).toList(),
+                null);
+    }
+
+    /** Bản có trạng thái AI; không có lời kể AI ({@code polished} rỗng) thì giữ khung. */
+    public ScenarioResponse with(AiInfoResponse info, java.util.Map<Integer, String> polished) {
+        if (polished == null || polished.isEmpty()) {
+            return new ScenarioResponse(traceId, title, source, actors, items, info);
+        }
+        return new ScenarioResponse(
+                traceId,
+                title,
+                "AI",
+                actors,
+                items.stream().map(i -> i.index() != null && polished.containsKey(i.index())
+                        ? new ItemResponse(i.index(), polished.get(i.index()), i.depth(), i.unresolved())
+                        : i).toList(),
+                info);
     }
 }

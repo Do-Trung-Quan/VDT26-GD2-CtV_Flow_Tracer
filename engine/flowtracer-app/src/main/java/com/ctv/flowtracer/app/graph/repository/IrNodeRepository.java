@@ -102,6 +102,14 @@ public class IrNodeRepository {
                 .update();
     }
 
+    /** Mọi node đang lưu của một Source (để so với kết quả quét mới và chỉ ghi phần thay đổi). */
+    public List<IrNodeRow> findAllBySource(UUID sourceId) {
+        return jdbc.sql(SELECT + " WHERE n.source_id = :source")
+                .param("source", sourceId)
+                .query(this::mapRow)
+                .list();
+    }
+
     /** Key của mọi node thuộc một Source. */
     public List<String> findKeysBySource(UUID sourceId) {
         return jdbc.sql("SELECT key FROM ir_nodes WHERE source_id = :source ORDER BY key")

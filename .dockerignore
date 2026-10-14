@@ -5,3 +5,7 @@
 .git
 .data
 docs/AI_Viettel
+# Không đưa khóa API / cấu hình cục bộ vào ngữ cảnh build
+.env
+.env.*
+!.env.example

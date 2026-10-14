@@ -132,6 +132,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{id}/edges/{edgeId}/advice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["advice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{id}/ai-artifacts/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["regenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/ai/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scans/{scanRunId}/cancel": {
         parameters: {
             query?: never;
@@ -194,6 +242,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["update_3"];
+        trace?: never;
+    };
+    "/api/settings/ai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["update_4"];
         trace?: never;
     };
     "/api/workspaces/{id}/trees/frontend": {
@@ -347,7 +411,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_3"];
+        get: operations["get_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -363,7 +427,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_4"];
+        get: operations["get_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -412,6 +476,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["browse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["usage"];
         put?: never;
         post?: never;
         delete?: never;
@@ -824,6 +904,92 @@ export interface components {
             createdAt?: string;
             stale?: boolean;
         };
+        EdgeAdviceRequest: {
+            force?: boolean;
+            startKey?: string;
+        };
+        ApiResponseEdgeAdviceResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["EdgeAdviceResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        CandidateAdvice: {
+            nodeKey?: string;
+            advice?: string;
+            reason?: string;
+            evidence?: string;
+        };
+        EdgeAdviceResponse: {
+            edgeId?: string;
+            state?: string;
+            provider?: string;
+            model?: string;
+            analyses?: components["schemas"]["CandidateAdvice"][];
+            extra?: components["schemas"]["ExtraCandidate"];
+        };
+        EdgeNodeResponse: {
+            nodeKey?: string;
+            /** @enum {string} */
+            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
+            name?: string;
+            displayName?: string;
+            filePath?: string;
+            /** Format: int32 */
+            line?: number;
+        };
+        ExtraCandidate: {
+            node?: components["schemas"]["EdgeNodeResponse"];
+            reason?: string;
+        };
+        GenerateAiRequest: {
+            /** @enum {string} */
+            purpose: "PURPOSE_TEXT" | "SCENARIO_POLISH" | "MOCK_DATA" | "EDGE_RESOLUTION" | "ELEMENT_NAMING" | "FEATURE_SUMMARY" | "LEGACY_MATCH";
+            targetKey: string;
+            apiKey?: string;
+            force?: boolean;
+        };
+        AiGenerationResponse: {
+            purpose?: string;
+            state?: string;
+            provider?: string;
+            model?: string;
+            /** Format: int32 */
+            named?: number;
+            /** Format: int32 */
+            total?: number;
+            message?: string;
+        };
+        ApiResponseAiGenerationResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["AiGenerationResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        AiTestResponse: {
+            ok?: boolean;
+            /** Format: int32 */
+            latencyMs?: number;
+            message?: string;
+        };
+        ApiResponseAiTestResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["AiTestResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
         DetectFolderRequest: {
             rootPath: string;
         };
@@ -878,6 +1044,45 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        UpdateAiSettingsRequest: {
+            purposes: {
+                [key: string]: boolean;
+            };
+        };
+        AiPurposeSettingResponse: {
+            purpose?: string;
+            label?: string;
+            description?: string;
+            enabled?: boolean;
+        };
+        AiSettingsResponse: {
+            provider?: string;
+            model?: string;
+            status?: string;
+            statusMessage?: string;
+            cooldownUntil?: string;
+            cooldownReason?: string;
+            keyVariable?: string;
+            /** Format: int64 */
+            dailyTokenLimit?: number;
+            /** Format: int64 */
+            tokensToday?: number;
+            /** Format: int64 */
+            requestsToday?: number;
+            /** Format: int64 */
+            dailyRequestLimit?: number;
+            purposes?: components["schemas"]["AiPurposeSettingResponse"][];
+        };
+        ApiResponseAiSettingsResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["AiSettingsResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
         ApiResponseListWorkspaceResponse: {
             /** Format: int32 */
             status?: number;
@@ -924,6 +1129,7 @@ export interface components {
             filePath?: string;
             /** Format: int32 */
             line?: number;
+            aiLabel?: string;
             children?: components["schemas"]["UiTreeNodeResponse"][];
         };
         ApiModuleResponse: {
@@ -970,6 +1176,12 @@ export interface components {
             name?: string;
             description?: string;
         };
+        AiInfoResponse: {
+            state?: string;
+            message?: string;
+            provider?: string;
+            model?: string;
+        };
         ApiResponseScenarioResponse: {
             /** Format: int32 */
             status?: number;
@@ -994,6 +1206,7 @@ export interface components {
             source?: string;
             actors?: components["schemas"]["ActorResponse"][];
             items?: components["schemas"]["ItemResponse"][];
+            ai?: components["schemas"]["AiInfoResponse"];
         };
         ApiResponseTraceExportResponse: {
             /** Format: int32 */
@@ -1102,6 +1315,7 @@ export interface components {
             elementType?: string;
             fallbackName?: string;
             routePath?: string;
+            aiLabel?: string;
         };
         ApiResponseListCodeTabResponse: {
             /** Format: int32 */
@@ -1122,6 +1336,7 @@ export interface components {
             startLine?: number;
             highlightLines?: number[];
             code?: string;
+            lineNumbers?: number[];
         };
         ApiResponseMockDataResponse: {
             /** Format: int32 */
@@ -1139,6 +1354,7 @@ export interface components {
             response?: unknown;
             source?: string;
             problems?: string[];
+            ai?: components["schemas"]["AiInfoResponse"];
         };
         ApiIoResponse: {
             apiKey?: string;
@@ -1179,6 +1395,7 @@ export interface components {
             /** Format: int32 */
             calledFromTotal?: number;
             callsTo?: components["schemas"]["NodeRelationResponse"][];
+            ai?: components["schemas"]["AiInfoResponse"];
         };
         PurposeResponse: {
             text?: string;
@@ -1213,6 +1430,7 @@ export interface components {
             levelLabel?: string;
             reason?: string;
             current?: boolean;
+            hints?: string[];
         };
         EdgeDetailResponse: {
             edgeId?: string;
@@ -1229,16 +1447,6 @@ export interface components {
             line?: number;
             override?: components["schemas"]["LinkOverrideResponse"];
             overridable?: boolean;
-        };
-        EdgeNodeResponse: {
-            nodeKey?: string;
-            /** @enum {string} */
-            kind?: "UI_APP" | "UI_SCREEN" | "UI_TAB" | "UI_DIALOG" | "UI_FORM" | "UI_ELEMENT" | "FE_METHOD" | "HTTP_CALL" | "API_ENDPOINT" | "BE_METHOD" | "DATA_QUERY" | "DB_TABLE" | "DATA_TYPE" | "EXTERNAL";
-            name?: string;
-            displayName?: string;
-            filePath?: string;
-            /** Format: int32 */
-            line?: number;
         };
         SseEmitter: {
             /** Format: int64 */
@@ -1290,6 +1498,47 @@ export interface components {
             name?: string;
             path?: string;
             gitRepo?: boolean;
+        };
+        AiUsageResponse: {
+            /** Format: date */
+            from?: string;
+            /** Format: date */
+            to?: string;
+            /** Format: int64 */
+            calls?: number;
+            /** Format: int64 */
+            inputTokens?: number;
+            /** Format: int64 */
+            outputTokens?: number;
+            /** Format: int64 */
+            errors?: number;
+            /** Format: int64 */
+            avgLatencyMs?: number;
+            /** Format: int64 */
+            tokensToday?: number;
+            /** Format: int64 */
+            dailyTokenLimit?: number;
+            byPurpose?: components["schemas"]["ByPurpose"][];
+        };
+        ApiResponseAiUsageResponse: {
+            /** Format: int32 */
+            status?: number;
+            code?: string;
+            message?: string;
+            data?: components["schemas"]["AiUsageResponse"];
+            errors?: {
+                [key: string]: unknown;
+            };
+        };
+        ByPurpose: {
+            purpose?: string;
+            label?: string;
+            /** Format: int64 */
+            calls?: number;
+            /** Format: int64 */
+            tokens?: number;
+            /** Format: int64 */
+            errors?: number;
         };
         ApiResponseVoid: {
             /** Format: int32 */
@@ -1627,6 +1876,79 @@ export interface operations {
             };
         };
     };
+    advice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                edgeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EdgeAdviceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseEdgeAdviceResponse"];
+                };
+            };
+        };
+    };
+    regenerate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateAiRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseAiGenerationResponse"];
+                };
+            };
+        };
+    };
+    test: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseAiTestResponse"];
+                };
+            };
+        };
+    };
     cancel: {
         parameters: {
             query?: never;
@@ -1789,6 +2111,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseSourceResponse"];
+                };
+            };
+        };
+    };
+    get_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseAiSettingsResponse"];
+                };
+            };
+        };
+    };
+    update_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAiSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseAiSettingsResponse"];
                 };
             };
         };
@@ -2007,7 +2373,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2030,7 +2396,7 @@ export interface operations {
             };
         };
     };
-    get_4: {
+    get_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -2117,6 +2483,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseFolderBrowseResponse"];
+                };
+            };
+        };
+    };
+    usage: {
+        parameters: {
+            query?: {
+                from_date?: string;
+                to_date?: string;
+                workspace_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseAiUsageResponse"];
                 };
             };
         };

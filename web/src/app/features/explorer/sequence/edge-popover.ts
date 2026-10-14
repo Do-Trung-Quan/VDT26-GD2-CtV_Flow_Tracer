@@ -13,13 +13,15 @@ import {
   untracked,
   viewChild
 } from '@angular/core';
+import { AiStatus } from '../../../core/ai/ai-status';
+import { AiApi } from '../../../core/api/ai.api';
 import { toApiError } from '../../../core/api/api-error';
-import type { EdgeDetailDto, SearchHitDto } from '../../../core/api/api-types';
+import type { EdgeAdviceDto, EdgeDetailDto, SearchHitDto } from '../../../core/api/api-types';
 import { GraphApi } from '../../../core/api/graph.api';
 import { LinkingApi } from '../../../core/api/linking.api';
 import { Icon } from '../../../core/ui/icon';
 import { ToastService } from '../../../core/ui/toast.service';
-import { CandidateRow, candidateRows, confidenceBadge, initialSelection, placePopover } from './edge-popover-model';
+import { CandidateRow, adviceFor, candidateRows, confidenceBadge, initialSelection, placePopover } from './edge-popover-model';
 import type { Step } from './sequence-model';
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -28,8 +30,9 @@ const SEARCH_LIMIT = 8;
 /**
  * Popover chi tiết liên kết khi bấm một mũi tên "Suy luận" / "Chưa xác định" / "Chốt tay" (theo bản vẽ giao diện): mức tin
  * cậy, lý do, ứng viên kèm mức khớp Cao / Trung bình / Thấp (API E1), chọn rồi Chốt tay (E4) hoặc Bỏ chốt tay (E5). Lời gọi HTTP
- * còn chọn được một API bất kỳ qua ô tìm (C3) — dùng khi phân tích tĩnh không tìm ra ứng viên. "Nhờ AI phân tích" để sẵn nhưng
- * mờ tới Giai đoạn 7. Popover luôn nằm trọn trong vùng canvas.
+ * còn chọn được một API bất kỳ qua ô tìm (C3) — dùng khi phân tích tĩnh không tìm ra ứng viên. "Nhờ AI phân tích" (E2) cho AI giải
+ * thích từng ứng viên (nên / không nên chọn, kèm lý do) và đề xuất tối đa một ứng viên đã được kiểm tra — AI KHÔNG BAO GIỜ tự đổi
+ * liên kết, chỉ "Chốt tay" mới đổi. Popover luôn nằm trọn trong vùng canvas.
  */
 @Component({
   selector: 'app-edge-popover',
@@ -76,15 +79,44 @@ const SEARCH_LIMIT = 8;
               @if (c.detail) {
                 <span class="hint">{{ c.detail }}</span>
               }
+              @if (c.hints?.length) {
+                <span class="hint kw" title="Từ trong tên hàm / chuỗi truyền vào ở chuỗi gọi trùng với đường dẫn của ứng viên này">
+                  Khớp tên: <b>{{ c.hints!.join(' · ') }}</b>
+                </span>
+              }
+              @if (adviceOf(c.nodeKey, c.aiExtra); as a) {
+                <span class="aiadv">
+                  <span [class]="'pill ' + a.badge.pill">{{ a.badge.label }}</span>✦ {{ a.reason }}
+                  @if (a.evidence) {
+                    <span class="ev" title="Bằng chứng AI dẫn ra (đã được kiểm tra là có trong chuỗi gọi / mã)">Bằng chứng: <code>{{ a.evidence }}</code></span>
+                  }
+                </span>
+              }
             </span>
             @if (c.level; as l) {
               <span [class]="'pill ' + l.pill">{{ l.label }}</span>
+            } @else if (c.aiExtra) {
+              <span class="pill p-purple">AI đề xuất</span>
             } @else if (c.nodeKey === picked()?.nodeKey) {
               <span class="pill p-blue">Bạn chọn</span>
             }
           </button>
         } @empty {
           <div class="hint none">Phân tích tĩnh chưa tìm được ứng viên nào cho liên kết này.</div>
+        }
+
+        @if (adviceBusy()) {
+          <div class="info gap6"><span class="skel spin"></span>AI đang đọc code tại điểm gọi…</div>
+        }
+        @if (advice()) {
+          <div class="hint gap6">
+            ✦ AI chỉ giải thích và đề xuất, <b>không tự đổi liên kết</b>.@if (advice()?.extra) {
+              Ứng viên "AI đề xuất" đã được kiểm tra: có thật trong kết quả quét và đúng kiểu.
+            }
+          </div>
+        }
+        @if (adviceError(); as err) {
+          <div class="warn gap6">{{ err }}</div>
         }
 
         @if (canPickAny()) {
@@ -118,10 +150,14 @@ const SEARCH_LIMIT = 8;
           @if (d.override) {
             <button class="btn sm danger" type="button" [disabled]="busy()" (click)="undo()"><app-icon name="trash" [small]="true" />Bỏ chốt tay</button>
           }
-          <button class="btn sm" type="button" disabled title="Có từ Giai đoạn 7"><app-icon name="sparkle" [small]="true" />Nhờ AI phân tích</button>
+          <button class="btn sm" type="button" [disabled]="!canAdvise()" [title]="adviceTitle()" (click)="askAi()">
+            <app-icon name="sparkle" [small]="true" />{{ adviceBusy() ? 'AI đang phân tích…' : 'Nhờ AI phân tích' }}
+          </button>
           <button class="btn sm pri" type="button" [disabled]="!canPin()" (click)="pin()"><app-icon name="pin" [small]="true" />Chốt tay</button>
         </div>
-        <div class="hint ai">AI phân tích liên kết chưa bật — vẫn chốt tay được.</div>
+        @if (aiOffText(); as t) {
+          <div class="hint ai">{{ t }} — vẫn chốt tay được.</div>
+        }
       }
     </div>
   `,
@@ -158,17 +194,28 @@ const SEARCH_LIMIT = 8;
     .note { margin: 10px 0 8px; }
     .acts { justify-content: flex-end; flex-wrap: wrap; }
     .ai { margin-top: 8px; text-align: right; }
+    .gap6 { margin: 8px 0 4px; }
+    .aiadv { margin-top: 6px; font-size: 12.5px; color: var(--purple); background: var(--purple-l); border-radius: 6px; padding: 6px 8px; }
+    .aiadv .pill { margin-right: 6px; text-transform: none; letter-spacing: 0; }
+    .kw { color: var(--green); }
+    .aiadv .ev { display: block; margin-top: 4px; color: var(--t3); }
+    .aiadv .ev code { font: 12px var(--mono); color: var(--purple); }
+    .spin { width: 14px; height: 14px; margin: 0 8px 0 0; border-radius: 50%; display: inline-block; vertical-align: middle; }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EdgePopover implements OnDestroy {
   private readonly linking = inject(LinkingApi);
   private readonly graph = inject(GraphApi);
+  private readonly aiApi = inject(AiApi);
+  protected readonly ai = inject(AiStatus);
   private readonly toast = inject(ToastService);
   private readonly box = viewChild<ElementRef<HTMLElement>>('box');
 
   readonly workspaceId = input.required<string>();
   readonly step = input.required<Step>();
+  /** Thành phần xuất phát của luồng đang xem: để Engine lấy chuỗi gọi (tên hàm, chuỗi truyền vào) làm tín hiệu / bằng chứng. */
+  readonly startKey = input<string>('');
   /** Nhãn cột nguồn / đích của bước (để ghi tiêu đề "Bước n: A → B"). */
   readonly fromLabel = input('');
   readonly toLabel = input('');
@@ -192,6 +239,9 @@ export class EdgePopover implements OnDestroy {
   protected readonly searched = signal(false);
   protected readonly picked = signal<CandidateRow | null>(null);
   protected readonly pos = signal({ left: 0, top: 0, maxHeight: 400 });
+  protected readonly advice = signal<EdgeAdviceDto | null>(null);
+  protected readonly adviceBusy = signal(false);
+  protected readonly adviceError = signal<string | null>(null);
 
   protected readonly badge = computed(() => confidenceBadge(this.step().confidence, this.step().pinned));
   protected readonly rows = computed(() => {
@@ -203,6 +253,18 @@ export class EdgePopover implements OnDestroy {
     const p = this.picked();
     if (p && !rows.some((r) => r.nodeKey === p.nodeKey)) {
       rows.push(p);
+    }
+    // Ứng viên AI đề xuất thêm (E2): đã được Engine kiểm tra là node có thật và đúng kiểu
+    const extra = this.advice()?.extra?.node;
+    if (extra?.nodeKey && !rows.some((r) => r.nodeKey === extra.nodeKey)) {
+      rows.push({
+        nodeKey: extra.nodeKey,
+        name: extra.displayName || extra.name || extra.nodeKey,
+        detail: extra.displayName && extra.name && extra.displayName !== extra.name ? extra.name : '',
+        level: null,
+        current: false,
+        aiExtra: true
+      });
     }
     // Đích đã ghim không nằm trong ứng viên (người dùng chọn API khác): vẫn hiện để thấy đang ghim gì
     const pinnedKey = d.override?.decision === 'PIN' ? d.override.toNodeKey : undefined;
@@ -218,6 +280,23 @@ export class EdgePopover implements OnDestroy {
     const target = this.selected();
     const pinnedKey = d?.override?.decision === 'PIN' ? d.override.toNodeKey : undefined;
     return !!d?.overridable && !!target && target !== pinnedKey && !this.busy();
+  });
+
+  /** Có hỏi AI được không: mục đích bật, provider sẵn sàng (không đang nghỉ), liên kết có ứng viên và chưa đang hỏi. */
+  protected readonly canAdvise = computed(() => {
+    return this.ai.usable() && this.ai.purposeEnabled('EDGE_RESOLUTION') && !!this.detail()?.overridable && !this.adviceBusy();
+  });
+  protected readonly adviceTitle = computed(() => (this.canAdvise() ? 'AI giải thích từng ứng viên, không tự đổi liên kết' : (this.aiOffText() ?? '')));
+  /** Vì sao nút AI đang mờ (null khi dùng được). */
+  protected readonly aiOffText = computed<string | null>(() => {
+    const s = this.ai.settings();
+    if (!s || (this.ai.usable() && this.ai.purposeEnabled('EDGE_RESOLUTION'))) {
+      return null;
+    }
+    if (this.ai.usable()) {
+      return 'Mục đích "Phân tích liên kết" đang tắt trong Cấu hình AI';
+    }
+    return s.status === 'OFF' ? 'AI đang tắt' : (s.statusMessage ?? 'AI chưa dùng được');
   });
 
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -255,7 +334,34 @@ export class EdgePopover implements OnDestroy {
     return (e.target as HTMLInputElement).value;
   }
 
+  /** Lời khuyên của AI cho một ứng viên (null nếu chưa hỏi hoặc AI không nhắc tới). */
+  protected adviceOf(nodeKey: string, aiExtra?: boolean): { badge: { label: string; pill: string }; reason: string; evidence?: string } | null {
+    return adviceFor(this.advice(), nodeKey, aiExtra);
+  }
+
+  /** E2: chỉ chạy khi người dùng bấm; kết quả chỉ để đọc, không đổi liên kết. */
+  protected async askAi(): Promise<void> {
+    const ref = this.step().edgeRef;
+    if (!ref || !this.canAdvise()) {
+      return;
+    }
+    this.adviceBusy.set(true);
+    this.adviceError.set(null);
+    try {
+      this.advice.set(await this.aiApi.advise(this.workspaceId(), ref, false, this.startKey() || undefined));
+    } catch (e) {
+      const msg = toApiError(e).message || 'AI không phản hồi.';
+      this.adviceError.set(`${msg} Bạn vẫn chọn và chốt tay được.`);
+      this.toast.show(msg, 'err');
+    } finally {
+      this.adviceBusy.set(false);
+      void this.ai.refresh();
+    }
+  }
+
   private async load(ws: string, edgeRef: string | null): Promise<void> {
+    this.advice.set(null);
+    this.adviceError.set(null);
     this.loading.set(true);
     this.error.set(null);
     this.picked.set(null);
@@ -267,7 +373,7 @@ export class EdgePopover implements OnDestroy {
       return;
     }
     try {
-      const d = await this.linking.edge(ws, edgeRef);
+      const d = await this.linking.edge(ws, edgeRef, this.startKey() || undefined);
       this.detail.set(d);
       this.selected.set(initialSelection(d, candidateRows(d)));
     } catch (e) {

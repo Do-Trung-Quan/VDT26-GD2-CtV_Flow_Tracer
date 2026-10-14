@@ -25,9 +25,13 @@ export interface SavedLinkRules {
 export class LinkingApi {
   private readonly http = inject(HttpClient);
 
-  /** E1 — `edgeId` là `edgeRef` của bước trên diagram. */
-  edge(workspaceId: string, edgeId: string): Promise<EdgeDetailDto> {
-    return unwrap(this.http.get<ApiEnvelope<EdgeDetailDto>>(`/api/workspaces/${workspaceId}/edges/${edgeId}`));
+  /**
+   * E1 — `edgeId` là `edgeRef` của bước trên diagram; `startKey` (thành phần xuất phát của luồng đang xem) để kèm từ khớp tên của
+   * từng ứng viên.
+   */
+  edge(workspaceId: string, edgeId: string, startKey?: string): Promise<EdgeDetailDto> {
+    const params: Record<string, string> = startKey ? { start_key: startKey } : {};
+    return unwrap(this.http.get<ApiEnvelope<EdgeDetailDto>>(`/api/workspaces/${workspaceId}/edges/${edgeId}`, { params }));
   }
 
   /** E3 */

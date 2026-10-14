@@ -20,6 +20,9 @@ public class AppSetting {
 
     public static final String AI_PURPOSES = "ai.purposes";
 
+    /** Hạn mức lượt gọi theo ngày do nhà cung cấp báo trong lỗi 429: {@code {"limit": 20, "model": "..."}}. */
+    public static final String AI_DAILY_REQUEST_LIMIT = "ai.daily_request_limit";
+
     @Id
     @Column(name = "key", length = 100)
     private String key;

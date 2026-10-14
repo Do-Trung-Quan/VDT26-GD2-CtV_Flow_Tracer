@@ -24,7 +24,7 @@ const DEFAULT_LEFT = 300;
 const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
 
 /**
- * Màn hình chính 3 cột: cột trái có hai tab — cây API Backend (C1) và cây thành phần Frontend (C2); canvas giữa (sequence
+ * Chi tiết Workspace (khung 3 cột): cột trái có hai tab — cây API Backend (C1) và cây thành phần Frontend (C2); canvas giữa (sequence
  * diagram của API hoặc phần tử đang chọn, D1) với cụm nút nổi trạng thái quét / Quét lại; cột phải thông tin thành phần đang
  * chọn (tab Diễn giải ở Giai đoạn 6). Bảng tìm nhanh Ctrl+K (ở khung ứng dụng) mở tới đúng thành phần qua {@link ExplorerNavigation}.
  */
@@ -81,14 +81,14 @@ const LEFT_WIDTH_KEY = 'ft.explorer.leftWidth';
           </button>
         </div>
         <app-sequence-canvas [workspaceId]="workspaceId()" [trace]="trace()" [loading]="traceLoading()" [error]="traceError()"
-          [emptyTitle]="emptyTitle()" [emptyText]="emptyHint()" [(highlight)]="highlight" [preview]="preview()" (linkChanged)="reloadTrace()" />
+          [emptyTitle]="emptyTitle()" [emptyText]="emptyHint()" [(highlight)]="highlight" (linkChanged)="reloadTrace()" />
       </section>
 
       <aside class="right">
         @if (panelHeader(); as h) {
-          <app-node-panel [workspaceId]="workspaceId()" [header]="h" [nodeKey]="panelKey()" [notes]="panelNotes()" [trace]="trace()"
-            [traceLoading]="traceLoading()" [refresh]="refreshSeq()" [(highlight)]="highlight" (preview)="preview.set($event)"
-            (stepClicked)="canvas()?.revealStep($event)" (openNode)="openRelation($event)" />
+          <app-node-panel [workspaceId]="workspaceId()" [header]="h" [nodeKey]="panelKey()" [trace]="trace()"
+            [traceLoading]="traceLoading()" [refresh]="refreshSeq()" [(highlight)]="highlight"
+            (stepClicked)="canvas()?.revealStep($event)" (openNode)="openRelation($event)" (labelsChanged)="reloadFrontend()" />
         } @else {
           <div class="empty full">
             <div class="ic"><app-icon name="info" /></div>
@@ -150,9 +150,8 @@ export class ExplorerPage {
   /** Thông báo (không phải lỗi) thay cho diagram: phần tử gọi API chưa dò được khi chưa có phần nối FE–BE. */
   protected readonly traceInfo = signal<{ title: string; text: string } | null>(null);
   private revealSeq = 0;
-  /** Bước đang tô sáng, dùng chung giữa diagram và tab Kịch bản; `preview` là bước đang được rê chuột ở tab Kịch bản. */
+  /** Bước đang tô sáng, dùng chung giữa diagram và tab Kịch bản; chỉ đổi khi bấm chọn một bước / một mũi tên (không theo rê chuột). */
   protected readonly highlight = signal<number | null>(null);
-  protected readonly preview = signal<number | null>(null);
   protected readonly refreshSeq = signal(0);
   protected readonly canvas = viewChild(SequenceCanvas);
   protected readonly trace = signal<SequenceTrace | null>(null);
@@ -255,8 +254,7 @@ export class ExplorerPage {
           { text: this.typeOf(u), cls: 'p-gray' },
           ...(element ? [u.node.callsApi ? { text: 'Gọi máy chủ', cls: 'p-blue' } : { text: 'Chỉ giao diện', cls: 'p-gray' }] : [])
         ],
-        container: this.uiIsContainer(u),
-        note: technical ? 'Mã nguồn không có nhãn cho thành phần này nên đang hiện tên kỹ thuật.' : null
+        container: this.uiIsContainer(u)
       };
     }
     const e = this.selected();
@@ -267,27 +265,10 @@ export class ExplorerPage {
         method: e.httpMethod ?? null,
         path: e.summary ? (e.path ?? null) : null,
         pills: [],
-        container: false,
-        note: null
+        container: false
       };
     }
     return null;
-  });
-
-  /** Cảnh báo trên đầu cột phải: API ngừng dùng, cảnh báo của API / luồng, luồng chưa dò được. */
-  protected readonly panelNotes = computed(() => {
-    const notes: string[] = [];
-    const e = this.selectedUi() ? null : this.selected();
-    if (e?.deprecated) {
-      notes.push('API được đánh dấu ngừng dùng (@Deprecated).');
-    }
-    notes.push(...(e?.warnings ?? []));
-    notes.push(...(this.trace()?.warnings ?? []));
-    const info = this.traceInfo();
-    if (info) {
-      notes.push(info.text);
-    }
-    return notes;
   });
 
   private readonly datePipe = new DatePipe('en-US');
@@ -448,6 +429,11 @@ export class ExplorerPage {
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
+  }
+
+  /** AI vừa đặt tên phần tử: tải lại cây Frontend để hiện tên mới (cây, liên kết, diagram không đổi). */
+  protected reloadFrontend(): void {
+    void this.loadFrontend(this.workspaceId());
   }
 
   /** Dò vết lại thành phần đang chọn (vd sau khi chốt / bỏ chốt một liên kết trên diagram). */

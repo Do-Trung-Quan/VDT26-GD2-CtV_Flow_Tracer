@@ -50,6 +50,7 @@ public class ExplanationService {
     private final NodeDetailService nodeDetails;
     private final LinkOverrideService overrideService;
     private final TracingService tracingService;
+    private final ExplanationAiService ai;
     private final PurposeRule purposeRule = new PurposeRule();
     private final ScenarioBuilder scenarioBuilder = new ScenarioBuilder();
 
@@ -57,7 +58,9 @@ public class ExplanationService {
             GraphQueryService graphQueries,
             NodeDetailService nodeDetails,
             LinkOverrideService overrideService,
-            TracingService tracingService) {
+            TracingService tracingService,
+            ExplanationAiService ai) {
+        this.ai = ai;
         this.graphQueries = graphQueries;
         this.nodeDetails = nodeDetails;
         this.overrideService = overrideService;
@@ -72,6 +75,12 @@ public class ExplanationService {
      */
     @Transactional(readOnly = true)
     public ExplanationResponse explain(UUID workspaceId, String nodeKey) {
+        return ai.applyPurpose(workspaceId, deterministicExplain(workspaceId, nodeKey));
+    }
+
+    /** F1 chỉ phần tất định (chưa áp nội dung AI) — dùng để dựng đầu vào cho AI và làm phương án dự phòng. */
+    @Transactional(readOnly = true)
+    public ExplanationResponse deterministicExplain(UUID workspaceId, String nodeKey) {
         IrNodeRow row = graphQueries.requireNode(workspaceId, nodeKey);
         IrNode node = row.node();
         return switch (node.kind()) {
@@ -90,14 +99,24 @@ public class ExplanationService {
      */
     @Transactional(readOnly = true)
     public MockDataResponse mockData(UUID workspaceId, String nodeKey, String apiKey) {
+        MockContext m = mockContext(workspaceId, nodeKey, apiKey);
+        var base = new MockDataResponse(m.api().key(), m.sample().request(), m.sample().response(), "RULE", m.sample().problems(), null);
+        return ai.applyMock(workspaceId, m.api(), m.schemas(), base);
+    }
+
+    /** Dữ liệu để sinh dữ liệu mẫu của một API: node API, mẫu tất định và schema của request / response. */
+    public record MockContext(IrNode api, FallbackMockGenerator.Sample sample, FallbackMockGenerator.Schemas schemas) {}
+
+    @Transactional(readOnly = true)
+    public MockContext mockContext(UUID workspaceId, String nodeKey, String apiKey) {
         IrNodeRow row = graphQueries.requireNode(workspaceId, nodeKey);
         FlowContext ctx = flowOf(workspaceId, row);
         IrNode api = ctx.apis().stream()
                 .filter(a -> apiKey == null || apiKey.isBlank() || a.key().equals(apiKey))
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.EXPLANATION_UNSUPPORTED, "Thành phần này không gọi API nào để sinh dữ liệu mẫu"));
-        FallbackMockGenerator.Sample sample = new FallbackMockGenerator().generate(api, ctx.types());
-        return new MockDataResponse(api.key(), sample.request(), sample.response(), "RULE", sample.problems());
+        var generator = new FallbackMockGenerator();
+        return new MockContext(api, generator.generate(api, ctx.types()), generator.schemas(api, ctx.types()));
     }
 
     /**
@@ -107,9 +126,27 @@ public class ExplanationService {
      */
     @Transactional(readOnly = true)
     public ScenarioResponse scenario(UUID workspaceId, String traceId) {
+        ScenarioContext c = scenarioContext(workspaceId, traceId);
+        return ai.applyScenario(workspaceId, c.framework(), ScenarioResponse.of(traceId, c.title(), c.framework()));
+    }
+
+    /** Những gì một phần tử giao diện gọi tới (đã áp liên kết chốt tay): API, lời gọi chưa xác định đích, hộp thoại và màn hình mở. */
+    public record ElementFlow(List<IrNode> apis, List<IrNode> unresolved, List<IrNode> opens, List<IrNode> navigates) {}
+
+    @Transactional(readOnly = true)
+    public ElementFlow elementFlow(UUID workspaceId, IrNodeRow row) {
+        UiFlowResolver ui = flowOf(workspaceId, row).ui();
+        return new ElementFlow(ui.apis(), ui.unresolved(), ui.opens(), ui.navigates());
+    }
+
+    /** Khung kịch bản tất định của một luồng đã dò cùng tên chức năng. */
+    public record ScenarioContext(String title, com.ctv.flowtracer.ir.scenario.Scenario framework) {}
+
+    @Transactional(readOnly = true)
+    public ScenarioContext scenarioContext(UUID workspaceId, String traceId) {
         CachedTrace cached = tracingService.cachedTrace(workspaceId, traceId);
         String title = cached.startDisplayName() != null && !cached.startDisplayName().isBlank() ? cached.startDisplayName() : cached.startName();
-        return ScenarioResponse.of(traceId, title, scenarioBuilder.build(cached.trace()));
+        return new ScenarioContext(title, scenarioBuilder.build(cached.trace()));
     }
 
     // ---------------- thành phần chứa ----------------
@@ -122,7 +159,7 @@ public class ExplanationService {
         NodeDetailService.Relations relations = nodeDetails.relations(workspaceId, row, null);
         return new ExplanationResponse(
                 node.key(), node.kind(), node.name(), node.displayName(), true, purpose(purpose), List.of(), List.of(),
-                relations.trail(), List.of(), 0, List.of());
+                relations.trail(), List.of(), 0, List.of(), null);
     }
 
     // ---------------- API và phần tử giao diện ----------------
@@ -182,7 +219,7 @@ public class ExplanationService {
         NodeDetailService.Relations relations = nodeDetails.relations(workspaceId, row, ctx.graph());
         return new ExplanationResponse(
                 node.key(), node.kind(), node.name(), node.displayName(), false, purpose(purpose), apis, unresolved,
-                relations.trail(), relations.calledFrom(), relations.calledFromTotal(), relations.callsTo());
+                relations.trail(), relations.calledFrom(), relations.calledFromTotal(), relations.callsTo(), null);
     }
 
     private static PurposeResponse purpose(PurposeRule.Purpose p) {

@@ -50,6 +50,9 @@ export class RouteTreeBuilder {
   private rootsOf(files: readonly string[]): RouteSet[] {
     const explicit: RouteSet[] = [];
     const candidates: RouteSet[] = [];
+    // `RouterModule.forChild(...)` trong NgModule: nếu module đó được import trực tiếp (nạp sớm) thì route của nó nằm ở GỐC
+    // cấu hình route (không có tiền tố), như Angular gộp mọi ROUTES của các module đã import
+    const children: RouteSet[] = [];
     for (const file of files) {
       const facts = this.table.files.get(file);
       if (!facts) {
@@ -69,18 +72,23 @@ export class RouteTreeBuilder {
           const set = this.fromRef(file, ref);
           if (set) {
             (ref.kind === 'forRoot' ? explicit : candidates).push(set);
+            if (ref.kind === 'forChild') {
+              children.push(set);
+            }
           }
         }
       }
     }
-    if (explicit.length > 0) {
-      return dedupe(explicit);
-    }
-    // không có provideRouter / forRoot: lấy các mảng route không được route nào khác trỏ tới
+    // route nào được nạp lười (loadChildren / children) từ một tập route khác thì không phải gốc
     const referenced = new Set<string>();
-    for (const set of candidates) {
+    for (const set of [...explicit, ...candidates]) {
       this.collectReferenced(set, referenced, new Set(), 0);
     }
+    if (explicit.length > 0) {
+      // ứng dụng NgModule: ngoài `forRoot`, các NgModule con nạp sớm đóng góp route ở gốc
+      return dedupe([...explicit, ...children.filter((c) => !referenced.has(c.id))]);
+    }
+    // không có provideRouter / forRoot: lấy các mảng route không được route nào khác trỏ tới
     return dedupe(candidates.filter((c) => !referenced.has(c.id)));
   }
 

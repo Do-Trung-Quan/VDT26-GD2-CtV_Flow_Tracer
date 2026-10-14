@@ -42,8 +42,11 @@ public class GraphQueryService {
     private final IrNodeRepository nodes;
     private final IrEdgeRepository edges;
     private final WorkspaceService workspaceService;
+    private final ElementNameLookup elementNames;
 
-    public GraphQueryService(IrNodeRepository nodes, IrEdgeRepository edges, WorkspaceService workspaceService) {
+    public GraphQueryService(
+            IrNodeRepository nodes, IrEdgeRepository edges, WorkspaceService workspaceService, ElementNameLookup elementNames) {
+        this.elementNames = elementNames;
         this.nodes = nodes;
         this.edges = edges;
         this.workspaceService = workspaceService;
@@ -81,12 +84,25 @@ public class GraphQueryService {
         }
         var kinds = new ArrayList<>(SearchCategory.SCREEN.kinds());
         kinds.add(NodeKind.UI_ELEMENT);
-        return TreeBuilder.frontend(
+        FrontendTreeResponse tree = TreeBuilder.frontend(
                 nodes.findByKinds(workspaceId, kinds, frontendSources.keySet()),
                 edges.findContains(workspaceId, frontendSources.keySet()),
                 edges.findUiKeysCallingApi(workspaceId),
                 edges.findUiLinks(workspaceId),
                 frontendSources);
+        Map<String, String> aiNames = elementNames.forWorkspace(workspaceId);
+        return aiNames.isEmpty() ? tree : tree.withAiLabels(aiNames);
+    }
+
+    /** Các phần tử tương tác nằm bên trong một thành phần chứa (mọi cấp), theo thứ tự key — đầu vào để AI đặt tên. */
+    @Transactional(readOnly = true)
+    public List<IrNodeRow> elementsInside(UUID workspaceId, IrNodeRow container) {
+        List<String> keys = edges.findDescendants(workspaceId, container.id()).stream()
+                .filter(d -> d.kind() == NodeKind.UI_ELEMENT)
+                .map(com.ctv.flowtracer.app.graph.model.DescendantRow::key)
+                .sorted()
+                .toList();
+        return keys.isEmpty() ? List.of() : nodes.findByKeys(workspaceId, keys).stream().sorted(java.util.Comparator.comparing(r -> r.node().key())).toList();
     }
 
     /**

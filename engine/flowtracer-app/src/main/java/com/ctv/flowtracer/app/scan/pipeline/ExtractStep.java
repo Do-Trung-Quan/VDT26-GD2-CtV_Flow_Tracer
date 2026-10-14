@@ -74,7 +74,7 @@ class ExtractStep {
     private void extract(ScanContext ctx, SourceWork work, Runnable onFileDone) {
         var extractCtx = new ExtractContext(work.target.sourceId().toString(), work.allPaths, loaderFor(reader, work), Map.of());
         var semaphore = new Semaphore(workers);
-        Map<String, Future<FileFacts>> pending = new LinkedHashMap<>();
+        Map<String, Future<Extracted>> pending = new LinkedHashMap<>();
         for (DiscoveredFile file : work.files.values()) {
             ctx.checkCancelled();
             if (file.readError() != null) {
@@ -82,22 +82,21 @@ class ExtractStep {
                 onFileDone.run();
                 continue;
             }
-            Optional<FileFacts> cached = ctx.trigger() == ScanTrigger.RESCAN && work.unchanged.contains(file.relativePath())
-                    ? factsCache.get(ctx.workspaceId(), work.adapter, file.contentHash())
-                    : Optional.empty();
-            if (cached.isPresent()) {
-                work.facts.add(cached.get());
-                work.fromCache++;
-                onFileDone.run();
-                continue;
-            }
+            // Đọc cache của file không đổi cũng chạy song song: với hàng nghìn file, đọc tuần tự từng file JSON là phần chậm nhất của RESCAN
+            boolean tryCache = ctx.trigger() == ScanTrigger.RESCAN && work.unchanged.contains(file.relativePath());
             pending.put(file.relativePath(), executor.submit(() -> {
                 semaphore.acquire();
                 try {
+                    if (tryCache) {
+                        Optional<FileFacts> cached = factsCache.get(ctx.workspaceId(), work.adapter, file.contentHash());
+                        if (cached.isPresent()) {
+                            return new Extracted(cached.get(), true);
+                        }
+                    }
                     FileFacts facts = work.adapter.extract(
                             extractCtx, new SourceFile(file.relativePath(), file.content(), file.contentHash()));
                     factsCache.put(ctx.workspaceId(), work.adapter, file.contentHash(), facts);
-                    return facts;
+                    return new Extracted(facts, false);
                 } finally {
                     semaphore.release();
                 }
@@ -106,6 +105,9 @@ class ExtractStep {
         collect(ctx, work, pending, onFileDone);
         extractLibraries(ctx, work, extractCtx);
     }
+
+    /** Kết quả pha 1 của một file: dữ kiện và có lấy từ cache hay không. */
+    private record Extracted(FileFacts facts, boolean fromCache) {}
 
     /** Lớp thư viện rút gọn: nhỏ, nhanh nên chạy tuần tự; hỏng một lớp chỉ mất lớp đó (kiểu hiện là "object"). */
     private void extractLibraries(ScanContext ctx, SourceWork work, ExtractContext extractCtx) {
@@ -126,13 +128,22 @@ class ExtractStep {
         }
     }
 
-    private void collect(ScanContext ctx, SourceWork work, Map<String, Future<FileFacts>> pending, Runnable onFileDone) {
+    private void collect(ScanContext ctx, SourceWork work, Map<String, Future<Extracted>> pending, Runnable onFileDone) {
+        // Thứ tự dữ kiện giữ như trước (tất định): file lấy từ cache trước, rồi file vừa trích xuất, mỗi nhóm theo thứ tự file
+        var fromCache = new java.util.ArrayList<FileFacts>();
+        var extracted = new java.util.ArrayList<FileFacts>();
         try {
             for (var entry : pending.entrySet()) {
                 String path = entry.getKey();
                 try {
-                    work.facts.add(await(ctx, entry.getValue()));
-                    work.extracted++;
+                    Extracted result = await(ctx, entry.getValue());
+                    if (result.fromCache()) {
+                        fromCache.add(result.facts());
+                        work.fromCache++;
+                    } else {
+                        extracted.add(result.facts());
+                        work.extracted++;
+                    }
                 } catch (TimeoutException e) {
                     entry.getValue().cancel(true);
                     work.fileErrors.put(path, "Quá thời gian phân tích (" + FILE_TIMEOUT.toSeconds() + " giây)");
@@ -148,10 +159,12 @@ class ExtractStep {
         } finally {
             pending.values().forEach(f -> f.cancel(true));
         }
+        work.facts.addAll(fromCache);
+        work.facts.addAll(extracted);
     }
 
     /** Chờ một file theo từng nhịp ngắn để yêu cầu hủy được đáp ứng ngay, tối đa {@link #FILE_TIMEOUT}. */
-    private static FileFacts await(ScanContext ctx, Future<FileFacts> future)
+    private static Extracted await(ScanContext ctx, Future<Extracted> future)
             throws InterruptedException, ExecutionException, TimeoutException {
         long deadline = System.nanoTime() + FILE_TIMEOUT.toNanos();
         while (true) {

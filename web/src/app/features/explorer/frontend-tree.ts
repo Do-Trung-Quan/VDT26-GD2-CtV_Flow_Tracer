@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, input, output, signal, untracked, viewChild } from '@angular/core';
 import type { FrontendTreeDto, UiTreeNodeDto } from '../../core/api/api-types';
 import { Icon } from '../../core/ui/icon';
-import { countByApi, filterUiTree, findTrail, flattenRows, fullLabel, nodeIcon, nodeLabel, pruneToApi, revealIds, type UiRow } from './frontend-tree-model';
-import { highlight } from './tree-filter';
+import { countByApi, findTrail, flattenRows, fullLabel, highlightFold, nodeIcon, nodeLabel, pruneToApi, revealIds, searchUi, type UiHit, type UiRow } from './frontend-tree-model';
 
 /** Yêu cầu mở tới một nút (từ Ctrl+K): `seq` tăng mỗi lần để cùng một nút vẫn được mở lại. */
 export interface RevealRequest {
@@ -19,26 +18,20 @@ export interface UiSelection {
 /**
  * Cây thành phần Frontend (API C2): Ứng dụng → Màn hình → Tab / Hộp thoại / Form → Phần tử. Nhãn "Nút Thêm mới", "Ô Mã"…
  * theo bản vẽ; phần tử gọi API gắn thẻ "API", còn lại "UI". Phần tử không có nhãn trong mã nguồn hiện tên kỹ thuật in nghiêng.
- * Lọc nhanh có tô sáng; mỗi nút có thể xuất hiện ở nhiều màn hình (component dùng chung) nên trạng thái mở theo từng dòng.
+ * Ô tìm kiếm cho danh sách gợi ý hai nhóm (Màn hình / Phần tử giao diện) như ô tìm nhanh trên header; bấm một kết quả thì quay về cây
+ * đầy đủ với mục đó được mở và chọn. Mỗi nút có thể xuất hiện ở nhiều màn hình (component dùng chung) nên trạng thái mở theo từng dòng.
  */
 @Component({
   selector: 'app-frontend-tree',
   imports: [Icon],
   template: `
     <div class="srch">
-      <input class="in" type="search" placeholder="Lọc nhanh: màn hình, nút, ô nhập…" aria-label="Lọc cây Frontend"
-        [value]="query()" (input)="query.set(val($event))" />
+      <input class="in" type="search" placeholder="Tìm màn hình, nút, ô nhập…" aria-label="Tìm trong cây Frontend"
+        [value]="query()" (input)="query.set(val($event))" (keydown.enter)="openFirst()" (keydown.escape)="query.set('')" />
     </div>
     @if (tree(); as t) {
       <div class="hint count">
-        @if (query().trim()) {
-          {{ shownElements() }} / {{ t.elementCount }} phần tử khớp (tìm cả phần tử chỉ thao tác giao diện)
-        } @else {
-          {{ t.appCount }} ứng dụng · {{ t.screenCount }} màn hình · {{ counts().api }} phần tử gọi API
-          @if (counts().gateway > 0) {
-            · {{ counts().gateway }} nút mở hộp thoại / chuyển trang có API
-          }
-        }
+        {{ t.appCount }} ứng dụng · {{ t.screenCount }} màn hình · {{ t.elementCount }} phần tử giao diện
       </div>
       @if (counts().uiOnly > 0 && !query().trim()) {
         <label class="sw" title="Phần tử chỉ thay đổi giao diện (mở hộp thoại, đổi tab, ô nhập…) không gọi máy chủ">
@@ -47,6 +40,38 @@ export interface UiSelection {
         </label>
       }
     }
+    @if (query().trim()) {
+      <div class="tree results" role="listbox" aria-label="Kết quả tìm kiếm">
+        @for (g of groups(); track g.label) {
+          <div class="gh">{{ g.label }} <span>{{ g.total }}</span></div>
+          @for (h of g.hits; track h.node.nodeKey) {
+            <button class="hit" type="button" role="option" aria-selected="false" (click)="openHit(h)">
+              <span class="lead"><app-icon [name]="icon(h.node)" [small]="true" /></span>
+              <span class="hb">
+                <span class="ht">
+                  @for (p of hitParts(h); track $index) {
+                    @if (p.hit) {
+                      <mark>{{ p.text }}</mark>
+                    } @else {
+                      {{ p.text }}
+                    }
+                  }
+                </span>
+                @if (h.context) {
+                  <span class="hc">{{ h.context }}</span>
+                }
+              </span>
+            </button>
+          }
+          @if (g.total > g.hits.length) {
+            <div class="more">Còn {{ g.total - g.hits.length }} kết quả khác — gõ cụ thể hơn để thu hẹp</div>
+          }
+        }
+        @if (groups().length === 0) {
+          <div class="empty small"><span>Không có thành phần nào khớp.</span></div>
+        }
+      </div>
+    } @else {
     <div #list class="tree" role="tree">
       @for (r of rows(); track r.id) {
         <button class="tn" type="button" role="treeitem" [class.sel]="r.node.nodeKey === selectedKey()"
@@ -64,14 +89,11 @@ export interface UiSelection {
             @if (label(r.node).prefix) {
               <span class="pre">{{ label(r.node).prefix }}</span>{{ ' ' }}
             }
-            @for (p of parts(r.node); track $index) {
-              @if (p.hit) {
-                <mark>{{ p.text }}</mark>
-              } @else {
-                {{ p.text }}
-              }
-            }
+            {{ label(r.node).text }}
           </span>
+          @if (label(r.node).ai) {
+            <span class="aimk" title="Tên do AI đặt (chỉ đổi cách hiển thị)">✦</span>
+          }
           @if (r.node.kind === 'UI_ELEMENT') {
             <span class="tag" [class.api]="r.node.callsApi" [class.ui]="!r.node.callsApi" [title]="tagTitle(r.node)">
               {{ r.node.callsApi ? 'API' : 'UI' }}
@@ -81,15 +103,14 @@ export interface UiSelection {
       } @empty {
         <div class="empty small">
           <span>{{
-            query().trim()
-              ? 'Không có thành phần nào khớp.'
-              : tree()?.elementCount && !showAll()
-                ? 'Không có phần tử nào gọi API. Bật "Hiện cả phần tử chỉ thao tác giao diện" để xem tất cả.'
-                : emptyText()
+            tree()?.elementCount && !showAll()
+              ? 'Không có phần tử nào gọi API. Bật "Hiện cả phần tử chỉ thao tác giao diện" để xem tất cả.'
+              : emptyText()
           }}</span>
         </div>
       }
     </div>
+    }
   `,
   styles: `
     :host { display: flex; flex-direction: column; min-height: 0; flex: 1; }
@@ -97,7 +118,7 @@ export interface UiSelection {
     .srch .in { height: 32px; }
     .count { padding: 0 14px 6px; }
     .sw { display: flex; align-items: center; gap: 8px; padding: 0 14px 8px; font-size: 12.5px; color: var(--t2); cursor: pointer; }
-    .sw input { accent-color: var(--brand); margin: 0; }
+    .sw input { margin: 0; }
     .tree { flex: 1; overflow: auto; padding: 0 6px 14px; }
     .tn { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 6px; width: 100%; height: 30px; padding-right: 8px; border-radius: 6px; cursor: pointer; font-size: 13.5px; color: var(--t2); white-space: nowrap; }
     .tn:hover { background: #f3f4f6; }
@@ -108,6 +129,7 @@ export interface UiSelection {
     .lead { color: var(--t3); display: grid; flex: none; }
     .nm { overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .nm .pre { color: var(--t3); font-weight: 400; }
+    .aimk { color: var(--purple); font-size: 11px; flex: none; }
     .tn.sel .nm .pre { color: inherit; opacity: 0.75; }
     .nm.tech { font-style: italic; }
     mark { background: #fef08a; color: inherit; border-radius: 2px; }
@@ -115,6 +137,17 @@ export interface UiSelection {
     .tag.api { background: var(--blue-l); color: var(--blue); }
     .tag.ui { background: #f3f4f6; color: var(--t3); }
     .empty.small { padding: 24px 12px; font-size: 13px; }
+    .results { padding-top: 2px; }
+    .gh { padding: 8px 8px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--t3); }
+    .gh span { font-weight: 600; color: var(--t4); margin-left: 4px; }
+    .hit { all: unset; box-sizing: border-box; display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13.5px; color: var(--t2); }
+    .hit:hover { background: #f3f4f6; }
+    .hit:focus-visible { box-shadow: 0 0 0 2px var(--brand); }
+    .hit .lead { margin-top: 2px; }
+    .hb { display: flex; flex-direction: column; min-width: 0; }
+    .ht { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hc { font-size: 12px; color: var(--t4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .more { padding: 6px 10px 10px; font-size: 12px; color: var(--t4); }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -131,15 +164,26 @@ export class FrontendTree {
   private readonly list = viewChild<ElementRef<HTMLElement>>('list');
   private defaulted: FrontendTreeDto | null = null;
 
-  /** Mặc định chỉ phần tử gọi API; bật công tắc, hoặc đang lọc (tìm trong mọi phần tử) thì hiện tất cả. */
+  /** Mặc định chỉ phần tử gọi API; bật công tắc thì hiện cả phần tử chỉ thao tác giao diện. */
   protected readonly showAll = signal(readShowAll());
   protected readonly counts = computed(() => countByApi(this.tree()?.apps ?? []));
   private readonly base = computed(() => {
     const apps = this.tree()?.apps ?? [];
-    return this.showAll() || this.query().trim() ? apps : pruneToApi(apps);
+    return this.showAll() ? apps : pruneToApi(apps);
   });
-  protected readonly filtered = computed(() => filterUiTree(this.base(), this.query()));
-  protected readonly rows = computed<UiRow[]>(() => flattenRows(this.filtered(), this.opened(), !!this.query().trim()));
+  protected readonly rows = computed<UiRow[]>(() => flattenRows(this.base(), this.opened(), false));
+  /** Kết quả tìm kiếm (trên cây đầy đủ, kể cả phần tử chỉ thao tác giao diện), chia hai nhóm; nhóm rỗng bị bỏ. */
+  protected readonly groups = computed(() => {
+    const q = this.query().trim();
+    if (!q) {
+      return [];
+    }
+    const r = searchUi(this.tree()?.apps ?? [], q);
+    return [
+      { label: 'Màn hình', hits: r.screens, total: r.screenTotal },
+      { label: 'Phần tử giao diện', hits: r.elements, total: r.elementTotal }
+    ].filter((g) => g.total > 0);
+  });
   /** Nút đầy đủ (chưa lọc) theo key, lần xuất hiện đầu tiên. */
   private readonly byKey = computed(() => {
     const map = new Map<string, UiTreeNodeDto>();
@@ -151,17 +195,6 @@ export class FrontendTree {
     };
     (this.tree()?.apps ?? []).forEach(visit);
     return map;
-  });
-  protected readonly shownElements = computed(() => {
-    const keys = new Set<string>();
-    const visit = (n: UiTreeNodeDto): void => {
-      if (n.kind === 'UI_ELEMENT' && n.nodeKey) {
-        keys.add(n.nodeKey);
-      }
-      (n.children ?? []).forEach(visit);
-    };
-    this.filtered().forEach(visit);
-    return keys.size;
   });
 
   constructor() {
@@ -184,19 +217,22 @@ export class FrontendTree {
       if (!request || !t) {
         return;
       }
-      untracked(() => {
-        const ids = revealIds(t.apps ?? [], request.key);
-        if (!ids) {
-          return;
-        }
-        if (!this.showAll() && !findTrail(pruneToApi(t.apps ?? []), request.key)) {
-          this.setShowAll(true); // phần tử chỉ thao tác giao diện đang bị ẩn: hiện ra để mở tới nó
-        }
-        this.query.set('');
-        this.opened.set(new Set([...this.opened(), ...ids.ancestors]));
-        setTimeout(() => this.scrollTo(ids.rowId), 0);
-      });
+      untracked(() => this.revealKey(t, request.key));
     });
+  }
+
+  /** Xóa ô tìm, mở các tổ tiên (và bật hiện phần tử chỉ thao tác giao diện nếu mục bị ẩn) rồi cuộn tới dòng của mục. */
+  private revealKey(t: FrontendTreeDto, key: string): void {
+    const ids = revealIds(t.apps ?? [], key);
+    if (!ids) {
+      return;
+    }
+    if (!this.showAll() && !findTrail(pruneToApi(t.apps ?? []), key)) {
+      this.setShowAll(true);
+    }
+    this.query.set('');
+    this.opened.set(new Set([...this.opened(), ...ids.ancestors]));
+    setTimeout(() => this.scrollTo(ids.rowId), 0);
   }
 
   protected val(e: Event): string {
@@ -237,8 +273,28 @@ export class FrontendTree {
     return (n.children?.length ?? 0) > 0;
   }
 
-  protected parts(n: UiTreeNodeDto) {
-    return highlight(nodeLabel(n).text, this.query());
+  protected hitParts(h: UiHit) {
+    return highlightFold(fullLabel(h.node), this.query());
+  }
+
+  /** Bấm một kết quả: quay lại cây đầy đủ, mở và chọn mục đó. */
+  protected openHit(h: UiHit): void {
+    const t = this.tree();
+    const key = h.node.nodeKey;
+    const trail = t && key ? findTrail(t.apps ?? [], key) : null;
+    if (!t || !key || !trail) {
+      return;
+    }
+    this.revealKey(t, key);
+    this.selected.emit({ node: trail[trail.length - 1], trail: trail.slice(0, -1) });
+  }
+
+  /** Enter trong ô tìm: mở kết quả đầu tiên. */
+  protected openFirst(): void {
+    const first = this.groups()[0]?.hits[0];
+    if (first) {
+      this.openHit(first);
+    }
   }
 
   protected tooltip(n: UiTreeNodeDto): string {

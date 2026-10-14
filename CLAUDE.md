@@ -179,7 +179,7 @@ node scripts/check-forbidden-terms.mjs                       # Chặn từ khóa
 ### 3.6. Quy tắc sử dụng AI
 
 - Chỉ gọi AI qua `AiGateway` (package `ai`). **CẤM** package khác dùng Spring AI hay gọi provider trực tiếp. ArchUnit kiểm tra điều này.
-- Chỉ dùng AI cho các mục đích trong enum `AiPurpose`: `PURPOSE_TEXT`, `SCENARIO_POLISH`, `MOCK_DATA`, `EDGE_RESOLUTION` (MVP); `FEATURE_SUMMARY`, `LEGACY_MATCH` (mở rộng). Thêm mục đích mới phải được người dùng đồng ý và cập nhật §2.7 của overview trước.
+- Chỉ dùng AI cho các mục đích trong enum `AiPurpose`: `PURPOSE_TEXT`, `SCENARIO_POLISH`, `MOCK_DATA`, `EDGE_RESOLUTION`, `ELEMENT_NAMING` (MVP); `FEATURE_SUMMARY`, `LEGACY_MATCH` (mở rộng). Thêm mục đích mới phải được người dùng đồng ý và cập nhật §2.7 của overview trước.
 - Prompt nằm trong `resources/prompts/<purpose>.v<n>.st` kèm schema đầu ra. Đổi nội dung prompt thì **tăng version** (version nằm trong khóa cache).
 - Đầu ra AI **luôn được kiểm tra** trước khi dùng. Không đạt thì dùng kết quả tất định.
 - **Mọi tính năng phải chạy được khi `flowtracer.ai.provider=none`.** Test tích hợp chạy với AI tắt.

@@ -43,13 +43,16 @@ public class LinkingService {
     private final GraphWriteService graphWriter;
     private final WorkspaceService workspaceService;
     private final LinkOverrideService overrideService;
+    private final CallChainService callChains;
     private final Linker linker = new Linker();
 
     public LinkingService(
             GraphQueryService graphQueries,
             GraphWriteService graphWriter,
             WorkspaceService workspaceService,
-            LinkOverrideService overrideService) {
+            LinkOverrideService overrideService,
+            CallChainService callChains) {
+        this.callChains = callChains;
         this.graphQueries = graphQueries;
         this.graphWriter = graphWriter;
         this.workspaceService = workspaceService;
@@ -64,6 +67,15 @@ public class LinkingService {
      */
     @Transactional(readOnly = true)
     public EdgeDetailResponse edgeDetail(UUID workspaceId, UUID edgeId) {
+        return edgeDetail(workspaceId, edgeId, null);
+    }
+
+    /**
+     * Như {@link #edgeDetail(UUID, UUID)}, kèm tín hiệu khớp tên cho từng ứng viên khi biết thành phần xuất phát của luồng đang xem
+     * ({@code startKey}): từ trong tên hàm / chuỗi hằng truyền vào dọc chuỗi gọi trùng với đường dẫn của ứng viên.
+     */
+    @Transactional(readOnly = true)
+    public EdgeDetailResponse edgeDetail(UUID workspaceId, UUID edgeId, String startKey) {
         workspaceService.requireExists(workspaceId);
         IrEdgeRow row = graphQueries.edge(workspaceId, edgeId)
                 .orElseThrow(() -> new AppException(ErrorCode.EDGE_NOT_FOUND, "Không tìm thấy liên kết; hãy dò vết lại sau khi quét"));
@@ -77,6 +89,7 @@ public class LinkingService {
         Map<String, IrNode> nodes = new HashMap<>();
         graphQueries.nodesByKeys(workspaceId, keys).forEach(r -> nodes.put(r.node().key(), r.node()));
 
+        Map<String, List<String>> hints = hintsFor(workspaceId, startKey, edge, nodes);
         List<EdgeCandidateResponse> candidates = edge.candidates().stream()
                 .sorted(Comparator.comparingDouble(Candidate::score).reversed().thenComparing(Candidate::nodeKey))
                 .map(c -> {
@@ -84,7 +97,7 @@ public class LinkingService {
                     IrNode node = nodes.get(c.nodeKey());
                     return new EdgeCandidateResponse(
                             node == null ? null : EdgeNodeResponse.from(node), c.nodeKey(), level, level.label(), c.reason(),
-                            c.nodeKey().equals(edge.toKey()));
+                            c.nodeKey().equals(edge.toKey()), hints.getOrDefault(c.nodeKey(), List.of()));
                 })
                 .toList();
         boolean overridable = LinkOverrideService.TARGET_KINDS.containsKey(edge.kind());
@@ -100,6 +113,22 @@ public class LinkingService {
                 edge.location() == null ? null : edge.location().startLine(),
                 overridable ? overrideService.findFor(workspaceId, edge.fromKey(), edge.kind(), nodes) : null,
                 overridable);
+    }
+
+    private Map<String, List<String>> hintsFor(UUID workspaceId, String startKey, IrEdge edge, Map<String, IrNode> nodes) {
+        if (startKey == null || startKey.isBlank() || edge.candidates().size() < 2) {
+            return Map.of();
+        }
+        CallChainService.CallChain chain = callChains.chain(workspaceId, startKey, edge.fromKey());
+        if (chain.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, String> texts = new java.util.LinkedHashMap<>();
+        for (Candidate c : edge.candidates()) {
+            IrNode node = nodes.get(c.nodeKey());
+            texts.put(c.nodeKey(), node == null ? c.nodeKey() : node.name());
+        }
+        return CandidateHintRule.hints(chain.words(), texts);
     }
 
     /**

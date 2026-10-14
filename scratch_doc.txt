@@ -1,0 +1,2311 @@
+TẬP ĐOÀN CÔNG NGHIỆP - VIỄN THÔNG QUÂN ĐỘI
+
+BÁO CÁO ĐỀ TÀI GIAI ĐOẠN 2 
+
+Công cụ tích hợp AI phân tích mã nguồn tĩnh và trực quan hóa luồng xử lý End-to-End phục vụ quy trình phát triển phần mềm
+
+Đỗ Trung Quân
+
+quantrungdo198@gmail.com
+
+Chương trình Viettel Digital Talent 2026
+
+Lĩnh vực: Software Engineer
+
+Mentor:
+
+Nguyễn Văn Tuấn
+
+Đơn vị:
+
+Viettel Solutions 
+
+LỜI MỞ ĐẦU
+
+Trong bối cảnh đẩy mạnh phát triển và hiện đại hóa các hệ thống phần mềm doanh nghiệp quy mô lớn, việc duy trì, mở rộng cũng như chuyển đổi các hệ thống phức tạp luôn là một hoạt động quan trọng trong công tác kỹ thuật. Tuy nhiên, cách thức tìm hiểu và nắm bắt toàn diện một luồng xử lý nghiệp vụ hoàn chỉnh từ các thao tác trên giao diện người dùng xuyên suốt xuống cơ sở dữ liệu hiện nay vẫn chủ yếu dựa vào việc tra cứu và đối chiếu thủ công. Lập trình viên khi tiếp nhận công việc vừa phải đọc hiểu mã nguồn ở phần giao diện hiển thị, vừa phải lần theo các dịch vụ xử lý nghiệp vụ ở phía máy chủ, dẫn đến khó bao quát toàn bộ bức tranh kiến trúc và dễ xảy ra tình trạng bỏ sót hoặc nhận định chưa chính xác những nhánh rẽ xử lý quan trọng. Đối với các dự án lớn có mã nguồn phân tán ở nhiều kho lưu trữ độc lập hoặc các dự án chuyển đổi từ hệ thống cũ nơi tài liệu thiết kế thường thiếu thốn và không theo kịp các thay đổi thực tế, những hạn chế này càng bộc lộ rõ hơn, làm phát sinh nhu cầu về một giải pháp có thể hỗ trợ tự động hóa quá trình phân tích và trực quan hóa toàn diện các luồng nghiệp vụ trong phần mềm
+
+Xuất phát từ nhu cầu đó, đề tài xây dựng công cụ tích hợp AI phân tích và trực quan hóa luồng nghiệp vụ từ mã nguồn được nghiên cứu và phát triển nhằm số hóa toàn bộ quá trình đọc hiểu cấu trúc hệ thống, từ khâu trích xuất các thành phần trên màn hình, tự động kết nối các điểm giao tiếp giữa giao diện và máy chủ, cho đến dựng lại biểu đồ tuần tự thể hiện đường đi của dữ liệu và diễn giải logic nghiệp vụ kèm dữ liệu mẫu minh họa. Trong giải pháp này, hệ thống đóng vai trò như một trợ lý kiến trúc tự động, trực tiếp phân tích mã nguồn ở trạng thái tĩnh mà không đòi hỏi phải biên dịch hay khởi chạy ứng dụng. Việc kết hợp giữa phân tích cú pháp chuẩn xác trên mô hình dữ liệu trung gian và khả năng hỗ trợ diễn giải của trí tuệ nhân tạo giúp tái hiện một cách trực quan, rõ ràng toàn bộ chuỗi xử lý tương tác, qua đó giúp người phát triển nhanh chóng hiểu rõ bản chất hoạt động của từng chức năng mà không phải lắp ghép thủ công trong suy nghĩ.
+
+TÓM TẮT NỘI DUNG VÀ ĐÓNG GÓP
+
+Đề tài tập trung xây dựng một hệ thống hoàn chỉnh hỗ trợ phân tích tĩnh mã nguồn và trực quan hóa luồng nghiệp vụ từ đầu đến cuối, kết hợp với giao diện tương tác trực quan cho phép người dùng dễ dàng tra cứu và theo dõi kiến trúc hệ thống. Hệ thống thiết lập một mô hình dữ liệu trung gian dạng đồ thị độc lập với công nghệ để biểu diễn thống nhất toàn bộ các thành phần và quan hệ trong phần mềm, từ nút bấm, màn hình, hàm xử lý giao diện cho tới các điểm nhận yêu cầu, các tầng nghiệp vụ máy chủ và từng bảng dữ liệu. Dựa trên mô hình này, giải pháp phát triển các thuật toán liên kết tự động giữa giao diện và dịch vụ máy chủ, đồng thời tự động dò vết toàn bộ đường đi của dữ liệu để sinh ra biểu đồ tuần tự tương tác, đi kèm phần diễn giải mục đích thao tác, các ràng buộc nghiệp vụ và dữ liệu mẫu được hỗ trợ bởi trí tuệ nhân tạo.
+
+Về mặt định hướng, mục tiêu dài hạn của đề tài là xây dựng một nền tảng tổng quát có khả năng tương thích và áp dụng linh hoạt cho hầu hết các dự án phần mềm sử dụng các công nghệ phổ biến trong thực tế. Tuy nhiên, trước giới hạn về mặt thời gian nghiên cứu và triển khai, phạm vi hiện tại của đề tài tập trung hoàn thiện trọn vẹn và tối ưu hóa các chức năng cốt lõi nhằm đáp ứng đầy đủ đối với các dự án xây dựng trên hai nền tảng công nghệ phổ biến là Spring Boot ở phía máy chủ và Angular ở phía giao diện người dùng, qua đó phục vụ hiệu quả cho công tác thử nghiệm và trình diễn thực tế giải pháp.
+
+Đóng góp nổi bật của đề tài là xây dựng thành công một công cụ phân tích tự động, chuẩn xác và hoàn toàn tất định, giúp giải quyết triệt để bài toán theo dõi luồng xử lý nghiệp vụ xuyên suốt mà trước đây vốn tiêu tốn rất nhiều thời gian và tiềm ẩn rủi ro sai sót khi thực hiện bằng tay. Hệ thống không chỉ hỗ trợ rút ngắn tối đa thời gian tiếp cận dự án cho các nhân sự mới và giảm thiểu gánh nặng nhận thức cho lập trình viên, mà còn cung cấp cơ sở đối soát trực quan, tin cậy để phục vụ công tác kiểm tra tính toàn vẹn của nghiệp vụ khi nâng cấp hay hiện đại hóa phần mềm. Đồng thời, kết quả đạt được của đề tài cũng tạo dựng một nền tảng kỹ thuật và cấu trúc dữ liệu vững chắc để tiếp tục mở rộng khả năng hỗ trợ sang nhiều ngôn ngữ và hệ sinh thái công nghệ khác trong tương lai.
+
+MỤC LỤC
+
+LỜI MỞ ĐẦU2
+
+TÓM TẮT NỘI DUNG VÀ ĐÓNG GÓP3
+
+DANH MỤC HÌNH VẼ6
+
+DANH MỤC BẢNG BIỂU7
+
+I. Giới thiệu8
+
+1. Đặt vấn đề8
+
+2. Mục tiêu của báo cáo9
+
+2.1. Mục tiêu tổng quan9
+
+2.2. Mục tiêu nghiệp vụ9
+
+2.3. Mục tiêu kĩ thuật10
+
+3. Phạm vi triển khai công nghệ10
+
+II. Nội dung và phương pháp12
+
+1. Cơ sở lý thuyết12
+
+1.1. Công nghệ sử dụng phía Backend12
+
+1.2. Công nghệ sử dụng phía Frontend16
+
+1.3. Cơ sở dữ liệu và lưu trữ18
+
+1.4. Dịch vụ bên ngoài (API/AI)19
+
+1.5. Hạ tầng triển khai22
+
+2. Phân tích thiết kế hệ thống23
+
+2.1. Phân tích yêu cầu chức năng23
+
+2.2. Phân tích yêu cầu phi chức năng32
+
+2.3. Phân tích kiến trúc hệ thống34
+
+III. Kết quả thực hiện và đánh giá40
+
+1. Xây dựng Backend và cơ sở dữ liệu40
+
+1.1. Tổng quan kiến trúc Backend40
+
+1.2. Thiết kế Cơ sở dữ liệu41
+
+1.3. Danh sách API50
+
+1.4. Biểu đồ tuần tự các chức năng cốt lõi58
+
+2. Thiết kế Frontend68
+
+2.1. Cấu trúc tổng thể giao diện website68
+
+2.2. Thiết kế giao diện website69
+
+3. Triển khai đóng gói trên Docker76
+
+3.1. Môi trường triển khai76
+
+3.2. Quy trình triển khai và thử nghiệm77
+
+4. Mã nguồn dự án78
+
+IV. Kết luận79
+
+1. Tóm tắt kết quả đạt được79
+
+2. Đánh giá kết quả79
+
+3. Hướng phát triển80
+
+TÀI LIỆU THAM KHẢO81
+
+DANH MỤC HÌNH VẼ
+
+Hình 1. Biểu đồ usecase tổng quan25
+
+Hình 2. Sơ đồ kiến trúc phân tầng của hệ thống39
+
+Hình 3. Thiết kế cơ sở dữ liệu49
+
+Hình 4. Biểu đồ tuần tự chức năng tạo phiên họp trực tuyến và chuyển đổi cuộc họp thời gian thực61
+
+Hình 5. Biểu đồ tuần tự chức năng tạo phiên họp bằng cách tải lên file audio64
+
+Hình 6. Biểu đồ tuần tự chức năng tự động kết nối lại khi gặp mất kết nối trong phiên họp trực tuyến67
+
+Hình 7. Giao diện màn hình đăng nhập70
+
+Hình 8. Giao diện màn hình chức năng quên mật khẩu (bước 1)70
+
+Hình 9. Giao diện màn hình chức năng quên mật khẩu (bước 2)71
+
+Hình 10. Giao diện màn hình chức năng quên mật khẩu (bước 3)71
+
+Hình 11. Giao diện màn hình quản lý cuộc họp (giới hạn trong phòng ban của User)72
+
+Hình 12. Giao diện màn hình quản lý thông tin cá nhân72
+
+Hình 13. Giao diện màn hình chi tiết cuộc họp73
+
+Hình 14. Giao diện màn hình điều phối phiên họp trực tuyến73
+
+Hình 15. Giao diện màn hình quản lý cuộc họp toàn hệ thống74
+
+Hình 16. Giao diện màn hình xem dashboard thống kê (1)74
+
+Hình 17. Giao diện màn hình xem dashboard thống kê (2)75
+
+Hình 18. Giao diện màn hình quản lý tài khoản người dùng hệ thống75
+
+Hình 19. Giao diện màn hình quản lý cấu trúc phòng ban76
+
+DANH MỤC BẢNG BIỂU
+
+Bảng 1. Mô tả chức năng của các tác nhân trong hệ thống24
+
+I. Giới thiệu
+
+1. Đặt vấn đề
+
+Trong tiến trình đẩy mạnh chuyển đổi số và hiện đại hóa công tác quản trị, các hệ thống phần mềm doanh nghiệp quy mô lớn đóng vai trò là hạ tầng vận hành cốt lõi, phục vụ xuyên suốt mọi hoạt động nghiệp vụ của tổ chức. Tuy nhiên, trong công tác phát triển, bàn giao và bảo trì phần mềm, đặc biệt là giai đoạn tiếp nhận dự án mới hoặc chuyển đổi các hệ thống cũ sang kiến trúc hiện đại, việc nắm bắt toàn diện một luồng nghiệp vụ hoàn chỉnh từ các thao tác trên màn hình giao diện xuống tận cơ sở dữ liệu gặp rất nhiều trở ngại. Mã nguồn của các ứng dụng hiện nay thường bị phân tách hoàn toàn giữa kho lưu trữ giao diện và kho lưu trữ xử lý máy chủ, trong khi tài liệu đặc tả thiết kế thường thiếu thốn hoặc nhanh chóng bị lỗi thời so với thực tế cập nhật mã lệnh. Các kỹ sư phần mềm phải chịu áp lực nhận thức rất lớn khi vừa phải tra cứu thủ công qua hàng chục tệp tin ở cả hai phía, vừa phải tự chắp vá logic trong suy nghĩ, dẫn đến nguy cơ cao về việc hiểu sai bản chất, bỏ sót các nhánh rẽ xử lý quan trọng và làm tiêu tốn đáng kể thời gian lao động. Đứng trước thực trạng đó, việc nghiên cứu và làm chủ các công cụ hỗ trợ thông minh nhằm tối ưu hóa năng suất kỹ thuật phần mềm, giảm thiểu gánh nặng nhận thức cho lập trình viên và nâng cao chất lượng nguồn nhân lực công nghệ trở thành một nhu cầu hết sức cấp thiết. 
+
+Từ thách thức mang tính thực tiễn nêu trên, yêu cầu về một giải pháp có khả năng tự động hóa toàn diện quy trình phân tích và trực quan hóa luồng xử lý từ mã nguồn trở nên vô cùng quan trọng. Để giải quyết bài toán này, đề tài Code-to-Visual Flow Tracer - Công cụ tích hợp AI phân tích mã nguồn tĩnh và trực quan hóa luồng xử lý End-to-End được nghiên cứu và phát triển như một trợ lý kiến trúc tự động. Hệ thống có khả năng đọc hiểu trực tiếp mã nguồn ở trạng thái tĩnh mà không cần biên dịch hay khởi chạy ứng dụng, tự động bóc tách cấu trúc thành phần, kết nối các điểm giao tiếp giữa giao diện với máy chủ và tái hiện lại toàn bộ chuỗi xử lý tương tác dưới dạng biểu đồ tuần tự trực quan. Bên cạnh đó, giải pháp còn tích hợp trí tuệ nhân tạo một cách có kiểm soát nhằm tự động diễn giải mục đích thao tác, tóm tắt các ràng buộc nghiệp vụ và sinh dữ liệu mẫu minh họa dựa trên cấu trúc sẵn có. Việc triển khai thành công đề tài không chỉ giúp rút ngắn tối đa thời gian tiếp cận dự án cho nhân sự mới, hạn chế rủi ro sai sót khi bảo trì và đối soát logic chuyển đổi hệ thống, mà còn đóng góp một công cụ kỹ thuật thiết thực nhằm nâng cao năng lực phát triển và chuẩn hóa kiến trúc phần mềm trong kỷ nguyên số.
+
+2. Mục tiêu của báo cáo
+
+2.1. Mục tiêu tổng quan
+
+Nghiên cứu và xây dựng hoàn chỉnh công cụ phân tích tĩnh mã nguồn và trực quan hóa luồng xử lý từ đầu đến cuối, nhằm tự động hóa toàn diện quy trình đọc hiểu cấu trúc phần mềm, kết nối các điểm giao tiếp giữa giao diện người dùng và hệ thống máy chủ, đồng thời truy vết đường đi của dữ liệu xuống cơ sở dữ liệu với độ chính xác cao. Giải pháp hướng tới việc cung cấp một môi trường tương tác trực quan giúp tái hiện luồng hoạt động qua biểu đồ tuần tự, đi kèm lời kể kịch bản và dữ liệu mẫu minh họa có sự hỗ trợ của trí tuệ nhân tạo, qua đó hỗ trợ đắc lực cho công tác tiếp nhận dự án, đào tạo nhân sự mới, bảo trì và nâng cao năng suất kỹ thuật phần mềm trong doanh nghiệp.  
+
+2.2. Mục tiêu nghiệp vụ
+
+Xây dựng tính năng quản lý không gian làm việc và nguồn mã linh hoạt, cho phép người dùng khai báo, duyệt thư mục trực tiếp trên hệ thống và tự động nhận diện nền tảng công nghệ của các kho mã nguồn dự án mà không cần thao tác cấu hình phức tạp.
+
+Phát triển luồng phân tích mã nguồn tự động, hỗ trợ quét toàn diện lần đầu và quét tăng dần dựa trên các tệp tin có thay đổi, cho phép bóc tách chi tiết các thành phần giao diện, các điểm nhận yêu cầu, các tầng xử lý nghiệp vụ và thao tác cơ sở dữ liệu mà không đòi hỏi phải biên dịch hay chạy ứng dụng. 
+
+Xây dựng bản đồ cây khám phá cấu trúc hệ thống trực quan, hỗ trợ tra cứu, tìm kiếm nhanh và hiển thị phân cấp các thành phần trên giao diện theo từng màn hình cũng như danh mục các điểm nhận yêu cầu phía máy chủ theo từng khối chức năng.
+
+Phát triển tính năng dò vết và kết xuất biểu đồ tuần tự tương tác tự động từ hai chiều tiếp cận: xuất phát từ một thao tác tương tác trên màn hình hoặc từ một điểm nhận yêu cầu phía máy chủ, thể hiện rõ ràng chuỗi gọi tuần tự qua các tầng kiến trúc xuống từng bảng dữ liệu, bao gồm cả các nhánh rẽ điều kiện và xử lý ngoại lệ phát sinh.
+
+Cung cấp cơ chế liên kết tự động giữa giao diện và dịch vụ máy chủ kèm mức độ tin cậy minh bạch, cho phép người dùng kiểm tra lý do liên kết, tùy biến luật chuyển đổi đường dẫn và chủ động can thiệp chốt tay các liên kết chưa chắc chắn để lưu trữ bền vững cho các lần phân tích sau.
+
+Tích hợp các tiện ích diễn giải thông minh ứng dụng trí tuệ nhân tạo có kiểm soát, hỗ trợ tóm tắt mục đích xử lý, trích xuất các ràng buộc nghiệp vụ, tự động chuẩn hóa lời kể kịch bản theo từng bước và sinh dữ liệu mẫu giả lập dựa trên cấu trúc dữ liệu thực tế trong mã nguồn.
+
+2.3. Mục tiêu kĩ thuật
+
+Áp dụng kiến trúc nguyên khối tổ chức theo chức năng kết hợp phân tách lõi xử lý thành các mô-đun độc lập, đảm bảo sự tách biệt rõ ràng giữa các thuật toán phân tích chuyên sâu và tầng dịch vụ ứng dụng trên nền tảng Spring Boot. 
+
+Thiết kế mô hình đồ thị trung gian kết hợp hệ quản trị cơ sở dữ liệu PostgreSQL, cho phép biểu diễn thống nhất các thành phần và mối quan hệ trong phần mềm độc lập với ngôn ngữ lập trình, đồng thời áp dụng cơ chế ghi dữ liệu theo lô để tối ưu hóa hiệu năng lưu trữ đồ thị quy mô lớn. 
+
+Ứng dụng thư viện JavaParser cùng tiến trình phân tích phụ trợ Node.js, giải quyết bài toán phân tích cú pháp tĩnh chuyên sâu cho cả hai nền tảng máy chủ và giao diện người dùng mà không phụ thuộc vào môi trường thực thi hay đòi hỏi phải biên dịch ứng dụng. 
+
+Xây dựng thuật toán dò vết tất định kết hợp định dạng biểu đồ PlantUML, giúp bóc tách chính xác chuỗi tương tác tuần tự xuyên suốt các tầng kiến trúc kèm các nhánh rẽ nghiệp vụ, trang bị cơ chế kiểm soát vòng lặp và tự động kết xuất biểu đồ trực quan.
+
+Tích hợp cổng giao tiếp Spring AI kết hợp giải pháp đóng gói Docker, thiết lập cơ chế tương tác trí tuệ nhân tạo an toàn có lưu đệm để hỗ trợ diễn giải nghiệp vụ, đồng thời đóng gói công cụ vận hành hoàn toàn cục bộ nhằm bảo đảm tối đa an toàn thông tin cho mã nguồn. 
+
+3. Phạm vi triển khai công nghệ
+
+Frontend:
+
+Giao diện được xây dựng trên nền tảng framework Angular phiên bản 21, áp dụng kiến trúc thành phần độc lập (Standalone Components) kết hợp cơ chế quản lý trạng thái phản ứng bằng Signals. 
+
+Tầng hiển thị sử dụng hoàn toàn ngôn ngữ TypeScript để đảm bảo tính chặt chẽ về mặt kiểu dữ liệu xuyên suốt toàn bộ ứng dụng. 
+
+Khung hiển thị và các thành phần tương tác được tùy biến thông qua bộ thư viện Angular Material và CDK, kết hợp cùng bộ vẽ đồ họa véc-tơ SVG tự phát triển để trực quan hóa biểu đồ tuần tự tương tác theo phong cách PlantUML chuẩn mực. 
+
+Tương tác dữ liệu giữa trình duyệt và máy chủ sử dụng giao thức REST thông qua thư viện HTTP Client của Angular, đồng thời tích hợp cơ chế nhận dữ liệu dạng luồng (Server-Sent Events) để cập nhật tiến độ quét mã nguồn và nội dung diễn giải theo thời gian thực. 
+
+Các mô hình kiểu dữ liệu trên giao diện được đồng bộ và sinh tự động từ tài liệu đặc tả OpenAPI của máy chủ, giúp chuẩn hóa và ngăn ngừa sai lệch về khuôn dạng dữ liệu trao đổi. 
+
+Backend:
+
+Ứng dụng máy chủ trung tâm được phát triển bằng ngôn ngữ Java 21 trên nền tảng framework Spring Boot, tổ chức theo kiến trúc nguyên khối hướng chức năng (Package-by-feature) kết hợp cấu trúc đa mô-đun Maven nhằm tách biệt hoàn toàn lõi thuật toán phân tích mã nguồn khỏi tầng dịch vụ ứng dụng. 
+
+Bộ phân tích mã nguồn máy chủ sử dụng thư viện JavaParser kết hợp cơ chế luồng ảo (Virtual Threads) và danh bạ lớp để phân tích cú pháp tĩnh, giải quyết cơ chế tiêm phụ thuộc và nhận diện các thao tác dữ liệu mà không cần biên dịch hay nạp môi trường thực thi của dự án. 
+
+Tiến trình phân tích phụ trợ phía giao diện được phát triển trên nền tảng Node.js 22 và TypeScript dưới dạng công cụ dòng lệnh không trạng thái, sử dụng TypeScript Compiler API và trình phân tích mẫu của Angular (@angular/compiler) để bóc tách các thành phần, cấu hình định tuyến và lời gọi dịch vụ mạng. 
+
+Cơ chế giao tiếp giữa máy chủ trung tâm và tiến trình phụ trợ được chuẩn hóa thông qua hợp đồng dữ liệu JSON Schema chung, kết hợp sử dụng công cụ ArchUnit để tự động kiểm soát các quy tắc kiến trúc và ranh giới phụ thuộc mã nguồn. 
+
+Hạ tầng dữ liệu, bộ nhớ đệm và lưu trữ:
+
+Hệ quản trị cơ sở dữ liệu PostgreSQL 16 được sử dụng để lưu trữ tập trung cấu hình không gian làm việc, mã băm quản lý tập tin phục vụ quét tăng dần, cấu trúc dữ liệu đồ thị trung gian và bộ nhớ đệm kết quả xử lý của trí tuệ nhân tạo. 
+
+Việc truy xuất dữ liệu nghiệp vụ thông thường được thực hiện qua Spring Data JPA, kết hợp công cụ JdbcClient để thực thi cơ chế ghi dữ liệu đồ thị trung gian theo lô lớn nhằm tối ưu hóa hiệu năng lưu trữ.
+
+Quản lý phiên bản và tự động đồng bộ cấu trúc bảng cơ sở dữ liệu được đảm nhiệm bởi công cụ di trú dữ liệu Flyway.
+
+Hàng đợi xử lý tác vụ nền (Job Queue) và kênh phát sự kiện luân chuyển giữa các module (Event Bus) được vận hành bởi công nghệ BullMQ 5 chạy trên hạ tầng Redis. 
+
+Hệ thống lưu trữ tệp tin trên ổ đĩa cục bộ được tận dụng làm bộ đệm dữ kiện phân tích theo mã băm nội dung, giúp rút ngắn thời gian xử lý cho các lần quét tăng dần tiếp theo. 
+
+Tích hợp dịch vụ bên ngoài:
+
+Khung tích hợp Spring AI được sử dụng làm cầu nối giao tiếp với mô hình ngôn ngữ lớn Google Gemini thông qua giao diện trừu tượng, hỗ trợ công tác diễn giải mục đích nghiệp vụ, làm mượt kịch bản từng bước và sinh dữ liệu mẫu minh họa.
+
+Hạ tầng triển khai:
+
+Toàn bộ các dịch vụ gồm giao diện người dùng, máy chủ phân tích, tiến trình phụ trợ và cơ sở dữ liệu đều được đóng gói và điều phối hoạt động thông qua công cụ Docker Compose. 
+
+Ứng dụng được thiết lập vận hành cục bộ trên máy tính cá nhân dưới quyền chỉ đọc đối với mã nguồn dự án, mặc định chỉ lắng nghe tại địa chỉ nội bộ (127.0.0.1) và hoàn toàn không kết nối hay can thiệp vào cơ sở dữ liệu thật của các dự án được phân tích. 
+
+II. Nội dung và phương pháp
+
+1. Cơ sở lý thuyết
+
+1.1. Công nghệ sử dụng phía Backend
+
+1.1.1. Java 21 và Spring Boot
+
+Java 21 là phiên bản hỗ trợ dài hạn nổi bật với việc tích hợp cơ chế luồng ảo (Virtual Threads), giúp ứng dụng xử lý đồng thời khối lượng lớn tác vụ tính toán mà không gây quá tải tài nguyên hệ thống, trong khi Spring Boot là nền tảng phát triển ứng dụng máy chủ mạnh mẽ cung cấp cơ chế tiêm phụ thuộc, tự động hóa cấu hình và quản lý vòng đời ứng dụng chặt chẽ. Trong đề tài, Java 21 và Spring Boot được sử dụng để xây dựng máy chủ phân tích trung tâm, đảm nhiệm vai trò tiếp nhận yêu cầu từ giao diện, quản lý tiến trình quét mã nguồn tĩnh song song trên nhiều tệp tin, điều phối thuật toán liên kết, dò vết luồng nghiệp vụ và cung cấp giao diện lập trình cho người dùng.
+
+1.1.2. RESTful API và Server-Sent Events
+
+Giao diện lập trình ứng dụng theo phong cách REST sử dụng các phương thức HTTP tiêu chuẩn để thao tác với tài nguyên dưới định dạng JSON có cấu trúc rõ ràng, kết hợp cơ chế Server-Sent Events cho phép máy chủ chủ động đẩy các luồng dữ liệu một chiều tới trình duyệt theo thời gian thực qua kết nối bền vững duy nhất. Trong đề tài, các chức năng quản lý không gian làm việc, cấu hình dự án, tra cứu cây thành phần và truy vấn biểu đồ tuần tự được triển khai qua chuẩn REST với khuôn dạng phản hồi thống nhất, trong khi cơ chế truyền dữ liệu một chiều được áp dụng để cập nhật tiến độ quét mã nguồn và hiển thị nội dung diễn giải theo thời gian thực mà không làm nghẽn kết nối.
+
+1.1.3. Thư viện JavaParser
+
+JavaParser là một thư viện mã nguồn mở chuyên dụng cho việc phân tích cú pháp tĩnh ngôn ngữ Java, cho phép chuyển đổi mã nguồn thành cây cú pháp trừu tượng và cung cấp các công cụ bóc tách cấu trúc lớp, phương thức mà không đòi hỏi phải biên dịch ứng dụng hay nạp đầy đủ môi trường thực thi của dự án. Trong đề tài, JavaParser đóng vai trò là hạt nhân phân tích mã nguồn máy chủ, giúp bóc tách các điểm nhận yêu cầu, trích xuất cấu trúc điều khiển, giải quyết cơ chế tiêm phụ thuộc, phân loại các tầng kiến trúc và nhận diện các thao tác truy xuất dữ liệu trong các dự án Spring Boot một cách chuẩn xác và hoàn toàn tất định.
+
+1.1.4. Node.js và TypeScript Compiler API
+
+Node.js là môi trường thực thi mã nguồn JavaScript ngoài trình duyệt, kết hợp cùng bộ giao diện lập trình của trình biên dịch TypeScript cung cấp khả năng phân tích cây cú pháp tĩnh chuyên sâu cho các ứng dụng viết bằng TypeScript và các mẫu giao diện mở rộng. Trong đề tài, công nghệ này được xây dựng thành một tiến trình phụ trợ độc lập, chịu trách nhiệm phân tích mã nguồn phía giao diện người dùng Angular; tiến trình bóc tách chi tiết cấu hình định tuyến, các bộ lắng nghe sự kiện trên màn hình và các lời gọi dịch vụ mạng, sau đó chuyển đổi kết quả thành định dạng dữ liệu trung gian chuẩn hóa gửi về cho máy chủ phân tích trung tâm.
+
+1.1.5. Spring Data JPA và JdbcClient
+
+Spring Data JPA là giải pháp trừu tượng hóa tầng truy cập dữ liệu quan hệ theo mô hình ánh xạ đối tượng, trong khi công cụ JdbcClient cung cấp giao diện thao tác cơ sở dữ liệu đồng bộ với hiệu năng cao, tối ưu cho các tác vụ thực thi câu lệnh SQL trực tiếp và ghi dữ liệu hàng loạt. Trong đề tài, Spring Data JPA đảm nhiệm việc quản lý các thực thể nghiệp vụ thông thường như không gian làm việc và tệp tin, còn JdbcClient được khai thác chuyên biệt để ghi đồng loạt hàng chục nghìn nút và cạnh của mô hình đồ thị trung gian sau mỗi lần quét mã nguồn, giúp giảm thiểu đáng kể chi phí bộ nhớ và rút ngắn thời gian xử lý.
+
+1.2. Công nghệ sử dụng phía Frontend
+
+1.2.1. Framework Angular 21
+
+Angular là một nền tảng phát triển giao diện ứng dụng web toàn diện, phiên bản 21 cung cấp kiến trúc thành phần độc lập (Standalone Components) tối ưu cùng cơ chế quản lý trạng thái phản ứng hiện đại bằng Signals, giúp ứng dụng cập nhật giao diện nhanh chóng, tiêu tốn ít tài nguyên và duy trì cấu trúc mã nguồn chặt chẽ. Trong đề tài, Angular 21 được sử dụng làm nền tảng phát triển toàn bộ giao diện người dùng theo bố cục ba cột trực quan; hệ thống tận dụng cơ chế phản ứng để theo dõi trạng thái các cây thành phần, điều phối khung vẽ biểu đồ tuần tự và hiển thị đồng bộ nội dung các bảng thông tin mà không cần nạp lại trang.
+
+1.2.2. TypeScript
+
+TypeScript là ngôn ngữ lập trình mở rộng từ JavaScript, bổ sung hệ thống kiểu tĩnh chặt chẽ và khả năng phát hiện lỗi ngay trong giai đoạn biên dịch, giúp nâng cao tính ổn định, khả năng bảo trì và giảm thiểu lỗi logic trong các dự án phần mềm quy mô lớn. Trong đề tài, TypeScript được sử dụng đồng bộ cho cả giao diện người dùng và tiến trình phân tích phụ trợ; hệ thống tự động sinh các kiểu dữ liệu trên giao diện từ tài liệu đặc tả của máy chủ, bảo đảm sự nhất quán hoàn hảo về khuôn dạng dữ liệu trao đổi giữa máy chủ và trình duyệt.
+
+1.2.3. Angular Material và CDK
+
+Angular Material là bộ thư viện giao diện chuẩn hóa dựa trên các nguyên tắc thiết kế hiện đại, đi kèm bộ công cụ phát triển thành phần cung cấp các hành vi tương tác nền tảng như điều hướng, kéo thả, quản lý lớp phủ và hiển thị dữ liệu dạng bảng biểu, cây phân cấp. Trong đề tài, bộ công cụ này được ứng dụng để dựng khung giao diện chính, bảng điều khiển cấu hình, các hộp thoại tương tác và đặc biệt là hệ thống cây phân cấp duyệt điểm nhận yêu cầu và thành phần giao diện ở cột bên trái, mang lại trải nghiệm thao tác mượt mà và trực quan cho người sử dụng.
+
+1.2.4. SVG (Scalable Vector Graphics)
+
+SVG là định dạng đồ họa véc-tơ dựa trên nền tảng ngôn ngữ đánh dấu XML, cho phép hiển thị hình ảnh hai chiều sắc nét ở mọi độ phân giải, hỗ trợ can thiệp thuộc tính hình học linh hoạt và tích hợp trực tiếp vào cấu trúc trang web để xử lý các sự kiện tương tác của người dùng. Trong đề tài, hệ thống tự phát triển một bộ vẽ biểu đồ dựa trên đồ họa véc-tơ SVG để trực quan hóa biểu đồ tuần tự tương tác trên khung vẽ chính; giải pháp này cho phép người dùng phóng to, thu nhỏ, kéo di chuyển mượt mà, đồng thời hỗ trợ tô sáng các bước thực thi và kết xuất hình ảnh sắc nét mà không bị suy giảm chất lượng.
+
+1.2.5. PlantUML
+
+PlantUML là một định dạng và công cụ mô hình hóa phần mềm dựa trên mã nguồn mở, cho phép lập trình viên mô tả các biểu đồ kiến trúc, đặc biệt là biểu đồ tuần tự, thông qua các câu lệnh văn bản ngắn gọn, có cấu trúc rõ ràng và dễ dàng lưu trữ trên hệ thống quản lý phiên bản. Trong đề tài, PlantUML được lựa chọn làm chuẩn dữ liệu kết xuất biểu đồ tuần tự; chuỗi các bước dò vết được chuyển đổi chính xác sang cú pháp chuẩn mực, cho phép người dùng sao chép hoặc xuất tệp tin văn bản để chèn trực tiếp vào tài liệu thiết kế phần mềm nội bộ mà không cần vẽ lại thủ công.
+
+1.3. Cơ sở dữ liệu và lưu trữ
+
+1.3.1. PostgreSQL 16
+
+PostgreSQL là hệ quản trị cơ sở dữ liệu quan hệ mã nguồn mở mạnh mẽ, tuân thủ nghiêm ngặt các tiêu chuẩn cơ sở dữ liệu, hỗ trợ lưu trữ kiểu dữ liệu tài liệu linh hoạt (JSONB) và tích hợp sẵn công cụ tìm kiếm toàn văn bản hiệu năng cao trên khối lượng bản ghi lớn. Trong đề tài, PostgreSQL 16 được sử dụng làm nơi lưu trữ vĩnh viễn cấu hình không gian làm việc, danh mục tập tin và toàn bộ mô hình đồ thị trung gian gồm các nút và cạnh liên kết; việc kết hợp kiểu dữ liệu linh hoạt và bộ tìm kiếm toàn văn giúp hệ thống tra cứu nhanh chóng mọi thành phần trong dự án.
+
+1.3.2. Flyway
+
+Flyway là công cụ quản lý và kiểm soát phiên bản cấu trúc cơ sở dữ liệu mã nguồn mở, cho phép tự động hóa việc theo dõi, áp dụng các tệp tin kịch bản chuyển đổi cấu trúc bảng một cách tuần tự, đảm bảo tính nhất quán của dữ liệu trên mọi môi trường phát triển và vận hành. Trong đề tài, Flyway được tích hợp trực tiếp vào máy chủ phân tích trung tâm; mỗi khi ứng dụng khởi động, công cụ tự động kiểm tra và thực thi các tệp tin định nghĩa bảng, tạo chỉ mục tìm kiếm và cập nhật cấu trúc cơ sở dữ liệu mà không cần can thiệp thủ công từ phía người dùng.
+
+1.4. Dịch vụ bên ngoài (API/AI)
+
+1.4.1. Khung tích hợp Spring AI
+
+Spring AI là một khung phát triển ứng dụng giúp trừu tượng hóa việc tích hợp các mô hình ngôn ngữ lớn vào hệ sinh thái Spring, cung cấp giao diện lập trình thống nhất, quản lý mẫu câu lệnh có cấu trúc và hỗ trợ chuyển đổi dữ liệu đầu ra về các đối tượng lập trình một cách thuận tiện. Trong đề tài, Spring AI đóng vai trò làm cổng kết nối trung gian; hệ thống kết hợp khung này với bộ lọc bảo mật tự động che giấu thông tin nhạy cảm, áp dụng cơ chế lưu trữ đệm phản hồi theo mã băm đầu vào và kiểm duyệt cấu trúc phản hồi trước khi gửi về cho các chức năng diễn giải nghiệp vụ.
+
+1.4.2. Google Gemini
+
+Google Gemini là dòng mô hình ngôn ngữ lớn tiên tiến có khả năng đọc hiểu ngữ cảnh sâu rộng, tổng hợp thông tin nhanh chóng và sinh văn bản tự nhiên chính xác dựa trên các dữ liệu đầu vào có cấu trúc kỹ thuật được cung cấp qua giao diện lập trình đám mây. Trong đề tài, mô hình Google Gemini được sử dụng có kiểm soát nhằm hỗ trợ ba mục đích phụ trợ: tóm tắt mục đích xử lý của từng chức năng, làm mượt lời kể kịch bản từng bước và sinh dữ liệu mẫu giả lập dựa trên định dạng lớp dữ liệu; mô hình hoàn toàn không tham gia vào việc xây dựng đồ thị hay vẽ biểu đồ luồng.
+
+1.5. Hạ tầng triển khai
+
+1.5.1. Docker và Docker Compose
+
+Docker là nền tảng đóng gói ứng dụng cùng toàn bộ môi trường phụ thuộc vào các vùng chứa độc lập, trong khi Docker Compose là công cụ mở rộng cho phép định nghĩa, kết nối và điều phối hoạt động của nhiều vùng chứa liên quan thông qua một tệp tin cấu hình duy nhất. Trong đề tài, toàn bộ các thành phần gồm máy chủ phân tích, tiến trình phụ trợ, giao diện người dùng và cơ sở dữ liệu được đóng gói đồng bộ; người dùng có thể khởi chạy công cụ trên máy tính cá nhân chỉ với một câu lệnh duy nhất, bảo đảm môi trường vận hành nhất quán và cô lập an toàn với hệ điều hành máy chủ.
+
+1.5.2. ArchUnit
+
+ArchUnit là một thư viện kiểm thử tự động dành cho ngôn ngữ Java, cho phép lập trình viên định nghĩa và kiểm tra các quy tắc kiến trúc phần mềm, hướng phụ thuộc giữa các gói mã nguồn và tính toàn vẹn của mô hình phân lớp thông qua các bài kiểm thử đơn vị thông thường. Trong đề tài, ArchUnit được tích hợp vào tiến trình kiểm thử tự động của máy chủ phân tích; công cụ tự động ngăn chặn các vi phạm về ranh giới phụ thuộc giữa các chức năng, đảm bảo các tầng xử lý tuân thủ nghiêm ngặt nguyên tắc thiết kế và ngăn chặn việc truy cập mã nguồn trái với quy định bảo mật.
+
+2. Phân tích thiết kế hệ thống
+
+2.1. Phân tích yêu cầu chức năng
+
+2.1.1. Phạm vi người dùng và phân quyền hệ thống
+
+Công cụ phân tích và trực quan hóa luồng nghiệp vụ từ mã nguồn được định vị là một công cụ hỗ trợ cá nhân vận hành cục bộ trên máy tính của lập trình viên. Do đó, hệ thống không áp dụng cơ chế xác thực đăng nhập hay phân cấp vai trò nhiều tầng mà tập trung phục vụ trực tiếp cho một tác nhân duy nhất là người phát triển phần mềm:
+
+Người dùng hệ thống (USER): Là các kỹ sư phần mềm, lập trình viên (bao gồm lập trình viên giao diện, lập trình viên máy chủ, kỹ sư trưởng hoặc các nhân sự mới tiếp nhận dự án) trực tiếp cài đặt, khởi chạy và tương tác với công cụ thông qua giao diện web nội bộ. Người dùng ở vai trò này có toàn quyền thao tác trên môi trường làm việc của mình, bao gồm: khai báo và quản lý các không gian làm việc; chỉ định và duyệt các thư mục mã nguồn dự án trên máy cục bộ; kích hoạt tiến trình phân tích tĩnh; tra cứu cây thành phần kiến trúc; thực hiện dò vết các luồng xử lý từ giao diện xuống cơ sở dữ liệu; can thiệp chốt tay các liên kết giữa hai nền tảng; xuất tài liệu biểu đồ kỹ thuật và tùy biến cấu hình tích hợp dịch vụ trí tuệ nhân tạo. Mọi dữ liệu phân tích, bộ nhớ đệm và thiết lập cá nhân đều được lưu trữ độc lập trong cơ sở dữ liệu cục bộ của người dùng.
+
+Nhóm chức năng
+
+USER
+
+Quản lý không gian làm việc và nguồn mã
+
+x
+
+Quét và phân tích mã nguồn tĩnh
+
+x
+
+Khám phá và tra cứu cấu trúc dự án
+
+x
+
+Dò vết và trực quan hóa luồng xử lý
+
+x
+
+Quản lý liên kết giao diện – máy chủ và độ tin cậy
+
+x
+
+Diễn giải nghiệp vụ và sinh dữ liệu mẫu
+
+x
+
+Cấu hình hệ thống và dịch vụ trí tuệ nhân tạo
+
+x
+
+Bảng 1. Mô tả chức năng của các tác nhân trong hệ thống
+
+Biểu đồ Usecase tổng quan của hệ thống:
+
+Hình 1. Biểu đồ usecase tổng quan
+
+2.1.2. Nghiệp vụ chi tiết theo nhóm chức năng
+
+Nhóm 1: Quản lý không gian làm việc và nguồn mã
+
+Tạo không gian làm việc: Người dùng khởi tạo một môi trường phân tích mới cho dự án thông qua quy trình ba bước trên giao diện, bao gồm nhập thông tin định danh, lựa chọn thư mục mã nguồn và xác nhận thiết lập. Hệ thống tự động kiểm tra tính duy nhất của tên không gian làm việc trong cơ sở dữ liệu và trả về lỗi xung đột nếu tên đã tồn tại. Sau khi tiếp nhận, hệ thống lưu trữ thông tin dự án, các thiết lập mặc định và khởi tạo cấu trúc dữ liệu liên quan để sẵn sàng cho các bước quét tiếp theo.
+
+Xem danh sách và chi tiết không gian làm việc: Hệ thống cung cấp danh mục toàn bộ các không gian làm việc đã được khai báo trên máy cục bộ, sắp xếp theo thời điểm cập nhật mới nhất. Mỗi bản ghi hiển thị đầy đủ các thông tin tổng quan như số lượng nguồn mã liên kết, thời điểm quét gần nhất và trạng thái của phiên phân tích. Khi truy cập vào một không gian làm việc cụ thể, người dùng có thể xem chi tiết cấu hình, danh sách các thư mục mã nguồn thành phần và mở lại nhanh ngữ cảnh làm việc trước đó.
+
+Chỉnh sửa thông tin không gian làm việc: Cho phép người dùng cập nhật lại tên hiển thị và mô tả của dự án khi có sự thay đổi. Để đảm bảo tính toàn vẹn dữ liệu, hệ thống tự động kiểm tra trạng thái hoạt động và từ chối mọi thao tác chỉnh sửa hoặc thay đổi thiết lập nếu không gian làm việc đang trong tiến trình quét mã nguồn dở dang.
+
+Xóa không gian làm việc: Loại bỏ hoàn toàn dự án cùng dữ liệu phân tích, liên kết chốt tay và bộ nhớ đệm khỏi cơ sở dữ liệu nội bộ. Thao tác này chỉ tác động đến dữ liệu của công cụ và tuyệt đối không làm thay đổi hay xóa mã nguồn trên đĩa.
+
+Duyệt và tự động nhận diện thư mục: Cho phép duyệt cây thư mục cục bộ trong phạm vi thư mục gốc được cấp quyền mà không cần nhập đường dẫn. Thuật toán tự động tìm kiếm dấu hiệu công nghệ ở tối đa bốn tầng thư mục con để phân loại hoặc đưa ra gợi ý tách nguồn.
+
+Thêm thư mục nguồn mã: Khai báo thư mục mã nguồn kèm danh sách mẫu tệp tin cần loại trừ. Hệ thống tự động xác định vai trò công nghệ và bổ sung quy tắc loại trừ vào thư mục cha nếu thư mục mới nằm lồng bên trong một nguồn mã sẵn có.
+
+Cập nhật và xóa thư mục nguồn mã: Cho phép điều chỉnh tên, sửa đổi danh sách loại trừ hoặc gỡ bỏ thư mục nguồn. Khi gỡ bỏ, toàn bộ thành phần thuộc nguồn đó sẽ được dọn dẹp sạch sẽ khỏi đồ thị dữ liệu của dự án
+
+Nhóm 2: Quét và phân tích mã nguồn tĩnh
+
+Quét toàn diện không gian làm việc lần đầu: Tiến trình nền đọc toàn bộ tệp tin mã nguồn hợp lệ, loại trừ thư viện và tệp nhị phân. Hệ thống tính mã băm nội dung, phân phối cho các bộ phân tích để trích xuất cú pháp, xây dựng đồ thị trung gian và lưu trữ kết quả.
+
+Quét không gian làm việc các phiên bản sau: Tự động so sánh mã băm của các tệp tin hiện tại với lần quét trước để tìm tệp thêm, sửa hoặc xóa. Hệ thống tái sử dụng dữ kiện đã lưu đệm cho các tệp không đổi và chỉ phân tích lại tệp có thay đổi, giúp rút ngắn thời gian xử lý.
+
+Theo dõi tiến độ quét thời gian thực: Máy chủ đẩy dữ liệu liên tục qua kênh thời gian thực về giao diện. Người dùng theo dõi trực quan thanh tiến độ, từng giai đoạn phân tích và tỷ lệ tệp tin đã xử lý mà không cần tải lại trang.
+
+Hủy tiến trình quét: Cho phép dừng khẩn cấp tác vụ quét đang thực thi. Hệ thống ngắt các luồng xử lý nền, hủy bỏ giao dịch dở dang và bảo toàn nguyên vẹn toàn bộ kết quả của lần quét thành công trước đó.
+
+Xem lịch sử và chẩn đoán lỗi quét: Ghi nhận nhật ký các phiên quét gồm thời gian, trạng thái và thống kê tệp tin. Bảng chẩn đoán liệt kê chi tiết các tệp lỗi cú pháp kèm vị trí dòng, bảo đảm lỗi ở một vài tệp không làm gián đoạn toàn bộ phiên quét.
+
+Nhóm 3: Khám phá và tra cứu cấu trúc dự án
+
+Xem cây điểm nhận yêu cầu máy chủ: Hiển thị toàn bộ các điểm nhận yêu cầu phân cấp theo khối chức năng và lớp điều phối. Mỗi mục gắn kèm phương thức HTTP, đường dẫn, trích xuất tài liệu chú thích và cảnh báo nếu có bước chưa giải quyết.
+
+Xem cây thành phần giao diện: Phân cấp cấu trúc giao diện từ ứng dụng, màn hình, biểu mẫu tới từng phần tử tương tác. Hệ thống gắn nhãn hiển thị trực quan và phân biệt rõ phần tử có gọi yêu cầu mạng với phần tử thuần túy thao tác màn hình.
+
+Tìm kiếm nhanh toàn hệ thống: Hỗ trợ tra cứu tức thời qua phím tắt trên toàn bộ dự án. Thuật toán tìm kiếm linh hoạt trên đường dẫn, tên hàm, nhãn nút, lớp nghiệp vụ và bảng dữ liệu, đồng thời tự động phân nhóm kết quả.
+
+Xem chi tiết thành phần: Cung cấp thông tin siêu dữ liệu, tệp tin và vị trí dòng trong mã nguồn của nút được chọn. Bảng thông tin thể hiện rõ hai chiều: danh sách thành phần gọi tới và danh sách thành phần mà nút đó tác động.
+
+Xem trích đoạn mã nguồn: Mở nhanh mã nguồn ở chế độ chỉ đọc mà không cần chuyển sang môi trường ngoài. Các đoạn mã được bóc tách theo từng tầng kiến trúc từ giao diện, dịch vụ tới truy vấn dữ liệu kèm số dòng chính xác.
+
+Đối chiếu tài liệu đặc tả OpenAPI: Tự động so khớp tài liệu đặc tả có sẵn trong mã nguồn với danh sách điểm nhận yêu cầu thực tế. Báo cáo phân loại rõ ràng các điểm trùng khớp, điểm chỉ có trong mã nguồn hoặc điểm thiếu cài đặt.
+
+Nhóm 4: Dò vết và trực quan hóa luồng xử lý
+
+Dò vết luồng từ phần tử giao diện: Truy vết tất định bắt đầu từ một nút bấm hoặc thao tác người dùng. Hệ thống đi qua hàm xử lý, lời gọi mạng, tầng điều phối, dịch vụ, kho dữ liệu tới từng bảng cơ sở dữ liệu và truy vết chiều phản hồi.
+
+Dò vết luồng từ điểm nhận yêu cầu máy chủ: Bắt đầu từ một điểm nhận yêu cầu để truy vết mạch logic nội bộ. Thuật toán lần theo chuỗi thực thi phương thức, tương tác giữa các dịch vụ và ghi nhận mọi tác vụ đọc ghi dữ liệu.
+
+Dò vết luồng thuần giao diện: Nhận diện các thao tác khép kín trên màn hình như mở hộp thoại, đổi thẻ hoặc đặt lại biểu mẫu mà không gửi dữ liệu về máy chủ. Luồng được biểu diễn tinh gọn giữa người dùng và giao diện.
+
+Trực quan hóa biểu đồ tuần tự: Tự động chuyển đổi chuỗi bước thành biểu đồ tuần tự tương tác theo phong cách chuẩn mực. Biểu đồ phân nhóm các cột tham gia, đánh số thứ tự bước, làm rõ chiều trả về, khối điều kiện rẽ nhánh và khối ngoại lệ.
+
+Thu gọn và mở rộng biểu đồ: Cung cấp công cụ thu phóng, kéo di chuyển hoặc đưa biểu đồ vừa khung nhìn. Người dùng có thể thu gọn các khối xử lý phụ để tập trung nắm bắt mạch nghiệp vụ chính của những luồng phức tạp.
+
+Xuất biểu đồ kỹ thuật: Cho phép kết xuất biểu đồ tuần tự thành mã mô hình hóa PlantUML hoặc tệp hình ảnh đồ họa véc-tơ sắc nét. Dữ liệu xuất ra giữ nguyên thứ tự bước và khối điều kiện để chèn vào tài liệu kỹ thuật.
+
+Nhóm 5: Quản lý liên kết giao diện – máy chủ và độ tin cậy
+
+Tự động liên kết giao diện và máy chủ: Chuẩn hóa chuỗi đường dẫn, phân giải tham số và áp dụng luật so khớp để nối lời gọi từ giao diện tới đúng điểm nhận yêu cầu máy chủ, kể cả khi tách biệt kho lưu trữ.
+
+Hiển thị mức độ tin cậy và lý do liên kết: Gắn nhãn mức độ tin cậy rõ ràng (chắc chắn, suy luận hoặc chưa xác định) bằng nét vẽ trực quan trên biểu đồ. Hệ thống hiển thị chi tiết căn cứ kỹ thuật và danh sách ứng viên phù hợp.
+
+Hỗ trợ phân tích liên kết bằng trí tuệ nhân tạo: Khi gặp liên kết chưa chắc chắn, người dùng có thể kích hoạt trí tuệ nhân tạo để nhận phân tích và dẫn chứng từ mã nguồn. Mô hình chỉ đóng vai trò tư vấn giải thích và không tự ý thay đổi liên kết.
+
+Chốt tay liên kết: Cho phép lập trình viên trực tiếp can thiệp để ghim liên kết chính xác hoặc loại bỏ liên kết suy luận sai. Quyết định chốt tay được lưu trữ bền vững, ưu tiên áp dụng ngay và bảo toàn qua các lần quét.
+
+Xem và hủy liên kết đã chốt tay: Cung cấp danh mục quản lý tập trung các liên kết đã can thiệp trong dự án. Người dùng dễ dàng theo dõi ghi chú, kiểm tra tính tương thích và hoàn tác để quay lại kết quả tự động.
+
+Quản lý luật liên kết: Hiển thị các quy tắc tiền tố, viết lại đường dẫn do hệ thống tự phát hiện từ tệp cấu hình. Người dùng có thể bổ sung luật thủ công; hệ thống sẽ tự động tính toán lại liên kết mà không cần quét lại mã nguồn
+
+Nhóm 6: Diễn giải nghiệp vụ và sinh dữ liệu mẫu
+
+Diễn giải mục đích nghiệp vụ: Tổng hợp đoạn văn ngắn gọn từ 80 đến 100 từ mô tả mục đích hoạt động và giá trị nghiệp vụ. Hệ thống tận dụng chú thích sẵn có kết hợp trí tuệ nhân tạo để tạo câu diễn giải súc tích cho người đọc.
+
+Trích xuất cấu trúc dữ liệu vào và ra: Phân tích các lớp truyền tải dữ liệu để lập sơ đồ cấu trúc đầu vào và đầu ra dạng JSON chuẩn. Thành phần giao diện tự động liên kết cấu trúc dữ liệu của yêu cầu mạng tương ứng.
+
+Trích xuất ràng buộc nghiệp vụ: Bóc tách các kiểm tra tính hợp lệ, phân quyền và điều kiện nghiệp vụ từ thân hàm hoặc chú thích dữ liệu. Các ràng buộc được trình bày mạch lạc giúp người xem nắm rõ quy tắc xử lý.
+
+Sinh dữ liệu mẫu minh họa: Tự động tạo dữ liệu mẫu giả lập cho yêu cầu và phản hồi khớp cấu trúc khai báo. Dữ liệu sinh từ cấu trúc đối tượng thông qua trí tuệ nhân tạo hoặc bộ sinh dự phòng, không đọc dữ liệu thật.
+
+Tự động sinh kịch bản từng bước: Chuyển đổi các bước trên biểu đồ thành lời kể tự nhiên theo trình tự. Mỗi bước mô tả rõ chủ thể, hành vi và kết quả, bảo đảm giữ nguyên số lượng bước và logic của biểu đồ.
+
+Tương tác đồng bộ kịch bản và biểu đồ: Thiết lập liên kết hai chiều giữa biểu đồ tuần tự và nội dung kịch bản. Khi người dùng chọn một bước kịch bản, mũi tên tương ứng trên biểu đồ sẽ lập tức sáng lên và ngược lại.
+
+Nhóm 7: Cấu hình hệ thống và dịch vụ trí tuệ nhân tạo
+
+Xem cấu hình và kiểm tra kết nối: Hiển thị thông tin nhà cung cấp và phiên bản mô hình ngôn ngữ lớn đang kết nối. Khóa xác thực được bảo vệ trong biến môi trường; chức năng hỗ trợ gửi yêu cầu kiểm tra độ trễ thực tế.
+
+Bật hoặc tắt từng mục đích sử dụng: Cho phép người dùng kiểm soát trạng thái kích hoạt của từng tác vụ hỗ trợ như viết mục đích, làm mượt kịch bản hay sinh dữ liệu mẫu, giúp tiết kiệm tài nguyên tính toán. 
+
+Quản lý bộ lọc nhiễu kiến trúc: Tùy biến danh sách các lớp, gói hoặc phương thức kỹ thuật cần ẩn khỏi biểu đồ tuần tự như ghi nhật ký hay hàm tiện ích, giúp biểu đồ tập trung vào luồng nghiệp vụ cốt lõi. 
+
+Theo dõi thống kê sử dụng dịch vụ: Giám sát số lượt gọi, lượng token, tỷ lệ trúng bộ nhớ đệm và các thông báo lỗi phát sinh. Số liệu lấy từ nhật ký kỹ thuật nội bộ mà không lưu nội dung câu lệnh nhằm bảo mật thông tin.
+
+2.2. Phân tích yêu cầu phi chức năng
+
+2.2.1. Về bảo mật
+
+Nguyên tắc phân tích tĩnh an toàn: Hệ thống vận hành theo cơ chế phân tích tĩnh hoàn toàn (zero-runtime), chỉ đọc nội dung tệp tin mã nguồn mà không tự ý biên dịch, không khởi chạy và không cài đặt các thư viện phụ thuộc của dự án được phân tích. Công cụ tuyệt đối không kết nối và không truy cập vào cơ sở dữ liệu thật của dự án; toàn bộ dữ liệu mẫu minh họa chỉ được sinh giả lập dựa trên cấu trúc các lớp truyền tải dữ liệu. 
+
+Cô lập môi trường và kiểm soát truy cập: Ứng dụng máy chủ phân tích mặc định chỉ lắng nghe tại địa chỉ cục bộ, không mở cổng kết nối ra mạng ngoài nhằm ngăn chặn các truy cập trái phép từ các thiết bị khác. Chức năng duyệt thư mục bị giới hạn nghiêm ngặt trong phạm vi thư mục gốc được cấp quyền, đồng thời áp dụng cơ chế kiểm tra nhằm ngăn chặn triệt để các hành vi duyệt đường dẫn trái phép (path traversal) hoặc liên kết tượng trưng (symlink) trỏ ra ngoài. 
+
+Bộ lọc làm sạch dữ liệu nhạy cảm (Secret Redaction): Trước khi gửi bất kỳ đoạn mã nguồn nào tới mô hình ngôn ngữ lớn để diễn giải, hệ thống tự động rà soát và che giấu toàn bộ các thông tin nhạy cảm như mật khẩu, khóa bí mật, mã định danh và chuỗi kết nối cơ sở dữ liệu. Các tệp tin cấu hình môi trường, khóa chứng thực số và tệp tin dữ liệu bị cấm tuyệt đối, không bao giờ được đưa vào nội dung yêu cầu gửi đi. 
+
+Bảo mật khóa xác thực dịch vụ: Khóa truy cập giao diện lập trình của mô hình ngôn ngữ lớn chỉ được thiết lập thông qua biến môi trường tại máy chủ, không lưu trữ trong cơ sở dữ liệu, không ghi vào nhật ký hệ thống và không bao giờ chuyển tiếp xuống giao diện người dùng. 
+
+Kiểm soát dữ liệu đầu vào: mọi trường dữ liệu không được khai báo trước sẽ bị từ chối ngay từ bước tiếp nhận, các định danh sai định dạng bị chặn lại trước khi chạm tới cơ sở dữ liệu, giúp giảm bề mặt tấn công liên quan đến dữ liệu bất thường. 
+
+Chính sách sử dụng trí tuệ nhân tạo và kiểm toán: Mọi lượt tương tác với dịch vụ trí tuệ nhân tạo đều được ghi nhận vào nhật ký kiểm toán với các thông tin kỹ thuật như mục đích gọi, phiên bản mô hình, số lượng tài nguyên tiêu thụ và mã băm đầu vào, tuyệt đối không lưu trữ nội dung chi tiết của câu lệnh.
+
+2.2.2. Về hiệu năng
+
+Tốc độ quét và xử lý mã nguồn: Tiến trình quét toàn diện lần đầu đối với một không gian làm việc có quy mô khoảng 2.000 tệp tin nguồn được tối ưu để hoàn thành trong thời gian không quá 3 phút. Đối với các lần quét tăng dần khi số lượng tệp tin thay đổi dưới 20 tệp, hệ thống tận dụng cơ chế lưu đệm dữ kiện phân tích theo mã băm nội dung để hoàn tất quá trình cập nhật trong thời gian dưới 15 giây.
+
+Thời gian phản hồi tương tác giao diện: Các thao tác tải cây thành phần kiến trúc và tìm kiếm nhanh toàn hệ thống đạt thời gian phản hồi dưới 1 giây. Thuật toán dò vết tất định và kết xuất biểu đồ tuần tự hoàn tất trong thời gian dưới 2 giây đối với các luồng nghiệp vụ có quy mô tối đa 50 bước tương tác.
+
+Kiểm soát dung lượng bộ nhớ hệ thống: Mức tiêu thụ bộ nhớ RAM của máy chủ phân tích trong quá trình quét và xử lý một không gian làm việc quy mô khoảng 2.000 tệp tin nguồn được kiểm soát chặt chẽ ở ngưỡng tối đa không vượt quá 2 GB.
+
+Tối ưu hóa chi phí và độ trễ dịch vụ AI: Áp dụng cơ chế lưu trữ đệm phản hồi theo mã băm đầu vào, đảm bảo mỗi thành phần chỉ tương tác với dịch vụ trí tuệ nhân tạo tối đa một lần cho mỗi phiên bản mã nguồn. Hệ thống hỗ trợ thiết lập hạn mức tài nguyên sử dụng theo ngày và áp dụng cơ chế truyền dữ liệu luồng (SSE), cho phép hiển thị ký tự diễn giải đầu tiên dưới 5 giây đối với yêu cầu mới và dưới 1 giây đối với các nội dung đã có trong bộ nhớ đệm.
+
+Tính tất định của kết quả phân tích: Đối với cùng một phiên bản mã nguồn và cấu hình không gian làm việc, hệ thống cam kết luôn tạo ra cùng một mô hình đồ thị trung gian và biểu đồ tuần tự duy nhất, đảm bảo tính nhất quán tuyệt đối và độc lập hoàn toàn với trí tuệ nhân tạo.
+
+Khả năng chịu lỗi và cơ chế dự phòng tất định: Khi phát hiện tệp tin lỗi cú pháp hoặc cấu trúc không tương thích, hệ thống ghi nhận cảnh báo chẩn đoán riêng và tiếp tục tiến trình phân tích mà không làm gián đoạn toàn bộ phiên quét. Trường hợp mất kết nối mạng hoặc tắt dịch vụ trí tuệ nhân tạo, hệ thống tự động kích hoạt bộ sinh dự phòng tất định, bảo đảm mọi chức năng cốt lõi như dò vết, dựng biểu đồ và kịch bản khung vẫn vận hành đầy đủ.
+
+2.3. Phân tích kiến trúc hệ thống 
+
+Hệ thống được thiết kế theo kiến trúc nguyên khối tổ chức theo chức năng (Package-by-feature), kết hợp phân tách lõi giải thuật độc lập và cơ chế tiến trình phụ trợ (Sidecar CLI), toàn bộ được đóng gói và vận hành cục bộ trong môi trường Docker Compose. Kiến trúc tổng thể được chia thành các tầng thành phần với trách nhiệm và ranh giới rõ ràng như sau:
+
+Tầng Giao diện (Client Layer)
+
+Công nghệ: Angular phiên bản 21 (kiến trúc Standalone Components, cơ chế quản lý trạng thái phản ứng bằng Signals), Angular Material, CDK và bộ dựng đồ họa véc-tơ SVG tự phát triển.
+
+Nhiệm vụ: Xây dựng không gian làm việc trực quan theo bố cục ba cột tương tác: cột trái duyệt cây thành phần giao diện và cây điểm nhận yêu cầu máy chủ; khung vẽ trung tâm trực quan hóa biểu đồ tuần tự tương tác; cột phải hiển thị tab Diễn giải và tab Kịch bản từng bước đồng bộ.
+
+Giao thức: Giao tiếp với máy chủ qua giao thức HTTP/REST chuẩn hóa cho các tác vụ quản trị, truy vấn cây thành phần, dữ liệu dò vết và cơ chế truyền dữ liệu dạng luồng (Server-Sent Events) để cập nhật tiến độ quét mã nguồn cùng nội dung diễn giải theo thời gian thực tại địa chỉ nội bộ
+
+Tầng Trình diễn và Điều phối dịch vụ (Presentation & Application Layer)
+
+Công nghệ: Java 21, Spring Boot
+
+Nhiệm vụ: Tiếp nhận, phân giải và kiểm tra tính hợp lệ của các yêu cầu từ giao diện; quản lý và điều phối các dịch vụ nghiệp vụ chính (quản lý không gian làm việc, quản lý mã nguồn, khám phá cấu trúc, liên kết giao diện – máy chủ, dò vết và diễn giải). Tầng này điều phối đường ống quét mã nguồn qua bảy giai đoạn tuần tự (Discover → Diff → Extract → Resolve → Persist → Link → Finalize), đồng thời áp dụng công cụ ArchUnit để tự động kiểm soát các quy tắc kiến trúc và ngăn chặn vi phạm phụ thuộc giữa các khối chức năng.
+
+Tầng phân tích tĩnh và Dò vết (Analysis Core & Tracing Layer)
+
+Công nghệ: Java, thư viện JavaParser, cơ chế luồng áo (Virtual Threads) 
+
+Nhiệm vụ: phân tích cú pháp tĩnh mã nguồn Java/Spring Boot, giải quyết cơ chế tiêm phụ thuộc (Dependency Injection) và nhận diện các tác vụ truy vấn dữ liệu. Tầng này đảm nhiệm thuật toán liên kết đường dẫn (Linker) giữa hai nền tảng, thuật toán dò vết luồng nghiệp vụ (Tracer) trên đồ thị với cơ chế kiểm soát vòng lặp (CycleGuard), tự động bóc tách các khối điều kiện rẽ nhánh (alt, opt) và chuyển đổi kết quả thành mô hình hiển thị biểu đồ tuần tự cùng kịch bản khung.
+
+Tầng tiến trình phân tích phụ trợ (Sidecar Analyzer Layer)
+
+Mô tả: Node.js 22, TypeScript Compiler API, @angular/compiler.
+
+Nhiệm vụ: Đóng vai trò là tiến trình dòng lệnh không trạng thái được máy chủ kích hoạt khi cần phân tích mã nguồn giao diện Angular. Tiến trình bóc tách cấu trúc thành phần, cấu hình định tuyến, bảng ký hiệu, các bộ lắng nghe sự kiện trên màn hình và các điểm gọi dịch vụ mạng (HttpClient), sau đó chuyển đổi kết quả thành phân mảnh đồ thị trung gian định dạng JSON trả về cho máy chủ theo hợp đồng dữ liệu chuẩn hóa.
+
+Tầng Dữ liệu và Mô hình đồ thị trung gian (Database & IR Layer)
+
+Công nghệ: PostgreSQL 16, Spring Data JPA, JdbcClient, Flyway
+
+Nhiệm vụ: Lưu trữ vĩnh viễn cấu hình không gian làm việc, danh mục tệp tin, lịch sử quét, các liên kết chốt tay và toàn bộ mô hình đồ thị trung gian độc lập công nghệ. Tầng này sử dụng JdbcClient để thực thi cơ chế ghi dữ liệu theo lô lớn (batch write) nhằm tối ưu hóa hiệu năng lưu trữ đồ thị hàng chục nghìn bản ghi, kết hợp kiểu dữ liệu JSONB và chỉ mục tìm kiếm toàn văn để phục vụ tra cứu nhanh chóng
+
+Thành phần: 
+
+Repositories: truy xuất dữ liệu từ PostgreSQL qua TypeORM
+
+Job Queue / EventBus vận hành bởi BullMQ trên nền Redis xử lý tác vụ nền và phát/nhận domain event giữa các module
+
+Redis Buffer / Session Registry có tác dụng lưu đệm transcript và theo dõi các phiên Live đang hoạt động
+
+Local Audio Storage lưu tạm file âm thanh vật lý trong lúc đang ghi âm trực tiếp
+
+VAD Adapter phân tích khoảng lặng để cắt luồng âm thanh thành từng khối hội thoại hoàn chỉnh, áp dụng cho cả luồng Streaming lẫn Batching
+
+Object Storage Adapter đẩy file âm thanh hoàn chỉnh lên hạ tầng lưu trữ đối tượng sau khi xử lý xong
+
+AI Service Adapter gọi API sang dịch vụ AI bên thứ ba để chuyển giọng nói thành văn bản và trích xuất đặc trưng giọng nói
+
+LLM Adapter gọi mô hình ngôn ngữ lớn để sinh tóm tắt biên bản
+
+Mailer Adapter gửi email qua SMTP
+
+PDF Exporter xuất biên bản ra định dạng tài liệu PDF
+
+Tầng Cổng giao tiếp Trí tuệ nhân tạo (AI Gateway Layer)
+
+Công nghệ: Spring AI.
+
+Nhiệm vụ: Đóng vai trò cầu nối an toàn hỗ trợ các mục đích phụ trợ: tóm tắt mục đích nghiệp vụ (80–100 từ), làm mượt lời kể kịch bản từng bước, sinh dữ liệu mẫu minh họa từ cấu trúc đối tượng truyền tải dữ liệu và phân tích lý do khi liên kết chưa chắc chắn. Tầng này tích hợp bộ lọc tự động che giấu thông tin nhạy cảm, lưu trữ đệm phản hồi theo mã băm đầu vào, kiểm duyệt cấu trúc dữ liệu đầu ra qua JSON Schema và duy trì bộ sinh dữ liệu dự phòng tất định giúp hệ thống vận hành bình thường ngay cả khi không có kết nối mạng.
+
+Hệ thống ngoài (External Systems)
+
+Thành phần: Thư mục mã nguồn dự án trên máy tính cá nhân (SOURCE_ROOT) và dịch vụ mô hình ngôn ngữ lớn (Google Gemini API).
+
+Nhiệm vụ: Thư mục mã nguồn dự án được gắn kết vào ứng dụng theo quyền chỉ đọc (read-only) để phục vụ phân tích tĩnh mà không biên dịch, không cài đặt thư viện ngoài và không can thiệp vào mã nguồn gốc hay cơ sở dữ liệu thực tế của dự án; dịch vụ Google Gemini tiếp nhận các trích đoạn văn bản kỹ thuật đã được làm sạch để trả về nội dung diễn giải bổ trợ.
+
+Hình 2. Sơ đồ kiến trúc phân tầng của hệ thống
+
+III. Kết quả thực hiện và đánh giá
+
+1. Xây dựng Backend và cơ sở dữ liệu
+
+1.1. Tổng quan kiến trúc Backend
+
+Phần máy chủ phân tích trung tâm (Analysis Engine) của hệ thống được phát triển trên nền tảng Java 21 và Spring Boot, triển khai theo mô hình đơn khối tổ chức theo chức năng (Package-by-feature) kết hợp phân tách lõi giải thuật độc lập. Toàn bộ mã nguồn máy chủ được cấu trúc thành các gói chức năng độc lập theo từng miền nghiệp vụ cụ thể gồm: workspace (quản lý không gian làm việc và nguồn mã), scan (quản lý đường ống quét mã nguồn), graph (lưu trữ và khám phá mô hình đồ thị trung gian), linking (liên kết giao diện và máy chủ), tracing (dò vết và dựng biểu đồ tuần tự), explanation (diễn giải nghiệp vụ và sinh kịch bản) và ai (quản trị cổng kết nối trí tuệ nhân tạo). Trong mỗi gói chức năng, mã nguồn tuân thủ chặt chẽ mô hình phân tầng hướng đối tượng tiêu chuẩn: Controller → Service → Repository → Entity/DTO. Tầng Controller đóng vai trò lớp tiếp nhận mỏng, chỉ thực hiện phân giải và kiểm tra tính hợp lệ của dữ liệu đầu vào thông qua các quy chuẩn ràng buộc trước khi ủy thác cho tầng Service xử lý; tầng Service đảm nhiệm toàn bộ logic nghiệp vụ, trong khi tầng Repository phụ trách các thao tác dữ liệu tương ứng. Nhằm bảo đảm tính cô lập và toàn vẹn kiến trúc, hệ thống tích hợp công cụ kiểm định ArchUnit để tự động ngăn chặn mọi hành vi truy cập chéo trái phép giữa các gói chức năng, cưỡng chế quy tắc chỉ cho phép tương tác thông qua các giao diện Service công khai và cấm hoàn toàn việc sử dụng trực tiếp Repository hay Entity của gói khác.
+
+Điểm đột phá trong thiết kế kiến trúc Backend của đề tài là sự phân tách triệt để giữa tầng ứng dụng dịch vụ (flowtracer-app) và khối lõi phân tích cú pháp tĩnh thông qua cấu trúc đa mô-đun Maven. Các mô-đun lõi bao gồm flowtracer-ir (định nghĩa cấu trúc mô hình dữ liệu đồ thị trung gian), flowtracer-adapter-spring (bộ phân tích cú pháp mã nguồn Spring Boot) và flowtracer-core (chứa các thuật toán liên kết, dò vết và xuất biểu đồ) được xây dựng hoàn toàn bằng ngôn ngữ Java thuần túy. Khối lõi này hoạt động độc lập tuyệt đối với Spring Framework, không truy cập cơ sở dữ liệu, không giao tiếp mạng và không tự ý đọc ghi tệp tin trực tiếp. Cơ chế phân tích tĩnh phía máy chủ khai thác thư viện JavaParser kết hợp cơ chế luồng ảo (Virtual Threads) để phân tích cú pháp mã nguồn Java mà không đòi hỏi nạp môi trường thực thi hay phụ thuộc vào đường dẫn thư viện (classpath) của dự án. Dữ liệu sau khi trích xuất được đưa qua hệ thống danh bạ lớp (ClassIndex) để phân giải cơ chế tiêm phụ thuộc (Dependency Injection), nhận diện mối quan hệ giữa giao diện và lớp cài đặt, đồng thời bóc tách các thao tác truy vấn Spring Data JPA hay các câu lệnh SQL/JPQL ghép động. Dựa trên đồ thị trung gian, thuật toán liên kết và thuật toán dò vết thực thi việc duyệt đường đi một cách tuần tự, tích hợp bộ kiểm soát vòng lặp giới hạn độ sâu tối đa 12 tầng và cơ chế tự động rút gọn bước lặp mà không làm suy giảm các nhánh ngoại lệ nghiệp vụ, bảo đảm kết quả sinh biểu đồ tuần tự luôn đạt tính tất định hoàn đối.
+
+Để giải quyết bài toán phân tích mã nguồn giao diện người dùng Angular vốn sử dụng hệ sinh thái TypeScript và cú pháp mẫu đặc thù, Backend thiết lập cơ chế điều phối tiến trình phân tích phụ trợ (Sidecar CLI Node Analyzer) hoạt động song song. Tiến trình phụ trợ được xây dựng trên nền tảng Node.js 22 và TypeScript, khai thác trực tiếp TypeScript Compiler API cùng trình phân tích mẫu @angular/compiler nhằm bóc tách toàn diện cấu trúc thành phần, hệ thống định tuyến (routes), các bộ lắng nghe sự kiện trên màn hình và các điểm gọi dịch vụ mạng. Tiến trình này được vận hành theo cơ chế công cụ dòng lệnh không trạng thái (stateless CLI): khi đường ống quét kích hoạt, tầng dịch vụ của máy chủ sẽ gọi tiến trình phụ trợ thông qua dòng lệnh kèm đường dẫn thư mục nguồn. Hai tiến trình thiết lập giao tiếp thông qua hợp đồng dữ liệu JSON Schema chuẩn hóa đặt tại thư mục hợp đồng chung (contracts/). Tiến trình phụ trợ sau khi hoàn tất công tác bóc tách cú pháp sẽ kết xuất phân mảnh đồ thị trung gian dạng JSON và tự động kết thúc; máy chủ trung tâm tiến hành kiểm tra tính toàn vẹn cấu trúc của dữ liệu đầu ra trước khi tích hợp vào mô hình đồ thị tổng thể của dự án.
+
+Đường ống quét mã nguồn tĩnh (Scan Pipeline) tại tầng dịch vụ đóng vai trò là xương sống điều phối toàn bộ chu trình xử lý dữ liệu qua sáu giai đoạn tuần tự: Discover → Diff → Extract → Resolve → Persist → Link. Nhằm tối ưu hóa hiệu năng, hệ thống áp dụng cơ chế quét tăng dần dựa trên việc so sánh mã băm nội dung của từng tệp tin với dữ liệu lịch sử; các tệp không thay đổi sẽ được tái sử dụng dữ kiện phân tích lưu đệm trên ổ đĩa giúp giảm thiểu tối đa thời gian xử lý. Về phương diện lưu trữ, hệ thống sử dụng PostgreSQL 16 làm cơ sở dữ liệu quan hệ trung tâm, quản lý lược đồ phân phiên bản bằng Flyway. Đối với các thực thể quản trị cấu hình thông thường (như không gian làm việc hay nguồn mã), hệ thống sử dụng Spring Data JPA để thuận tiện cho việc ánh xạ đối tượng. Tuy nhiên, đối với dữ liệu đồ thị trung gian gồm bảng đỉnh ir_nodes và bảng cạnh ir_edges vốn phát sinh khối lượng lên tới hàng chục nghìn bản ghi sau mỗi phiên quét, hệ thống chuyển giao toàn bộ tác vụ ghi dữ liệu cho công cụ JdbcClient. Việc thực thi cơ chế ghi dữ liệu theo lô lớn (batch write) bên trong một giao dịch cơ sở dữ liệu duy nhất đã giải quyết triệt để nút thắt cổ chai về hiệu năng I/O, hạn chế hiện tượng tràn bộ nhớ heap và bảo đảm tính toàn vẹn dữ liệu khi có sự cố phát sinh.
+
+Bên cạnh đó, kiến trúc Backend thiết lập tầng cổng giao tiếp Trí tuệ nhân tạo (AiGateway) độc lập vận hành trên khung tích hợp Spring AI, giao tiếp với mô hình Google Gemini thông qua giao diện trừu tượng LlmProvider. Tầng này tuân thủ nguyên tắc an toàn kiến trúc nghiêm ngặt: trí tuệ nhân tạo tuyệt đối không tham gia vào tiến trình xây dựng đồ thị hay vẽ biểu đồ luồng. Mọi yêu cầu trước khi chuyển tiếp ra bên ngoài đều phải đi qua bộ lọc làm sạch thông tin nhạy cảm để loại bỏ toàn bộ mật khẩu, khóa bí mật và chuỗi kết nối cơ sở dữ liệu. Hệ thống áp dụng cơ chế lưu trữ đệm phản hồi theo mã băm đầu vào trên bảng ai_artifacts nhằm ngăn ngừa việc gọi lặp lại đối với các đoạn mã không đổi, đồng thời áp dụng kiểm duyệt cấu trúc phản hồi bằng JSON Schema. Khi hệ thống mất kết nối mạng hoặc người dùng chủ động tắt dịch vụ AI, tầng xử lý tự động kích hoạt bộ sinh dự phòng tất định, bảo đảm toàn bộ các chức năng diễn giải kịch bản, trích xuất ràng buộc và sinh dữ liệu mẫu vẫn duy trì hoạt động bình thường và ổn định.
+
+1.2. Thiết kế Cơ sở dữ liệu
+
+1.2.1. Danh sách các thực thể:
+
+Users:  Lưu thông tin tài khoản người dùng (cả User và Admin), phục vụ xác thực, phân quyền và hiển thị hồ sơ cá nhân.
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính, định danh duy nhất tài khoản
+
+email
+
+VARCHAR(255)
+
+Email đăng nhập, duy nhất, không cho sửa sau khi tạo
+
+password_hash
+
+VARCHAR(255)
+
+Mật khẩu đã băm (bcrypt/argon2)
+
+full_name
+
+VARCHAR(255)
+
+Họ tên hiển thị
+
+employee_id
+
+VARCHAR(50)
+
+Mã định danh nhân viên, duy nhất, không cho sửa sau khi tạo
+
+avatar_url
+
+VARCHAR(500)
+
+Đường dẫn ảnh đại diện (lưu trên Object Storage)
+
+role
+
+ENUM('USER', 'ADMIN')
+
+Vai trò phân quyền
+
+department_id
+
+UUID (FK)
+
+Phòng ban trực thuộc, tham chiếu Department.id
+
+is_active
+
+BOOLEAN
+
+Trạng thái hoạt động (false = đã bị vô hiệu hóa)
+
+created_at
+
+TIMESTAMP
+
+Thời điểm tạo tài khoản
+
+updated_at
+
+TIMESTAMP
+
+Thời điểm cập nhật gần nhất
+
+Departments:  Lưu danh sách phòng ban, phục vụ phân loại và giới hạn phạm vi truy cập dữ liệu của User theo đơn vị.
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính, định danh duy nhất phòng ban
+
+name
+
+VARCHAR(255)
+
+Tên phòng ban, duy nhất trong số các phòng ban còn hoạt động
+
+address
+
+VARCHAR(500)
+
+Địa chỉ văn phòng của phòng ban
+
+description
+
+TEXT (nullable)
+
+Mô tả chức năng/nhiệm vụ của phòng ban
+
+deleted_at
+
+TIMESTAMP (nullable)
+
+Thời điểm xóa mềm; NULL nếu còn hoạt động
+
+created_at
+
+TIMESTAMP
+
+Thời điểm tạo phòng ban
+
+updated_at
+
+TIMESTAMP
+
+Thời điểm cập nhật gần nhất
+
+RefreshTokens:  Lưu các refresh token đã cấp cho User, phục vụ làm mới access token và cho phép thu hồi (revoke) khi đăng xuất.
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính
+
+user_id
+
+UUID (FK)
+
+Tài khoản sở hữu token, tham chiếu User.id
+
+token_hash
+
+VARCHAR(255)
+
+Giá trị token đã băm (không lưu token gốc)
+
+is_revoked
+
+BOOLEAN
+
+Đã bị thu hồi (logout) hay chưa, mặc định false
+
+expires_at
+
+TIMESTAMP
+
+Thời điểm hết hạn
+
+created_at
+
+TIMESTAMP
+
+Thời điểm cấp token
+
+PasswordResetOTPs:  Lưu mã OTP tạm thời phục vụ quy trình quên mật khẩu, kèm thời hạn sử dụng
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính
+
+user_id
+
+UUID (FK)
+
+Tài khoản yêu cầu đặt lại mật khẩu, tham chiếu User.id
+
+otp_code
+
+VARCHAR(10)
+
+Mã OTP đã sinh
+
+is_used
+
+BOOLEAN
+
+Đã được sử dụng để đặt lại mật khẩu hay chưa, mặc định false
+
+expires_at
+
+TIMESTAMP
+
+Thời điểm hết hạn của mã OTP
+
+created_at
+
+TIMESTAMP
+
+Thời điểm sinh mã
+
+Meetings:  Lưu thông tin cuộc họp, là thực thể trung tâm của hệ thống, áp dụng cho cả luồng tạo trực tiếp (Live) và tạo từ file audio (Upload).
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính, định danh duy nhất cuộc họp
+
+title
+
+VARCHAR(255)
+
+Tên cuộc họp
+
+description
+
+TEXT (nullable)
+
+Mô tả nội dung cuộc họp
+
+type
+
+ENUM('LIVE', 'UPLOAD')
+
+Cách cuộc họp được tạo ra: ghi âm trực tiếp hay tải lên file audio có sẵn
+
+host_id
+
+UUID (FK)
+
+Người tạo/chủ trì cuộc họp, tham chiếu User.id
+
+department_id
+
+UUID (FK)
+
+Phòng ban sở hữu cuộc họp, tham chiếu Department.id
+
+status
+
+ENUM('LIVE', 'PROCESSING', 'COMPLETED')
+
+Trạng thái xử lý hiện tại của cuộc họp
+
+audio_url
+
+VARCHAR(500) (nullable)
+
+Đường dẫn file audio hoàn chỉnh trên Object Storage; NULL trong lúc đang ghi âm/xử lý, chỉ có giá trị khi hoàn tất
+
+duration_seconds
+
+INTEGER (nullable)
+
+Tổng thời lượng audio (giây); NULL nếu chưa xử lý xong, phục vụ thống kê Dashboard
+
+is_locked
+
+BOOLEAN
+
+Trạng thái khóa biên bản, mặc định false (Fixed/Editable)
+
+deleted_at
+
+TIMESTAMP (nullable)
+
+Thời điểm xóa mềm; NULL nếu còn hiển thị
+
+started_at
+
+TIMESTAMP (nullable)
+
+Thời điểm bắt đầu phiên live (chỉ áp dụng luồng Live)
+
+ended_at
+
+TIMESTAMP (nullable)
+
+Thời điểm kết thúc/hoàn tất xử lý
+
+created_at
+
+TIMESTAMP
+
+Thời điểm tạo bản ghi cuộc họp
+
+updated_at
+
+TIMESTAMP
+
+Thời điểm cập nhật gần nhất
+
+TranscriptBlocks:  Lưu từng khối nội dung biên bản đã được chuyển đổi, kèm thông tin người nói và mốc thời gian, phục vụ hiển thị đồng bộ với audio.
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính
+
+meeting_id
+
+UUID (FK)
+
+Cuộc họp sở hữu block này, tham chiếu Meeting.id
+
+sequence_number
+
+INTEGER
+
+Số thứ tự block trong cuộc họp, tăng dần, phục vụ reconnect và sắp xếp hiển thị
+
+text
+
+TEXT
+
+Nội dung văn bản đã chuyển đổi
+
+speaker_label
+
+VARCHAR(100)
+
+Nhãn người nói (vd "Speaker A", hoặc tên đã được Host gán)
+
+start_time
+
+FLOAT
+
+Thời điểm bắt đầu của đoạn audio tương ứng (giây, tính từ đầu cuộc họp)
+
+end_time
+
+FLOAT
+
+Thời điểm kết thúc của đoạn audio tương ứng (giây)
+
+created_at
+
+TIMESTAMP
+
+Thời điểm tạo bản ghi
+
+MeetingSummarys:  Lưu kết quả tóm tắt biên bản đã được AI sinh ra, đóng vai trò cache để tránh phải gọi lại AI cho mỗi lần xem.
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính
+
+meeting_id
+
+UUID (FK, UNIQUE)
+
+Cuộc họp được tóm tắt, tham chiếu Meeting.id, mỗi cuộc họp chỉ có 1 bản tóm tắt (quan hệ 1-1)
+
+summary_text
+
+TEXT
+
+Nội dung tóm tắt do AI sinh ra, mặc định rỗng, được cập nhật khi xử lý xong
+
+status
+
+ENUM('PROCESSING', 'COMPLETED')
+
+Trạng thái xử lý tóm tắt, mặc định 'PROCESSING' (phục vụ cơ chế trả 202/200)
+
+created_at
+
+TIMESTAMP
+
+Thời điểm bắt đầu trigger tóm tắt
+
+updated_at
+
+TIMESTAMP
+
+Thời điểm hoàn tất/cập nhật tóm tắt
+
+Notification:  Lưu thông báo gửi tới từng User khi có sự kiện liên quan tới cuộc họp thuộc phòng ban của họ (tạo mới, đổi trạng thái, xóa, khôi phục, điều chuyển phòng ban...)
+
+Thuộc tính
+
+Kiểu dữ liệu
+
+Mô tả
+
+id
+
+UUID
+
+Khóa chính
+
+user_id
+
+UUID (FK)
+
+Người nhận thông báo, tham chiếu User.id
+
+actor_id
+
+UUID (FK, nullable)
+
+Người thực hiện hành động gây ra sự kiện, tham chiếu User.id; NULL nếu là sự kiện hệ thống tự động
+
+meeting_id
+
+UUID (FK, nullable)
+
+Cuộc họp liên quan tới thông báo, tham chiếu Meeting.id; có thể NULL
+
+type
+
+ENUM('MEETING_CREATED', 'MEETING_STATUS_CHANGED', 'MEETING_INFO_UPDATED', 'MEETING_DELETED', 'MEETING_RESTORED', 'MEETING_DEPT_CHANGED')
+
+Loại sự kiện gây ra thông báo
+
+title
+
+VARCHAR(255)
+
+Tiêu đề ngắn gọn hiển thị ở đầu thông báo
+
+message
+
+VARCHAR(500)
+
+Nội dung hiển thị cho User (vd "Cuộc họp X đã hoàn tất"), hỗ trợ định dạng in đậm bằng cú pháp **...**
+
+redirect_url
+
+TEXT (nullable)
+
+Đường dẫn điều hướng khi người dùng click vào thông báo; NULL nếu không có
+
+is_read
+
+BOOLEAN
+
+Đã đọc hay chưa, mặc định false
+
+created_at
+
+TIMESTAMP
+
+Thời điểm tạo thông báo
+
+1.2.2. Mối quan hệ giữa các thực thể:
+
+Thực thể A
+
+Thực thể B
+
+Loại quan hệ
+
+Khóa ngoại
+
+Department
+
+User
+
+1 – N
+
+department_id
+
+Department
+
+Meeting
+
+1 – N
+
+department_id
+
+User
+
+Meeting
+
+1 – N
+
+host_id
+
+User
+
+RefreshToken
+
+1 – N
+
+user_id
+
+User
+
+PasswordResetOTP
+
+1 – N
+
+user_id
+
+Meeting
+
+TranscriptBlock
+
+1 – N
+
+meeting_id
+
+Meeting
+
+MeetingSummary
+
+1 – 1
+
+meeting_id
+
+User
+
+Notification
+
+1 – N
+
+user_id
+
+User
+
+Notification
+
+1 – N
+
+actor_id
+
+Meeting
+
+Notification
+
+1 – N
+
+meeting_id
+
+1.2.3. Thiết kế cơ sở dữ liệu:
+
+Hình 3. Thiết kế cơ sở dữ liệu
+
+1.3. Danh sách API
+
+Nhóm A: Xác thực & Quản lý thông tin cá nhân
+
+STT
+
+Tên API
+
+URL / URI
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Đăng nhập
+
+POST /auth/login
+
+email, password
+
+access_token (JWT), refresh_token, hồ sơ user + role
+
+Xác thực tài khoản, cấp JWT chứa payload phân quyền.
+
+2
+
+Làm mới token
+
+POST /auth/refresh
+
+refresh_token
+
+access_token mới (+ refresh_token xoay vòng)
+
+Cơ chế Token Rotation, duy trì phiên đăng nhập bảo mật.
+
+3
+
+Đăng xuất
+
+POST /auth/logout
+
+refreshToken (body)
+
+200 OK + thông báo
+
+Route Public (không cần Bearer); thu hồi (Revoke) hoàn toàn refresh_token trong cơ sở dữ liệu.
+
+4
+
+Gửi OTP quên mật khẩu
+
+POST /auth/forgot-password
+
+email
+
+200 OK + thông báo gửi
+
+Sinh mã OTP ngẫu nhiên, lưu kèm thời hạn TTL và gửi email.
+
+5
+
+Xác thực OTP & đặt mật khẩu
+
+POST /auth/reset-password
+
+email, otp_code, new_password
+
+200 OK + thông báo thành công
+
+Kiểm tra OTP hợp lệ và còn hạn, tiến hành ghi mật khẩu băm mới.
+
+6
+
+Đổi mật khẩu
+
+PATCH /users/me/password
+
+old_password,new_password
+
+200 OK + thông báo thành công
+
+Xác thực mật khẩu cũ của tài khoản, cập nhật mật khẩu mới.
+
+7
+
+Lấy hồ sơ cá nhân
+
+GET /users/me
+
+Bearer token (Không body)
+
+Thông tin chi tiết user hồ sơ
+
+Trích xuất thông tin định danh của tài khoản đang đăng nhập.
+
+8
+
+Cập nhật avatar
+
+PATCH /users/me/avatar
+
+file (file ảnh, multipart — field name = file)
+
+Thông tin user đã cập nhật avatar_url
+
+Tải ảnh lên Object Storage (MinIO), cập nhật đường dẫn avatar mới.
+
+Nhóm B: Quản lý & Tra cứu cuộc họp (Theo phòng ban)
+
+STT
+
+Tên API
+
+URL / URI
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Lấy danh sách cuộc họp
+
+GET /meetings
+
+page, limit, status, fromDate, toDate
+
+Danh sách Meeting thuộc phòng ban (phân trang)
+
+Hiển thị các cuộc họp nội bộ phòng ban. 
+
+2
+
+Tìm kiếm cuộc họp theo tên
+
+GET /meetings/search
+
+keyword
+
+Danh sách Meeting khớp từ khóa
+
+Tìm kiếm nhanh cuộc họp theo trường tiêu đề trong đơn vị (Admin tìm toàn hệ thống).
+
+3
+
+Lấy chi tiết cuộc họp
+
+GET /meetings/:id
+
+meeting_id (param)
+
+Thông tin Meeting tổng quan + audio_url
+
+Lấy metadata cuộc họp và link file ghi âm gốc; audio_url hỗ trợ streaming tua bài qua HTTP Range Request.
+
+4
+
+Lấy transcript cuộc họp
+
+GET /meetings/:id/transcript
+
+meeting_id (param)
+
+Danh sách TranscriptBlock mảng
+
+Lấy toàn bộ các khối hội thoại biên bản phục vụ render hiển thị đồng bộ theo mốc thời gian của audio player.
+
+5
+
+Kiểm tra tiến độ bóc băng
+
+GET /meetings/:id/upload-progress
+
+meeting_id (param)
+
+status, percent, stage, totalSegments, processedSegments
+
+Poll tiến độ xử lý nền của cuộc họp Upload (khi load lại trang / quay về màn chi tiết).
+
+6
+
+Xóa mềm cuộc họp
+
+DELETE /meetings/:id
+
+meeting_id (param)
+
+200 OK + thông báo thành công
+
+Cập nhật trường deleted_at của bản ghi. User thường chỉ được xóa cuộc họp do mình tạo.
+
+Nhóm C: Quản trị hệ thống cuộc họp (Đặc quyền Admin)
+
+STT
+
+Tên API
+
+URL / URI
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Lấy danh sách tổng thể
+
+GET /admin/meetings
+
+page, limit, departmentId, status, fromDate, toDate, deletedStatus (all/active/deleted)
+
+Toàn bộ danh sách Meeting của toàn hệ thống
+
+Giám sát xuyên suốt toàn bộ hoạt động họp hành của các phòng ban.
+
+2
+
+Cập nhật thông tin cuộc họp
+
+PATCH /admin/meetings/:id
+
+param: id; body: title, description, departmentId
+
+Meeting bản ghi đã cập nhật
+
+Điều chỉnh dữ liệu thông tin cơ bản khi có sai sót; tự động phát Domain Event để kích hoạt thông báo cho User thuộc phòng ban liên quan (điều chuyển phòng ban → bắn cho cả phòng ban cũ và mới).
+
+3
+
+Khôi phục cuộc họp đã xóa
+
+POST /admin/meetings/:id/restore
+
+meeting_id (param)
+
+200 OK + thông báo
+
+Hoàn tác trạng thái xóa mềm bằng cách đưa trường deleted_at về lại giá trị NULL.
+
+4
+
+Cập nhật trạng thái khóa
+
+PATCH /admin/meetings/:id/lock
+
+param: id; body: isLocked (boolean)
+
+Meeting bản ghi đã cập nhật
+
+Đóng hoặc mở trạng thái chỉnh sửa của biên bản cuộc họp (is_locked) nhằm bảo vệ tính pháp lý dữ liệu sau khi chốt.
+
+Nhóm D: Quản lý Người dùng và Phòng ban (Đặc quyền Admin)
+
+STT
+
+Tên API
+
+URL / URI
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Lấy danh sách user
+
+GET /admin/users
+
+page, limit, departmentId, isActive, keyword
+
+Danh sách User hệ thống (phân trang)
+
+Liệt kê tài khoản nhân viên phục vụ quản trị phân quyền.
+
+2
+
+Tạo tài khoản mới
+
+POST /admin/users
+
+email, fullName, employeeId, departmentId, role
+
+Đối tượng User vừa tạo
+
+Khởi tạo tài khoản mới. Không nhận password — hệ thống tự sinh mật khẩu ngẫu nhiên và gửi qua Mailer.
+
+3
+
+Cập nhật thông tin user
+
+PATCH /admin/users/:id
+
+param: id; body: role, departmentId
+
+Bản ghi User đã cập nhật
+
+Điều chỉnh vai trò hoặc điều chuyển phòng ban công tác
+
+4
+
+Cập nhật trạng thái hoạt động
+
+PATCH /admin/users/:id/status
+
+param: id; body: isActive (boolean)
+
+200 OK + thông báo
+
+Chặn hoặc khôi phục quyền truy cập. Khi isActive = false, hệ thống tự động thu hồi (revoke) toàn bộ refresh token.
+
+5
+
+Lấy danh sách phòng ban
+
+GET /admin/departments
+
+page, limit, name, status (all/active/deleted)
+
+Danh sách các Department (kèm userCount)
+
+Liệt kê cấu trúc phòng ban. Mặc định FE lọc trạng thái active.
+
+6
+
+Tạo phòng ban mới
+
+POST /admin/departments
+
+name, address, description
+
+Đối tượng Department vừa tạo
+
+Thiết lập và khởi tạo một phòng ban mới trên hệ thống.
+
+7
+
+Cập nhật thông tin phòng ban
+
+PATCH /admin/departments/:id
+
+param: id; body: name, address, description
+
+Bản ghi Department đã cập nhật
+
+Chỉnh sửa metadata của phòng ban, tích hợp check UNIQUE trường tên với phòng ban đang hoạt động khác.
+
+8
+
+Xóa mềm phòng ban
+
+DELETE /admin/departments/:id
+
+department_id (param)
+
+200 OK xóa thành công
+
+Soft-delete phòng ban. Hệ thống bắt buộc trả mã lỗi 409 Conflict nếu số lượng nhân sự active trực thuộc phòng ban lớn hơn 0.
+
+9
+
+Khôi phục phòng ban đã xóa
+
+POST /admin/departments/:id/restore
+
+department_id (param)
+
+Đối tượng Department khôi phục
+
+Hoàn tác xóa mềm phòng ban bằng cách xóa giá trị trường deleted_at.
+
+Nhóm E: Thống kê & Báo cáo (Đặc quyền Admin)
+
+STT
+
+Tên API
+
+URL / URI
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Lấy chỉ số tổng quan
+
+GET /admin/dashboard/kpis
+
+month, year (tùy chọn)
+
+KPIs: totalMeetings, totalAudioHours, activeUsers, avgMinutesPerMeeting + các giá trị kỳ trước (prev*)
+
+Trả số liệu 4 thẻ KPI + giá trị kỳ trước để FE tính % / chênh lệch. Đơn vị thẻ 4 là TB phút / cuộc họp.
+
+2
+
+Lấy dữ liệu xu hướng
+
+GET /admin/dashboard/trends
+
+year, departmentId (tùy chọn)
+
+Mảng dữ liệu xu hướng của 12 tháng (meetings, audioHours)
+
+Tổng hợp số lượng cuộc họp và thời lượng theo từng tháng; hỗ trợ lọc riêng theo phòng ban.
+
+3
+
+Lấy xếp hạng phòng ban
+
+GET /admin/dashboard/department-ranking
+
+month, year (tùy chọn)
+
+Danh sách phòng ban kèm số cuộc họp + giờ audio (sắp xếp giảm dần)
+
+Thống kê các phòng ban hoạt động nhiều nhất; phòng ban 0 cuộc họp vẫn xuất hiện.
+
+4
+
+Lấy phân bổ nhân sự
+
+GET /admin/dashboard/staff-distribution
+
+month, year (tùy chọn)
+
+Tỷ trọng số User active theo từng phòng ban
+
+Lấy số liệu render biểu đồ tròn (Donut Chart) phân bổ nhân sự doanh nghiệp.
+
+Nhóm F: Tạo mới cuộc họp và thao tác thời gian thực
+
+STT
+
+Tên API
+
+Giao thức & URL
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Tạo cuộc họp live
+
+POST /meetings/live
+
+title, description, departmentId (chỉ Admin)
+
+Đối tượng Meeting (status = LIVE)
+
+Khởi tạo tài nguyên phòng họp live mới.
+
+2
+
+Mở phiên ghi âm
+
+WS namespace /live, event open_session
+
+{ meetingId, token } (gửi trong message body)
+
+emit session_ready hoặc error + ngắt kết nối
+
+Xác thực JWT thủ công, kiểm ngưỡng số phiên Live trên Redis, tạo buffer + VAD instance.
+
+3
+
+Truyền nhận dữ liệu âm thanh
+
+WS event audio_chunk
+
+{ meetingId, audio } (PCM binary)
+
+emit transcript_update
+
+Phát luồng byte âm thanh liên tục; ghi nối tiếp file tạm local, VAD ngắt đoạn theo khoảng lặng, gọi song song Speech2Text (ASR Sherpa) + Speaker Embedding, chạy diarization (cosine similarity) và bắn trả TranscriptBlock hoàn chỉnh realtime. 
+
+4
+
+Cập nhật nhãn người nói
+
+WS event edit_speaker
+
+{ meetingId, fromSequence, oldLabel, newLabel }
+
+emit speaker_updated
+
+Đổi nhãn người nói trong phiên live, áp dụng cho các phát biểu tiếp theo.
+
+5
+
+Kết thúc phiên live
+
+WS event end_session
+
+{ meetingId }
+
+emit session_ended; Meeting status = COMPLETED, audio_url
+
+Đóng file audio tạm local → upload MinIO → lưu URL vào DB → bulkSave transcript → dọn buffer Redis + xóa file tạm.
+
+6
+
+Resume phiên live
+
+WS event resume
+
+{ meetingId, token, lastReceivedSequence }
+
+emit resume_ok kèm missedBlocks[]
+
+Khôi phục kết nối khi rớt mạng: hủy job timeout, bù các block bị lỡ từ buffer Redis. Có cơ chế timeout tự kết thúc cuộc họp nếu quá hạn không resume.
+
+7a
+
+Upload — khởi tạo (presigned)
+
+POST /meetings/upload/init
+
+title, description, departmentId (Admin), startedAt, filename, filesize
+
+{ meetingId, presignedUrl }
+
+Tạo Meeting PROCESSING + cấp presigned PUT URL để browser upload thẳng audio lên MinIO.
+
+7b
+
+Upload — hoàn tất
+
+POST /meetings/upload/complete
+
+{ meetingId }
+
+Đối tượng Meeting (status = PROCESSING)
+
+Báo đã upload xong → đẩy job BullMQ transcription-batch bóc băng nền.
+
+7c
+
+Upload — legacy (multipart)
+
+POST /meetings/upload
+
+title, description, audio_file (multipart), departmentId (Admin)
+
+Đối tượng Meeting (status = PROCESSING)
+
+Upload trực tiếp qua backend (chỉ dùng cho script test); giới hạn MP3/WAV, tối đa 200MB.
+
+8
+
+Kiểm tra tiến độ xử lý audio
+
+GET /meetings/:id/upload-progress
+
+meeting_id (param)
+
+status, percent, stage, totalSegments, processedSegments
+
+Theo dõi tiến độ xử lý của file âm thanh đang bóc băng.
+
+Nhóm G: Tiện ích mở rộng khi xem chi tiết biên bản
+
+STT
+
+Tên API
+
+URL / URI
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Trigger tóm tắt biên bản
+
+POST /meetings/:id/summary
+
+meeting_id (param)
+
+202 Accepted + thông báo
+
+Tạo bản ghi meeting_summaries đẩy job BullMQ gọi LLM (Google Gemini) tóm tắt nền.
+
+2
+
+Lấy bản tóm tắt biên bản
+
+GET /meetings/:id/summary
+
+meeting_id (param)
+
+200 OK kèm summaryText, hoặc 202 (PROCESSING/NOT STARTED)
+
+Poll trạng thái/kết quả tóm tắt: trả 202 nếu đang xử lý, 200 + summaryText khi hoàn tất.
+
+3
+
+Xuất biên bản ra PDF
+
+GET /meetings/:id/export/pdf
+
+meeting_id (param)
+
+File PDF (binary stream)
+
+Dựng biên bản cuộc họp (metadata + transcript) và trả file PDF tải về (pdfkit).
+
+Nhóm H: Nhận và quản lý thông báo
+
+STT
+
+Tên API
+
+URL / URI
+
+Input
+
+Output
+
+Mô tả chức năng
+
+1
+
+Xem danh sách thông báo
+
+GET /notifications
+
+limit, cursorCreatedAt, cursorId (cursor pagination)
+
+items[], hasMore, nextCursor*, unreadCount, totalCount
+
+Trả danh sách thông báo trong icon chuông theo cursor pagination (mới nhất lên đầu), kèm số chưa đọc/tổng số.
+
+2
+
+Đếm số chưa đọc
+
+GET /notifications/unread-count
+
+(theo token)
+
+{ count }
+
+Lấy nhanh số thông báo chưa đọc để hiển thị badge trên chuông.
+
+3
+
+Đánh dấu thông báo đã đọc
+
+PATCH /notifications/:id/read
+
+notification_id (param)
+
+200 OK + thông báo
+
+Chuyển trạng thái của một thông báo cụ thể thành is_read = true.
+
+4
+
+Đánh dấu tất cả đã đọc
+
+PATCH /notifications/read-all
+
+(Không cần input, ăn theo token)
+
+200 OK + thông báo
+
+Cập nhật đồng loạt toàn bộ thông báo chưa đọc của User thành đã đọc.
+
+1.4. Biểu đồ tuần tự các chức năng cốt lõi
+
+Lưu ý: các biểu đồ tuần tự đã được cắt giảm phần lớn các thành phần tham gia trong Frontend và Backend nhằm đảm bảo khả năng tiếp nhận thông tin từ biểu đồ của người đọc vẫn đủ để hiểu luồng hoạt động mà không quá tải số bước và số thành phần tham gia thực tế.
+
+1.4.1 Chức năng lõi 1: Tạo phiên họp trực tuyến và chuyển đổi cuộc họp thời gian thực
+
+Phase A: Khởi tạo cuộc họp Live
+
+Bước 1: User điền thông tin cuộc họp, chọn chế độ "Live" và bấm "Tạo" trên Frontend.
+
+Bước 2: Frontend gửi yêu cầu tạo cuộc họp trực tuyến mới đến Backend.
+
+Bước 3: Backend tự xác thực người dùng và kiểm tra số phiên Live đang chạy chưa vượt ngưỡng cho phép.
+
+Bước 4: Backend lưu cuộc họp mới với trạng thái "" vào PostgreSQL.
+
+Bước 5: PostgreSQL xác nhận đã lưu thành công cho Backend.
+
+Bước 6: Backend tự gửi thông báo tới các thành viên phòng ban về cuộc họp mới.
+
+Bước 7: Backend trả về thông tin cuộc họp vừa tạo cho Frontend.
+
+Bước 8: Frontend chuyển User sang màn hình phòng họp trực tuyến.
+
+Phase B: Mở phiên ghi âm
+
+Bước 9: User cấp quyền micro và bấm "Bắt đầu ghi âm" trên Frontend.
+
+Bước 10: Frontend gửi yêu cầu mở phiên ghi âm cho cuộc họp đến Backend.
+
+Bước 11: Backend tự xác thực người dùng, kiểm tra cuộc họp còn hợp lệ và chưa vượt giới hạn số phiên.
+
+Bước 12: Backend cấp phát vùng nhớ tạm trên Redis để đệm nội dung transcript của phiên.
+
+Bước 13: Backend xác nhận phiên đã sẵn sàng cho Frontend.
+
+Bước 14: Frontend hiển thị trạng thái "Đang ghi âm trực tiếp" cho User.
+
+Phase C: Ghi âm & hiển thị biên bản theo thời gian thực (lặp lại liên tục trong suốt lúc ghi âm)
+
+Bước 15: Frontend gửi liên tục âm thanh thu được từ micro đến Backend.
+
+Bước 16: Backend tự phát hiện khi một câu nói vừa kết thúc (dựa vào khoảng lặng).
+
+Bước 17: Backend gửi đoạn âm thanh vừa cắt được đến AI Service để chuyển thành văn bản và nhận diện người nói.
+
+Bước 18: AI Service trả về nội dung văn bản và đặc trưng giọng nói của đoạn đó cho Backend.
+
+Bước 19: Backend tự xác định đây là người nói nào (so với những người đã nói trước đó trong cuộc họp).
+
+Bước 20: Backend lưu tạm khối văn bản vừa nhận diện được vào Redis.
+
+Bước 21: Backend gửi khối văn bản mới vừa xử lý xong đến Frontend.
+
+Bước 22: Frontend hiển thị ngay câu nói vừa được chuyển thành chữ cho User.
+
+(Bước 15–22 lặp lại liên tục cho tới khi kết thúc cuộc họp.)
+
+(Tùy chọn) Chỉnh sửa tên người nói ngay trong lúc họp
+
+Bước 23: User đổi tên một người nói trong danh sách trên Frontend.
+
+Bước 24: Frontend gửi yêu cầu đổi tên người nói đến Backend.
+
+Bước 25: Backend cập nhật lại tên cho các đoạn đã ghi nhận trước đó trên Redis.
+
+Bước 26: Backend xác nhận đã đổi tên thành công cho Frontend.
+
+Bước 27: Frontend hiển thị tên mới đổi cho các phát biểu của người đó cho User.
+
+Phase D: Kết thúc cuộc họp
+
+Bước 28: User bấm "Kết thúc cuộc họp" trên Frontend.
+
+Bước 29: Frontend gửi yêu cầu kết thúc phiên ghi âm đến Backend.
+
+Bước 30: Backend lấy toàn bộ nội dung biên bản đã tạm lưu trong phiên từ Redis.
+
+Bước 31: Redis trả về toàn bộ nội dung cho Backend.
+
+Bước 32: Backend lưu chính thức toàn bộ biên bản cuộc họp vào PostgreSQL.
+
+Bước 33: PostgreSQL xác nhận đã lưu cho Backend.
+
+Bước 34: Backend tự chuyển đổi file âm thanh sang định dạng chuẩn để phát lại.
+
+Bước 35: Backend tải file âm thanh hoàn chỉnh lên MinIO.
+
+Bước 36: MinIO trả về đường dẫn lưu trữ vĩnh viễn cho Backend.
+
+Bước 37: Backend cập nhật cuộc họp sang trạng thái "Hoàn tất" kèm đường dẫn âm thanh vào PostgreSQL.
+
+Bước 38: PostgreSQL xác nhận cập nhật thành công cho Backend.
+
+Bước 39: Backend tự gửi thông báo "Biên bản cuộc họp đã sẵn sàng" tới toàn bộ phòng ban.
+
+Bước 40: Backend xác nhận đã kết thúc và lưu trữ xong cho Frontend.
+
+Bước 41: Frontend đóng phiên và đưa User quay về danh sách cuộc họp.
+
+Hình 4. Biểu đồ tuần tự chức năng tạo phiên họp trực tuyến và chuyển đổi cuộc họp thời gian thực
+
+1.4.2 Chức năng lõi 2: Tạo phiên họp bằng cách tải lên file audio
+
+Phase A: Khởi tạo cuộc họp & cấp đường dẫn tải file
+
+Bước 1: User chọn chế độ "Upload", điền thông tin cuộc họp, chọn file âm thanh và bấm "Tạo" trên Frontend.
+
+Bước 2: Frontend gửi yêu cầu khởi tạo cuộc họp từ file audio đến Backend.
+
+Bước 3: Backend tự xác thực người dùng và kiểm tra định dạng/dung lượng file hợp lệ.
+
+Bước 4: Backend lưu cuộc họp mới với trạng thái "Đang xử lý" vào PostgreSQL.
+
+Bước 5: PostgreSQL xác nhận đã lưu cho Backend.
+
+Bước 6: Backend yêu cầu MinIO cấp một đường dẫn tải file tạm thời (có thời hạn).
+
+Bước 7: MinIO trả về đường dẫn tải file tạm thời cho Backend.
+
+Bước 8: Backend trả về thông tin cuộc họp kèm đường dẫn tải file cho Frontend.
+
+Phase B: Tải file âm thanh lên kho lưu trữ
+
+Bước 9: Frontend tải file âm thanh trực tiếp lên MinIO bằng đường dẫn đã được cấp.
+
+Bước 10: MinIO báo tiến trình tải lên và xác nhận cho Frontend khi hoàn tất.
+
+Phase C: Kích hoạt xử lý nền
+
+Bước 11: Frontend báo Backend đã tải file xong, yêu cầu bắt đầu xử lý bóc băng.
+
+Bước 12: Backend tự kiểm tra cuộc họp hợp lệ và đưa cuộc họp vào hàng đợi xử lý nền.
+
+Bước 13: Backend tự gửi thông báo tới các thành viên phòng ban về cuộc họp mới.
+
+Bước 14: Backend xác nhận yêu cầu xử lý đã được tiếp nhận cho Frontend.
+
+Bước 15: Frontend đóng form và hiển thị cuộc họp với trạng thái "Đang xử lý" cho User.
+
+Phase D: Xử lý bóc băng ở nền
+
+Bước 16: Backend tự lấy một cuộc họp đang chờ xử lý từ hàng đợi.
+
+Bước 17: Backend tải file âm thanh gốc về từ MinIO để xử lý.
+
+Bước 18: MinIO trả về file âm thanh gốc cho Backend.
+
+Bước 19: Backend tự chuẩn hóa định dạng âm thanh và cắt thành từng câu nói theo khoảng lặng.
+
+Bước 20: Backend gửi các câu nói trong từng lô đến AI Service để chuyển thành văn bản và nhận diện người nói.
+
+Bước 21: AI Service trả về văn bản và đặc trưng giọng nói tương ứng cho Backend.
+
+Bước 22: Backend tự xác định người nói cho từng câu (so với những người đã nhận diện trước đó).
+
+Bước 23: Backend cập nhật tiến độ xử lý của cuộc họp trên Redis.
+
+(Bước 16–23 lặp lại theo từng lô cho tới khi xử lý xong toàn bộ file.)
+
+Bước 24: Backend lưu toàn bộ nội dung biên bản đã xử lý xong vào PostgreSQL.
+
+Bước 25: PostgreSQL xác nhận đã lưu cho Backend.
+
+Phase E: Hoàn tất & thông báo
+
+Bước 26: Backend cập nhật cuộc họp sang trạng thái "Hoàn tất" trên PostgreSQL.
+
+Bước 27: PostgreSQL xác nhận cập nhật thành công cho Backend.
+
+Bước 28: Backend tự gửi thông báo "Biên bản cuộc họp đã sẵn sàng" tới toàn bộ phòng ban.
+
+Bước 29: Backend xóa tiến độ xử lý đã lưu cho cuộc họp trên Redis.
+
+Phase F: Theo dõi tiến độ xử lý (song song Phase D–E)
+
+Bước 30: Frontend hỏi Backend tiến độ xử lý hiện tại của cuộc họp.
+
+Bước 31: Backend đọc tiến độ đã lưu từ Redis.
+
+Bước 32: Redis trả về tiến độ hiện tại cho Backend.
+
+Bước 33: Backend trả về tiến độ xử lý cho Frontend.
+
+Bước 34: Frontend hiển thị thanh tiến độ cho User; khi hoàn tất thì hiển thị transcript đầy đủ.
+
+(Bước 30–34 lặp lại định kỳ trong suốt thời gian cuộc họp còn ở trạng thái "Đang xử lý".)
+
+Hình 5. Biểu đồ tuần tự chức năng tạo phiên họp bằng cách tải lên file audio
+
+1.4.3 Chức năng lõi 3: Tự động kết nối lại khi gặp mất kết nối trong phiên họp trực tuyến
+
+Tiền điều kiện: phiên họp Live đang diễn ra bình thường (tương ứng Phase C của Sequence Diagram 1). Luồng dưới đây bắt đầu khi kết nối giữa Frontend và Backend bất ngờ bị gián đoạn.
+
+Phase A: Phát hiện mất kết nối (Frontend và Backend độc lập tự phát hiện)
+
+Bước 1: Frontend tự phát hiện kết nối tới Backend bị mất.
+
+Bước 2: Frontend hiển thị banner "Mất kết nối, đang thử kết nối lại..." cho User.
+
+Bước 3: Frontend vẫn tiếp tục ghi âm, tạm giữ âm thanh trong bộ nhớ cục bộ.
+
+Bước 4: Frontend lưu tạm trạng thái phiên họp hiện tại để không bị mất nếu tải lại trang.
+
+Bước 5: Frontend tự hẹn thử kết nối lại sau vài giây.
+
+(Song song, phía Backend cũng tự xử lý:)
+
+Bước 6: Backend tự phát hiện Frontend vừa mất kết nối.
+
+Bước 7: Backend đặt thời hạn chờ cho phiên trên Redis (chờ Frontend kết nối lại trong một khoảng thời gian nhất định).
+
+Bước 8: Backend tự hẹn một tác vụ tự động kết thúc phiên nếu quá thời hạn mà không thấy kết nối lại.
+
+Kiểm tra: Frontend có kết nối lại kịp trước khi hết thời hạn chờ không?
+
+Nhánh Có — Frontend kết nối lại thành công (Phase B)
+
+Bước 9: Frontend kết nối lại và gửi kèm vị trí nội dung cuối cùng đã nhận được đến Backend.
+
+Bước 10: Backend tự xác thực lại người dùng.
+
+Bước 11: Backend tự hủy tác vụ tự động kết thúc phiên đang chờ.
+
+Bước 12: Backend kiểm tra thời hạn chờ của phiên trên Redis còn hiệu lực hay không.
+
+Bước 13: Redis xác nhận phiên vẫn còn hiệu lực cho Backend.
+
+Bước 14: Backend lấy các nội dung biên bản đã xử lý nhưng Frontend chưa nhận được từ Redis.
+
+Bước 15: Redis trả về các nội dung còn thiếu cho Backend.
+
+Bước 16: Backend xác nhận kết nối lại thành công, kèm các nội dung còn thiếu cho Frontend.
+
+Bước 17: Frontend hiển thị ngay các nội dung bị thiếu cho User, đổi banner thành "Đang đồng bộ dữ liệu...".
+
+(Lặp lại cho tới khi gửi hết âm thanh đã tạm giữ trong lúc mất kết nối:)
+
+Bước 18: Frontend gửi phần âm thanh đã tạm giữ trong lúc mất kết nối đến Backend.
+
+Bước 19: Backend tự phát hiện khi một câu nói vừa kết thúc.
+
+Bước 20: Backend gửi đoạn âm thanh đến AI Service để chuyển thành văn bản và nhận diện người nói.
+
+Bước 21: AI Service trả về văn bản và đặc trưng giọng nói cho Backend.
+
+Bước 22: Backend tự xác định người nói cho câu vừa nhận dạng.
+
+Bước 23: Backend lưu tạm nội dung vừa xử lý vào Redis.
+
+Bước 24: Backend gửi nội dung mới vừa xử lý xong đến Frontend.
+
+Bước 25: Frontend hiển thị nội dung mới cho User; khi hết dữ liệu tồn đọng thì tự ẩn banner đồng bộ.
+
+(Khi đã gửi hết dữ liệu tồn đọng, hệ thống coi như đã đồng bộ xong và tiếp tục ghi âm bình thường như Phase C của Sequence Diagram 1, không còn khác biệt gì thêm.)
+
+Nhánh Không — Hết thời hạn chờ mà Frontend vẫn chưa kết nối lại được (Phase C)
+
+Bước 26: Backend tự kích hoạt tác vụ tự động kết thúc phiên do quá thời hạn chờ.
+
+Bước 27: Backend kiểm tra lại trên Redis xem Frontend đã kết nối lại trước đó chưa (nếu rồi thì bỏ qua).
+
+Bước 28: Backend tự động chốt phiên họp, giống như khi User chủ động bấm "Kết thúc cuộc họp".
+
+(Từ đây, luồng xử lý tiếp diễn giống hệt Phase D của Sequence Diagram 1 — lưu biên bản, tải file âm thanh lên kho lưu trữ, cập nhật trạng thái cuộc họp thành "Hoàn tất" và gửi thông báo — chỉ khác nguyên nhân kích hoạt là do hết thời hạn chờ, thay vì User chủ động kết thúc.)
+
+Hình 6. Biểu đồ tuần tự chức năng tự động kết nối lại khi gặp mất kết nối trong phiên họp trực tuyến
+
+2. Thiết kế Frontend
+
+2.1. Cấu trúc tổng thể giao diện website
+
+Giao diện của phân hệ MP2 được xây dựng trên nền tảng Next.js 16 kết hợp React 19, theo mô hình ứng dụng render kết hợp giữa phía máy chủ và phía trình duyệt (SSR/CSR) thay vì một SPA thuần túy — lựa chọn này cho phép hệ thống định tuyến theo cấu trúc thư mục sẵn có của framework, đồng thời rút ngắn thời gian tải trang ban đầu. Toàn bộ trạng thái dùng chung của ứng dụng (phiên đăng nhập, hồ sơ người dùng) được quản lý bằng Context kết hợp Hook thông thường của React, không sử dụng thêm thư viện quản lý trạng thái bên thứ ba; tương tự, việc gọi dữ liệu cũng được xử lý qua một lớp bao bọc (wrapper) tự xây dựng thay vì các thư viện fetch chuyên dụng. Cách tiếp cận tối giản này giúp giảm số lượng phụ thuộc ngoài, thuận lợi cho việc bảo trì và giúp thành viên mới của nhóm dễ dàng nắm bắt luồng dữ liệu mà không phải học thêm quy ước riêng của một thư viện quản lý trạng thái.
+
+Về mặt bố cục, giao diện được chia thành hai nhóm trang có cấu trúc khác nhau tùy theo đặc thù nghiệp vụ. Nhóm thứ nhất dùng chung một khung hiển thị (Shell Layout) gồm thanh điều hướng bên trái (Sidebar), thanh tiêu đề phía trên (Header) và vùng nội dung chính ở giữa — áp dụng cho các trang mang tính quản lý và tra cứu như danh sách cuộc họp, thống kê, quản lý người dùng, quản lý phòng ban và trang cá nhân. Sidebar không hiển thị đồng nhất cho mọi tài khoản mà được lọc động theo vai trò: các mục mang tính quản trị hệ thống (Thống kê, Quản lý người dùng, Quản lý phòng ban) chỉ xuất hiện với tài khoản Quản trị viên, trong khi tài khoản người dùng thường chỉ nhìn thấy hai mục "Cuộc họp" và "Cá nhân". Nhóm thứ hai gồm hai trang đặc biệt — màn hình ghi âm trực tiếp và màn hình chi tiết một cuộc họp — được thiết kế độc lập, không mang khung Sidebar/Header, nhằm tận dụng tối đa diện tích màn hình cho trải nghiệm ghi âm và đọc lại biên bản, vốn là hai nghiệp vụ đòi hỏi sự tập trung cao của người dùng.
+
+Việc kiểm soát quyền truy cập giao diện được thực hiện ở hai lớp phối hợp với nhau. Lớp thứ nhất nằm ở tầng trung gian (middleware) chạy trước khi bất kỳ trang nào được tải: nếu trình duyệt không mang theo cookie phiên đăng nhập, người dùng lập tức bị điều hướng về trang đăng nhập mà không cần tải nội dung trang đích. Lớp thứ hai nằm ngay trong Sidebar, quyết định mục menu nào được hiển thị theo vai trò tài khoản. Điều quan trọng cần lưu ý là cả hai lớp này chỉ đóng vai trò cải thiện trải nghiệm và ngăn truy cập ở mức bề mặt; việc xác thực chữ ký và thời hạn của token, cũng như việc kiểm tra quyền hạn cho từng thao tác cụ thể, đều do phía máy chủ đảm nhiệm — giao diện không phải là nơi đặt niềm tin về bảo mật.
+
+Việc giao tiếp giữa giao diện và máy chủ được tập trung qua một tầng trung gian duy nhất, đảm nhiệm việc tự động đính kèm thông tin xác thực vào mỗi yêu cầu, bóc tách dữ liệu trả về theo một khuôn dạng phản hồi thống nhất, và tự động xin cấp lại quyền truy cập khi phiên làm việc hết hạn mà không làm gián đoạn thao tác của người dùng. Đối với các nghiệp vụ đòi hỏi cập nhật tức thời — ghi âm trực tiếp và thông báo hệ thống — giao diện duy trì thêm các kết nối hai chiều riêng biệt tới máy chủ, chạy song song với các yêu cầu tra cứu thông thường.
+
+Về mặt hình ảnh, hệ thống áp dụng một bộ quy chuẩn thiết kế thống nhất xuyên suốt mọi màn hình — bảng màu thương hiệu, hệ thống chữ, khoảng cách và các trạng thái màu biểu thị kết quả xử lý (thành công, cảnh báo, thông tin) — được định nghĩa tập trung và tái sử dụng cho toàn bộ thành phần giao diện. Các thành phần tương tác dùng chung (hộp thoại, ô chọn, menu thả xuống, ảnh đại diện...) không được xây dựng từ đầu mà kế thừa từ một tập hợp thành phần nguyên thủy đã qua kiểm chứng về khả năng truy cập, sau đó được tùy biến lại theo bộ nhận diện riêng của hệ thống. Cách làm này giúp giao diện giữ được sự nhất quán về mặt thị giác giữa các trang có chức năng rất khác nhau — từ màn hình ghi âm nhiều chuyển động thời gian thực cho đến các bảng biểu thống kê tĩnh — mà không tốn công thiết kế lại từ đầu cho mỗi màn hình mới.
+
+2.2. Thiết kế giao diện website
+
+2.2.1. Giao diện trước khi đăng nhập
+
+Hình 7. Giao diện màn hình đăng nhập
+
+Hình 8. Giao diện màn hình chức năng quên mật khẩu (bước 1)
+
+Hình 9. Giao diện màn hình chức năng quên mật khẩu (bước 2)
+
+Hình 10. Giao diện màn hình chức năng quên mật khẩu (bước 3)
+
+ 
+
+2.2.2. Giao diện của vai trò User
+
+Hình 11. Giao diện màn hình quản lý cuộc họp (giới hạn trong phòng ban của User) 
+
+Hình 12. Giao diện màn hình quản lý thông tin cá nhân
+
+ 
+
+Hình 13. Giao diện màn hình chi tiết cuộc họp 
+
+Hình 14. Giao diện màn hình điều phối phiên họp trực tuyến
+
+2.2.3. Giao diện của vai trò Admin
+
+Ngoài các màn hình quản lý thông tin cá nhân, màn hình điều phối phiên họp trực tuyến và màn hình chi tiết cuộc họp, thì vai trò Admin còn tương tác với các giao diện sau:
+
+Hình 15. Giao diện màn hình quản lý cuộc họp toàn hệ thống 
+
+Hình 16. Giao diện màn hình xem dashboard thống kê (1)
+
+ 
+
+Hình 17. Giao diện màn hình xem dashboard thống kê (2)
+
+Hình 18. Giao diện màn hình quản lý tài khoản người dùng hệ thống
+
+ 
+
+Hình 19. Giao diện màn hình quản lý cấu trúc phòng ban
+
+3. Triển khai đóng gói trên Docker
+
+3.1. Môi trường triển khai
+
+Hệ thống được đóng gói và triển khai trên nền tảng Docker, giúp chuẩn hóa môi trường thực thi giữa máy phát triển và máy chủ triển khai, đồng thời đơn giản hóa quá trình cài đặt, cấu hình và mở rộng các dịch vụ của hệ thống ghi âm & bóc băng biên bản cuộc họp thời gian thực.
+
+3.1.1. Môi trường phần mềm
+
+Hệ điều hành: Ubuntu Server (môi trường triển khai production); Windows 10/11 hoặc macOS (môi trường phát triển).
+
+Ngôn ngữ lập trình: TypeScript cho toàn bộ hệ thống (Backend NestJS và Frontend Next.js)
+
+Backend: NestJS, TypeORM, Socket.IO (WebSocket Gateway cho Live STT và Notifications), BullMQ (hàng đợi tác vụ nền), Passport-JWT (xác thực), PDFKit (xuất biên bản PDF).
+
+Frontend: Next.js 16 (App Router, SSR), React 19, TailwindCSS, Shadcn/UI (Radix Primitives), Socket.IO Client.
+
+Xử lý âm thanh: FFmpeg (chuyển đổi PCM/WebM sang WAV 16kHz mono qua fluent-ffmpeg), energy-based VAD (phát hiện khoảng lặng).
+
+Dịch vụ bên ngoài: tích hợp Viettel AI (ASR Sherpa cho Speech-to-Text, Speaker Embedding cho phân biệt người nói) và Google Gemini (gemini-3.5-flash) sinh tóm tắt nội dung cuộc họp
+
+Cơ sở dữ liệu: PostgreSQL 16 lưu trữ dữ liệu quan hệ (Meeting, User, Department, TranscriptBlock, MeetingSummary…).
+
+Cache, Message Broker & Session tạm thời: Redis — đóng vai trò buffer transcript realtime, session registry cho Live STT, và backend cho hàng đợi BullMQ.
+
+Object Storage: MinIO (tương thích S3) — lưu trữ file ghi âm hoàn chỉnh, avatar người dùng, file PDF biên bản.
+
+Triển khai ứng dụng: Docker, Docker Compose và Nginx (reverse proxy, SSL termination, route /api, /socket.io, đối tượng lưu trữ và giao diện Frontend).
+
+3.1.2. Môi trường phần cứng
+
+Máy chủ triển khai: CPU đa nhân, RAM tối thiểu 8GB nhằm đáp ứng việc vận hành đồng thời các container Backend, Frontend, PostgreSQL, Redis, MinIO và Nginx, đặc biệt khi có nhiều phiên Live STT chạy song song giữa các phòng ban.
+
+Lưu trữ: Dung lượng ổ đĩa đủ lớn để lưu file ghi âm tạm thời (local) trong lúc cuộc họp đang diễn ra trước khi được nén và đẩy lên MinIO khi kết thúc phiên.
+
+Kết nối mạng: Đường truyền Internet ổn định để đảm bảo độ trễ thấp khi gọi API Speech-to-Text/Speaker Embedding của Viettel API AI trong luồng xử lý âm thanh thời gian thực và Google Gemini khi tóm tắt biên bản cuộc họp.
+
+3.2. Quy trình triển khai và thử nghiệm
+
+Toàn bộ hệ thống được container hóa và quản lý thông qua Docker Compose. Các dịch vụ nền tảng — PostgreSQL, Redis và MinIO — được khởi tạo trước; một container khởi tạo một lần (minio-setup) tự động tạo bucket lưu trữ và cấu hình CORS cho phép trình duyệt thực hiện upload trực tiếp qua pre-signed URL.
+
+Backend được xây dựng theo mô hình multi-stage build trên nền tảng Node.js: giai đoạn build biên dịch TypeScript sang JavaScript, giai đoạn runtime chỉ cài đặt dependency production và tích hợp sẵn FFmpeg để phục vụ chuyển đổi định dạng âm thanh. Khi container khởi động, entrypoint tự động chạy migration TypeORM để đồng bộ schema trước khi ứng dụng NestJS khởi động, sau đó kết nối tới PostgreSQL, Redis và MinIO, khởi tạo các worker BullMQ (gửi email OTP/đặt lại mật khẩu, sinh tóm tắt AI), đồng thời cung cấp REST API và hai namespace WebSocket (/live cho streaming audio realtime, /notifications cho thông báo theo phòng ban).
+
+Frontend được biên dịch và chạy dưới dạng container Node.js độc lập (next start), do ứng dụng sử dụng Server-Side Rendering và middleware xác thực (đọc cookie access_token để bảo vệ route) nên không thể triển khai như site tĩnh thuần túy.
+
+Nginx đóng vai trò reverse proxy phía trước, đảm nhiệm:
+
+Chấm dứt SSL (SSL termination) tại cổng 443, tự động chuyển hướng HTTP → HTTPS.
+
+Định tuyến /api/* và /socket.io/* (kèm nâng cấp giao thức Upgrade/Connection cho WebSocket) đến Backend.
+
+Định tuyến /mp2-bucket/* đến MinIO để phục vụ truy xuất file âm thanh/PDF/avatar.
+
+Định tuyến các route giao diện còn lại đến Frontend.
+
+Quá trình thử nghiệm tập trung vào các nội dung chính sau:
+
+Kiểm tra khả năng khởi động và kết nối giữa các container (Backend, Frontend, PostgreSQL, Redis, MinIO, Nginx) trong cùng mạng Docker nội bộ.
+
+Đánh giá tính ổn định của luồng Live STT realtime qua WebSocket: streaming audio chunk, VAD tách khoảng lặng, gọi Viettel AI Speech-to-Text, ghi transcript block tuần tự vào Redis buffer rồi đồng bộ xuống PostgreSQL.
+
+Kiểm tra cơ chế phân biệt người nói (Speaker Diarization) qua Viettel AI Speaker Embedding, đối chiếu với speaker_registry.
+
+Đánh giá khả năng xử lý đồng thời nhiều phiên họp Live giữa các phòng ban khác nhau mà không xung đột dữ liệu.
+
+Kiểm tra hoạt động các tác vụ nền BullMQ: gửi email OTP/thông báo, sinh tóm tắt AI, và cơ chế upload file ghi âm hoàn chỉnh lên MinIO khi kết thúc phiên (kèm xóa file tạm local).
+
+Kiểm tra cấu hình Nginx: SSL termination, redirect HTTP → HTTPS, định tuyến đúng route REST/WebSocket/Object Storage/Frontend.
+
+Kết quả thử nghiệm cho thấy các thành phần của hệ thống hoạt động ổn định trong môi trường Docker, đáp ứng yêu cầu về khả năng triển khai, trao đổi dữ liệu thời gian thực giữa các dịch vụ, và hỗ trợ vận hành hệ thống trên một kiến trúc gồm nhiều container độc lập đặt sau lớp reverse proxy Nginx.
+
+4. Mã nguồn dự án
+
+Link github: https://github.com/Do-Trung-Quan/VDT26-vSM-Platform.git
+
+IV. Kết luận
+
+1. Tóm tắt kết quả đạt được
+
+Qua quá trình xây dựng và triển khai, phân hệ chuyển đổi nội dung biên bản họp theo thời gian thực thuộc Hệ thống biên tập và đồng bộ biên bản họp cộng tác vSpeechMind đã hoàn thành đầy đủ các mục tiêu cốt lõi đề ra ban đầu. Hệ thống đã xây dựng thành công một nền tảng hoàn chỉnh phục vụ việc ghi âm, chuyển đổi giọng nói thành văn bản và quản lý biên bản cuộc họp cho nền tảng vSM. Hệ thống hỗ trợ song song hai luồng nghiệp vụ cốt lõi: ghi âm trực tiếp với transcript hiển thị tức thời theo thời gian thực, và bóc băng file audio tải lên xử lý ở chế độ nền, cả hai đều tích hợp dịch vụ AI của Viettel để chuyển đổi giọng nói và nhận diện người nói.
+
+Về mặt hiện thực hóa, phần Backend đã được xây dựng hoàn chỉnh theo kiến trúc Modular Monolith kết hợp Domain-Driven Design với 6 module nghiệp vụ độc lập, đảm bảo đầy đủ các nghiệp vụ đã cam kết: xác thực và phân quyền hai cấp, quản lý người dùng và phòng ban, ghi âm trực tiếp với chuyển đổi giọng nói và phân định người nói theo thời gian thực, bóc băng file tải lên theo lô ở chế độ nền, cơ chế tự động khôi phục kết nối khi mạng gián đoạn, tóm tắt biên bản bằng AI, xuất PDF, và hệ thống thông báo thời gian thực. Phần Frontend cũng đã hoàn thiện đầy đủ các màn hình tương ứng, từ giao diện quản lý dùng chung đến hai màn hình chuyên biệt cho ghi âm trực tiếp và xem chi tiết biên bản. Toàn bộ backend cùng hạ tầng dữ liệu (PostgreSQL, Redis, MinIO) đã được đóng gói và vận hành ổn định trong môi trường Docker.
+
+2. Đánh giá kết quả
+
+Kết quả triển khai cho thấy hệ thống đáp ứng tốt các yêu cầu đặt ra về cả chức năng và hiệu năng. Cơ chế đệm dữ liệu bằng Redis kết hợp giao tiếp thời gian thực qua WebSocket giúp nội dung transcript được hiển thị gần như tức thời trong lúc ghi âm, trong khi cơ chế tự động kết nối lại đảm bảo không thất thoát dữ liệu biên bản khi đường truyền mạng bị gián đoạn tạm thời - hai yếu tố then chốt quyết định trải nghiệm thực tế của một hệ thống ghi âm thời gian thực.
+
+Giao diện người dùng được xây dựng trên nền tảng Next.js kết hợp React, hỗ trợ đầy đủ các luồng thao tác từ ghi âm, tra cứu, xem lại biên bản, tóm tắt bằng AI, xuất PDF đến thống kê trực quan cho vai trò quản trị. Việc tách riêng các trang chuyên biệt (ghi âm trực tiếp, xem chi tiết biên bản) khỏi khung điều hướng chung giúp tối ưu trải nghiệm cho từng nhóm nghiệp vụ.
+
+Về bảo mật, hệ thống áp dụng xác thực hai lớp bằng JSON Web Token kết hợp mô hình phân quyền theo vai trò (User, Admin) cùng ràng buộc phạm vi dữ liệu theo phòng ban, đảm bảo mỗi tài khoản chỉ truy cập đúng phạm vi thông tin được cấp phép.
+
+3. Hướng phát triển
+
+Trong thời gian tới, hệ thống có thể được nâng cấp cơ chế phát hiện hoạt động giọng nói (VAD) theo hướng ứng dụng AI/ML chuyên sâu hơn thay vì chỉ dựa vào ngưỡng khoảng lặng cố định như hiện tại, kết hợp thêm kỹ thuật lọc nhiễu nền trước khi đưa audio vào xử lý, giúp cải thiện chất lượng nhận dạng trong môi trường họp có tạp âm và nhiều người nói chồng tiếng, đồng thời phân đoạn câu nói chính xác hơn trong các cuộc trao đổi có nhịp độ nhanh.
+
+Bên cạnh đó, hệ thống tiếp tục bổ sung các tính năng nghiệp vụ mới nhằm nâng cao giá trị sử dụng, như tìm kiếm toàn văn trên nội dung biên bản, tự động trích xuất danh sách công việc và người phụ trách từ bản tóm tắt AI, hỗ trợ đa ngôn ngữ cho các cuộc họp quốc tế, cũng như tăng cường liên kết nghiệp vụ với hai phân hệ còn lại của nền tảng vSM để hướng tới một hệ sinh thái quản lý cuộc họp hoàn chỉnh.
+
+TÀI LIỆU THAM KHẢO
+
+1. Tài liệu về nền tảng công nghệ
+
+[1] NestJS Core Team, “Documentation | NestJS — A progressive Node.js framework,” NestJS Documentation. [Online]. Available: https://docs.nestjs.com/
+
+[2] Taskforce.sh, “What is BullMQ,” BullMQ Documentation. [Online]. Available: https://docs.bullmq.io/
+
+[3] I. Fette and A. Melnikov, “The WebSocket Protocol,” RFC 6455, Internet Engineering Task Force (IETF), Dec. 2011. [Online]. Available: https://datatracker.ietf.org/doc/html/rfc6455
+
+[4] Socket.IO Team, “Socket.IO Documentation.” [Online]. Available: https://socket.io/docs/v4/
+
+[5] Vercel, “Next.js Docs.” [Online]. Available: https://nextjs.org/docs
+
+[6] Meta, “React.” [Online]. Available: https://react.dev/
+
+[7] WorkOS, “Radix UI.” [Online]. Available: https://www.radix-ui.com/
+
+[8] Redis Ltd., “Redis Docs.” [Online]. Available: https://redis.io/docs/latest/
+
+[9] MinIO, Inc., “MinIO Documentation.” [Online]. Available: https://docs.min.io/
+
+[10] Docker, Inc., “Docker Docs.” [Online]. Available: https://docs.docker.com/
+
+[11] Nginx, Inc., “nginx documentation.” [Online]. Available: https://nginx.org/en/docs/
+
+[12] FFmpeg Project, “FFmpeg Documentation.” [Online]. Available: https://ffmpeg.org/documentation.html
+
+[13] Google, “Gemini API | Google AI for Developers.” [Online]. Available: https://ai.google.dev/gemini-api/docs
+
+2. Tài liệu về cơ sở lý thuyết kiến trúc và thuật toán
+
+[14] E. Evans, Domain-Driven Design: Tackling Complexity in the Heart of Software. https://fabiofumarola.github.io/nosql/readingMaterial/Evans03.pdf
+
+[15] T. J. Park, N. Kanda, D. Dimitriadis, K. J. Han, S. Watanabe, and S. Narayanan, “A review of speaker diarization: Recent advances with deep learning,” https://www.sciencedirect.com/science/article/abs/pii/S0885230821001121

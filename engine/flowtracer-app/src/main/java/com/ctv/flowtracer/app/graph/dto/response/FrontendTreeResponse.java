@@ -11,4 +11,10 @@ import java.util.List;
  * @param elementCount số phần tử tương tác
  * @param apps các ứng dụng, sắp theo tên
  */
-public record FrontendTreeResponse(int appCount, int screenCount, int elementCount, List<UiTreeNodeResponse> apps) {}
+public record FrontendTreeResponse(int appCount, int screenCount, int elementCount, List<UiTreeNodeResponse> apps) {
+
+    /** Bản có tên chuẩn do AI đặt cho các phần tử (key phần tử → tên). */
+    public FrontendTreeResponse withAiLabels(java.util.Map<String, String> names) {
+        return new FrontendTreeResponse(appCount, screenCount, elementCount, apps.stream().map(a -> a.withAiLabels(names)).toList());
+    }
+}

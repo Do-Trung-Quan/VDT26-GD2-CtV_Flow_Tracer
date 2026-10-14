@@ -29,8 +29,8 @@ import { codeLines } from './explanation-model';
           <span class="pill p-gray">Chỉ đọc</span>
         </div>
         <div class="codev" tabindex="0" aria-label="Mã nguồn chỉ đọc">
-          @for (l of lines(); track l.n) {
-            <div [class.hl]="l.hl"><i>{{ l.n }}</i>{{ l.text || ' ' }}</div>
+          @for (l of lines(); track $index) {
+            <div [class.hl]="l.hl" [class.gap]="l.gap"><i>{{ l.gap ? '' : l.n }}</i>{{ l.text || ' ' }}</div>
           }
         </div>
       } @else {
@@ -48,6 +48,7 @@ import { codeLines } from './explanation-model';
     .codev div { display: flex; white-space: pre; padding-right: 14px; }
     .codev div i { flex: none; width: 44px; text-align: right; padding-right: 12px; color: #64748b; font-style: normal; user-select: none; }
     .codev div.hl { background: rgba(185, 0, 14, 0.35); }
+    .codev div.gap { color: #64748b; background: rgba(148, 163, 184, 0.12); }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })

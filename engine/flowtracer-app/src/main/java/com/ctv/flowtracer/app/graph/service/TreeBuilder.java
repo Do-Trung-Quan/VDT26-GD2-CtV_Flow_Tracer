@@ -157,6 +157,7 @@ final class TreeBuilder {
                 app ? sourceNames.get(row.sourceId()) : null,
                 node.location() == null ? null : node.location().filePath(),
                 node.location() == null ? null : node.location().startLine(),
+                null,
                 List.copyOf(kids));
     }
 
